@@ -79,15 +79,20 @@ export function Dashboard() {
           </div>
         </details>
 
+        <details className="section" open>
+          <summary><span className="section-index">05</span><div className="section-title"><h3>Travaux à faire</h3><p>Maison, jardin, patio et oliviers : suivre ce qui reste à faire.</p></div><small className="badge">26 travaux</small></summary>
+          <div className="section-body"><article className="card"><span className="pill">TRAVAUX</span><h4>Liste opérationnelle de la finca</h4><p>Chaque travail possède une zone, une priorité, un statut et une zone de notes.</p><a className="btn" href="/?view=cortijo-travaux">Ouvrir les travaux à faire</a></article></div>
+        </details>
+
         <details className="section">
-          <summary><span className="section-index">05</span><div className="section-title"><h3>Maison</h3><p>Pièces, fonctionnement, ménage, couchages et présences.</p></div><small className="badge">Maison</small></summary>
+          <summary><span className="section-index">06</span><div className="section-title"><h3>Maison</h3><p>Pièces, fonctionnement, ménage, couchages et présences.</p></div><small className="badge">Maison</small></summary>
           <div className="section-body"><article className="card"><span className="pill">MAISON</span><h4>Visiter et gérer la maison</h4><p>Module séparé de l'exploitation agricole.</p><a className="btn" href="/?view=cortijo-maison">Ouvrir la Maison</a></article></div>
         </details>
       </div>
 
       <footer className="footer-nav">
         <div><strong>Synthèse</strong><p className="muted">Version courte de la frise, des chiffres, de l'analyse et de la stratégie.</p></div>
-        <div className="footer-links"><a href="/?view=cortijo-famille">Ouvrir la synthèse</a><a href="/?view=cortijo-memoire&contact=san-juan">Dossiers & actions</a></div>
+        <div className="footer-links"><a href="/?view=cortijo-travaux">Travaux à faire</a><a href="/?view=cortijo-famille">Ouvrir la synthèse</a><a href="/?view=cortijo-memoire&contact=san-juan">Dossiers & actions</a></div>
       </footer>
     </main>
   );
