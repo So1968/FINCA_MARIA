@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { deletePendingChunk, listPendingChunks, savePendingChunk } from "../lib/meetingAudioStore.js";
 import "../meetings.css";
 import HistoricMeetingImport from "./HistoricMeetingImport.jsx";
+import MeetingDecisionRegister from "./MeetingDecisionRegister.jsx";
 
 const STAGES = ["Ouverture", "Participants", "Contexte", "Ordre du jour", "Échanges", "Validation", "Clôture"];
 const RECORDING_NOTICE = "Cette réunion peut être enregistrée pour conserver une mémoire familiale fidèle. L’audio reste dans le stockage privé de FINCA MARIA. Être cité comme participant ne donne pas automatiquement accès au fichier.";
@@ -113,6 +114,7 @@ export default function FincaMeetingsHub() {
   const [preparation, setPreparation] = useState(emptyPreparation);
   const [newMode, setNewMode] = useState(false);
   const [historicMode, setHistoricMode] = useState(false);
+  const [registerMode, setRegisterMode] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -708,11 +710,12 @@ export default function FincaMeetingsHub() {
 
       <div className="meetingLayout">
         <aside className="meetingSidebar">
-          <div className="meetingSidebarHead"><strong>Réunions</strong><button type="button" className="meetingBtn primary" onClick={() => { setHistoricMode(false); startNew(); }}>+ Nouvelle</button></div>
-          <button className="meetingBtn" type="button" onClick={() => { setHistoricMode(true); setNewMode(false); }} style={{ width: "100%", marginBottom: "1rem" }}>Importer des comptes rendus</button>
+          <div className="meetingSidebarHead"><strong>Réunions</strong><button type="button" className="meetingBtn primary" onClick={() => { setHistoricMode(false); setRegisterMode(false); startNew(); }}>+ Nouvelle</button></div>
+          <button className="meetingBtn" type="button" onClick={() => { setHistoricMode(true); setRegisterMode(false); setNewMode(false); }} style={{ width: "100%", marginBottom: "1rem" }}>Importer des comptes rendus</button>
+          <button className="meetingBtn" type="button" onClick={() => { setRegisterMode(true); setHistoricMode(false); setNewMode(false); }} style={{ width: "100%", marginBottom: "1rem" }}>Registre des décisions</button>
           <div className="meetingList">
             {meetings.map((item) => (
-              <button type="button" key={item.id} className={selectedId === item.id && !newMode ? "isActive" : ""} onClick={() => { setHistoricMode(false); setNewMode(false); setSelectedId(item.id); }}>
+              <button type="button" key={item.id} className={selectedId === item.id && !newMode ? "isActive" : ""} onClick={() => { setRegisterMode(false); setHistoricMode(false); setNewMode(false); setSelectedId(item.id); }}>
                 <strong>{item.title}</strong>
                 <span>{item.date} · {item.meetingType}</span>
                 <small>{item.presentCount} présent(s) · {item.markerCount} repère(s){item.validatedVersion ? ` · CR v${item.validatedVersion}` : ""}</small>
@@ -726,7 +729,9 @@ export default function FincaMeetingsHub() {
           {error ? <div className="meetingNotice error">{error}</div> : null}
           {notice ? <div className="meetingNotice ok">{notice}</div> : null}
 
-          {historicMode ? (
+          {registerMode ? (
+            <MeetingDecisionRegister onOpen={(id) => { setSelectedId(id); setRegisterMode(false); }} onClose={() => setRegisterMode(false)} />
+          ) : historicMode ? (
             <HistoricMeetingImport onClose={() => setHistoricMode(false)} onImported={async (id) => { await loadList(id); }} />
           ) : newMode ? (
             <form onSubmit={createMeeting}>
