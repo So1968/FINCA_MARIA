@@ -10,6 +10,7 @@ const Family = lazyView(() => import("./components/CortijoFamilyPortal.jsx"), "C
 const House = lazyView(() => import("./components/FincaHouseExperience.jsx"), "FincaHouseExperience");
 const Export = lazyView(() => import("./components/CortijoExportableView.jsx"), "CortijoExportableView");
 const Trees = lazyView(() => import("./components/FincaTreeCountPanel.jsx"), "FincaTreeCountPanel");
+const Meetings = lazy(() => import("./components/FincaMeetingsHub.jsx"));
 export const NAVIGATION_EVENT = "finca:navigation";
 const currentView = () => new URLSearchParams(window.location.search).get("view") || "";
 export default function App() {
@@ -21,7 +22,8 @@ export default function App() {
     return () => { window.removeEventListener(NAVIGATION_EVENT, syncRoute); window.removeEventListener("popstate", syncRoute); };
   }, []);
   let page = <Dashboard />;
-  if (view === "cortijo-memoire") page = <Dossiers />;
+  if (view === "reunions") page = <Meetings />;
+  else if (view === "cortijo-memoire") page = <Dossiers />;
   else if (view === "cortijo-famille") page = <Family />;
   else if (view === "cortijo-maison") page = <House />;
   else if (view === "cortijo-exportable") page = <Export />;
