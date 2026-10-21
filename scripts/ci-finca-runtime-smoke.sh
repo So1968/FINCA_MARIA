@@ -107,6 +107,123 @@ grep -qi '^Set-Cookie: .*SameSite=Strict' "$TMP_DIR/login-headers" || fail "cook
 grep -qi '^Set-Cookie: .*Secure' "$TMP_DIR/login-headers" || fail "cookie de session sans Secure"
 pass "connexion administrateur et cookie sécurisé"
 
+# Parcours Réunions et conseils de famille.
+meeting_create_code="$(curl -sS -o "$TMP_DIR/meeting-create" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{"title":"Conseil de famille CI","date":"2026-10-21","meetingType":"Conseil de famille","theme":"Test intégration","objective":"Valider le parcours complet sans inventer de décision","agenda":["Ouverture","Travaux","Validation"],"previousRecap":"Aucune décision précédente à reprendre.","recordingNotice":"Participants informés pour le test CI.","participants":[{"name":"Sofia","presence":"present","role":"Animatrice","isFacilitator":true},{"name":"Marie","presence":"excused","role":"Membre de la famille"}]}' \
+  "$BASE_URL/api/meetings" || true)"
+[ "$meeting_create_code" = "201" ] || fail "création réunion = $meeting_create_code"
+MEETING_ID="$(node --input-type=module -e 'import fs from "node:fs"; console.log(JSON.parse(fs.readFileSync(process.argv[1],"utf8")).meeting.id)' "$TMP_DIR/meeting-create")"
+[ -n "$MEETING_ID" ] || fail "identifiant réunion absent"
+
+for marker in \
+  '{"id":"ci-decision-marker","type":"decision","timeSeconds":12.5,"note":"Proposition à confirmer"}' \
+  '{"id":"ci-action-marker","type":"action","timeSeconds":24.0,"note":"Appeler la coopérative"}' \
+  '{"id":"ci-document-marker","type":"document_evoque","timeSeconds":31.0,"note":"Document BAÚL évoqué"}'
+do
+  code="$(curl -sS -o /dev/null -w '%{http_code}' \
+    -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+    --data "$marker" "$BASE_URL/api/meetings/$MEETING_ID/markers" || true)"
+  [ "$code" = "201" ] || fail "création marqueur réunion = $code"
+done
+
+curl -fsS -o "$TMP_DIR/meeting-action-update" -X PUT \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{"note":"Appeler la coopérative","classification":"action_confirmee","responsible":"Sofia","dueDate":"2026-11-15"}' \
+  "$BASE_URL/api/meetings/$MEETING_ID/markers/ci-action-marker"
+
+printf 'CI AUDIO CHUNK FOR FINCA MEETING' > "$TMP_DIR/meeting-audio.part"
+audio_chunk_code="$(curl -sS -o "$TMP_DIR/meeting-audio-chunk" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: audio/webm' \
+  --data-binary @"$TMP_DIR/meeting-audio.part" \
+  "$BASE_URL/api/meetings/$MEETING_ID/audio/chunks/0" || true)"
+[ "$audio_chunk_code" = "201" ] || fail "sauvegarde progressive audio = $audio_chunk_code"
+
+audio_duplicate_code="$(curl -sS -o "$TMP_DIR/meeting-audio-duplicate" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: audio/webm' \
+  --data-binary @"$TMP_DIR/meeting-audio.part" \
+  "$BASE_URL/api/meetings/$MEETING_ID/audio/chunks/0" || true)"
+[ "$audio_duplicate_code" = "200" ] || fail "reprise idempotente du bloc audio = $audio_duplicate_code"
+grep -q '"duplicate":true' "$TMP_DIR/meeting-audio-duplicate" || fail "bloc audio identique non reconnu"
+
+finalize_code="$(curl -sS -o "$TMP_DIR/meeting-finalize" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{"mimeType":"audio/webm","originalName":"conseil-ci.webm","recordingNotice":"Participants informés pour le test CI."}' \
+  "$BASE_URL/api/meetings/$MEETING_ID/audio/finalize" || true)"
+[ "$finalize_code" = "200" ] || fail "finalisation audio réunion = $finalize_code"
+
+range_code="$(curl -sS -o "$TMP_DIR/meeting-range" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H 'Range: bytes=0-3' \
+  "$BASE_URL/api/meetings/$MEETING_ID/audio" || true)"
+[ "$range_code" = "206" ] || fail "lecture audio horodatée/range = $range_code"
+[ "$(wc -c < "$TMP_DIR/meeting-range" | tr -d ' ')" = "4" ] || fail "plage audio incorrecte"
+
+curl -fsS -H "Cookie: $COOKIE" "$BASE_URL/api/meetings/transcription/health" > "$TMP_DIR/meeting-transcription-health"
+node --input-type=module - "$TMP_DIR/meeting-transcription-health" <<'JS'
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const status = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+assert.equal(status.localOnly, true);
+assert.equal(status.externalVerificationEnabled, false);
+assert.equal(typeof status.localEngineReady, 'boolean');
+assert.equal(status.whisperModel, 'large-v3-turbo');
+JS
+
+transcribe_base_code="$(curl -sS -o "$TMP_DIR/meeting-transcribe-base" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{}' "$BASE_URL/api/meetings/$MEETING_ID/transcribe" || true)"
+[ "$transcribe_base_code" = "503" ] || fail "instance sans moteur local ne refuse pas proprement la transcription ($transcribe_base_code)"
+grep -q 'LOCAL_TRANSCRIPTION_NOT_READY' "$TMP_DIR/meeting-transcribe-base" || fail "absence du moteur local non explicitée"
+
+meeting_update_code="$(curl -sS -o "$TMP_DIR/meeting-update" -w '%{http_code}' -X PUT \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{"stage":"Validation","reportDraft":{"summary":"Brouillon CI sans transformation automatique des propositions.","subjects":"Test intégration"}}' \
+  "$BASE_URL/api/meetings/$MEETING_ID" || true)"
+[ "$meeting_update_code" = "200" ] || fail "sauvegarde brouillon compte rendu = $meeting_update_code"
+
+validate_code="$(curl -sS -o "$TMP_DIR/meeting-validate" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{}' "$BASE_URL/api/meetings/$MEETING_ID/validate" || true)"
+[ "$validate_code" = "200" ] || fail "validation compte rendu = $validate_code"
+
+action_code="$(curl -sS -o "$TMP_DIR/meeting-action-create" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{"confirmed":true}' "$BASE_URL/api/meetings/$MEETING_ID/markers/ci-action-marker/create-action" || true)"
+[ "$action_code" = "201" ] || fail "création action confirmée depuis réunion = $action_code"
+
+action_again_code="$(curl -sS -o "$TMP_DIR/meeting-action-again" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{"confirmed":true}' "$BASE_URL/api/meetings/$MEETING_ID/markers/ci-action-marker/create-action" || true)"
+[ "$action_again_code" = "200" ] || fail "anti-doublon action réunion = $action_again_code"
+grep -q '"duplicate":true' "$TMP_DIR/meeting-action-again" || fail "action réunion dupliquée"
+
+curl -fsS -H "Cookie: $COOKIE" "$BASE_URL/api/bootstrap" > "$TMP_DIR/meeting-bootstrap"
+node --input-type=module - "$TMP_DIR/meeting-bootstrap" "$MEETING_ID" <<'JS'
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+const meetingId = process.argv[3];
+const missions = payload.sharedState.cortijo_custom_missions_v1?.value || [];
+const matches = missions.filter(item => item.sourceMeetingId === meetingId && item.sourceMarkerId === 'ci-action-marker');
+assert.equal(matches.length, 1);
+assert.equal(matches[0].assignedTo, 'Sofia');
+assert.equal(matches[0].dueAt, '2026-11-15');
+JS
+
+curl -fsS -H "Cookie: $COOKIE" "$BASE_URL/api/meetings/$MEETING_ID" > "$TMP_DIR/meeting-detail"
+node --input-type=module - "$TMP_DIR/meeting-detail" <<'JS'
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const meeting = JSON.parse(fs.readFileSync(process.argv[2], 'utf8')).meeting;
+assert.equal(meeting.hasAudio, true);
+assert.equal(meeting.participants.filter(p => p.presence === 'present').length, 1);
+assert.equal(meeting.markers.length, 3);
+assert.equal(meeting.validatedVersions[0].version, 1);
+assert.equal(meeting.status, 'validated');
+assert.equal(meeting.stage, 'Clôture');
+JS
+pass "réunions : préparation, marqueurs, audio progressif, validation et action sans doublon"
+
 admin_code="$(curl -sS -o /dev/null -w '%{http_code}' -H "Cookie: $COOKIE" "$BASE_URL/api/auth/check-admin" || true)"
 [ "$admin_code" = "204" ] || fail "contrôle administrateur = $admin_code"
 pass "rôle administrateur actif"
@@ -135,6 +252,10 @@ NONADMIN_COOKIE="$(awk 'BEGIN{IGNORECASE=1} /^Set-Cookie:/ {gsub(/\r/,""); sub(/
 nonadmin_bootstrap_code="$(curl -sS -o /dev/null -w '%{http_code}' -H "Cookie: $NONADMIN_COOKIE" "$BASE_URL/api/bootstrap" || true)"
 [ "$nonadmin_bootstrap_code" = "403" ] || fail "un compte héritier accède au bootstrap administrateur ($nonadmin_bootstrap_code)"
 pass "bootstrap administrateur bloqué pour le rôle héritier"
+
+meeting_nonadmin_code="$(curl -sS -o /dev/null -w '%{http_code}' -H "Cookie: $NONADMIN_COOKIE" "$BASE_URL/api/meetings/$MEETING_ID" || true)"
+[ "$meeting_nonadmin_code" = "403" ] || fail "un héritier cité ou connecté accède aux enregistrements de réunion ($meeting_nonadmin_code)"
+pass "enregistrements de réunion réservés aux droits administrateur"
 
 family_page_code="$(curl -sS -o "$TMP_DIR/family-page" -w '%{http_code}' -H "Cookie: $NONADMIN_COOKIE" "$BASE_URL/family/" || true)"
 [ "$family_page_code" = "200" ] || fail "vue héritiers inaccessible ($family_page_code)"
