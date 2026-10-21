@@ -1,0 +1,46 @@
+{
+  "sourceRepository": "So1968/AZOTH_STUDIO",
+  "sourceCommit": "f27d196a54016d1dbb4ff9a8635d4e786c71ee5e",
+  "files": [
+    {
+      "path": "app/public/CORTIJO_TERRAIN_MOBILE.html",
+      "sha": "6e945474d8287daef0ee52df3f9ddf8b3104f1f8",
+      "mode": "100644"
+    },
+    {
+      "path": "app/public/cortijo-terrain-mobile.js",
+      "sha": "084ee4c7c9f35280b5d851ca2d70dd792ad46564",
+      "mode": "100644"
+    },
+    {
+      "path": "app/src/components/CortijoTerrainGps.jsx",
+      "sha": "9363d8039f820e8ba157814a344d647a602c9b84",
+      "mode": "100644"
+    },
+    {
+      "path": "app/src/cortijo-mission-seed.js",
+      "sha": "d3e455d0d450fab529c791f2574f23a8fbebd668",
+      "mode": "100644"
+    },
+    {
+      "path": "app/src/cortijo-terrain-gps.css",
+      "sha": "4f484c31ffdad557e8a0be6b912b6a6279b2b65f",
+      "mode": "100644"
+    },
+    {
+      "path": "app/vercel.json",
+      "sha": "45c873bf51e6f231c377b995496ce161fe4b0ace",
+      "mode": "100644"
+    },
+    {
+      "path": "server/ops/INTEGRATION_MAIN.md",
+      "sha": "25596a75544ef90d5bb939a6dd86d0eb88bbd977",
+      "mode": "100644"
+    },
+    {
+      "path": "vercel.json",
+      "sha": "45c873bf51e6f231c377b995496ce161fe4b0ace",
+      "mode": "100644"
+    }
+  ]
+}

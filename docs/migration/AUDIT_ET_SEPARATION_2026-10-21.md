@@ -1,5 +1,18 @@
 # Audit et séparation de FINCA MARIA — 21 octobre 2026
 
+## État final de la séparation Git
+
+Le dépôt FINCA_MARIA est privé. Le transfert complet est fusionné par la [PR 2](https://github.com/So1968/FINCA_MARIA/pull/2),
+avec 323 fichiers et un arbre identique à l’extraction testée. Le retrait des anciennes sources est fusionné par la
+[PR AZOTH_STUDIO 13](https://github.com/So1968/AZOTH_STUDIO/pull/13). Le studio conserve uniquement la fiche de suivi et son lien externe.
+
+Les contrôles complets ont réussi dans FINCA_MARIA : https://github.com/So1968/FINCA_MARIA/actions/runs/39657460315
+Le contrôle du studio après fusion a également réussi : https://github.com/So1968/AZOTH_STUDIO/actions/runs/39657873720
+
+La variante GPS `f27d196` a été retrouvée dans l’historique GitHub. Ses huit fichiers propres sont conservés,
+avec leurs empreintes, dans `archives/variante-gps-2026-10-01/`. Leur activation reste un chantier distinct.
+Le serveur de production et les installations du PC ne sont pas mis à jour par cette réorganisation des dépôts.
+
 ## Décision et périmètre
 
 Décision de Sofia : développer, tester et déployer le logiciel dans `So1968/FINCA_MARIA`.
@@ -16,7 +29,7 @@ Le manifeste `PROVENANCE.json` répertorie les chemins et empreintes des sources
 | --- | --- | --- | --- |
 | F01 | P1 | `app/vite.config.js:readIndex` et la configuration preview remplaçaient un index illisible par une liste vide. Essai reproduit : statut 200/0 document puis import 200 avec écrasement de l’index. | Résolu par lecture explicite de l’index ; statut/import 500 avec message, conservation octet pour octet de l’index abîmé et des originaux. Test HTTP automatisé. |
 | F02 | P2 | `scripts/ouvrir-cortijo-local.sh` acceptait n’importe quel HTTP 200 sur le port 5173. Reproduit avec un faux serveur sans FINCA. | Résolu sous Linux : vérification de l’application et du chemin de la copie, port strict, refus d’un autre service ou d’une autre copie. Tests avec faux serveurs. Lanceur PowerShell adapté mais non exécuté sous Windows. |
-| F03 | P2 | Le point d’entrée et les modules FINCA étaient intégrés au portail AZOTH ; plusieurs emplacements contenaient code et dossiers métier. | Séparation préparée : point d’entrée FINCA autonome et portail studio sans imports métier FINCA. Construction et essais navigateur des deux applications réussis. Bascule des dépôts en attente de la confidentialité du dépôt cible. |
+| F03 | P2 | Le point d’entrée et les modules FINCA étaient intégrés au portail AZOTH ; plusieurs emplacements contenaient code et dossiers métier. | Résolu : FINCA_MARIA autonome fusionné dans son dépôt privé ; anciennes sources retirées du main AZOTH_STUDIO, qui conserve uniquement la fiche de suivi. Constructions, essais navigateur et contrôles GitHub des deux dépôts réussis. |
 | F05 | P1 | Le premier contrôle GitHub de l’extraction (`39655533021`) a refusé Vite 8.3.0 pour des vulnérabilités publiées, dont GHSA-9jrq-w75r-8gcw. | Résolu par mise à jour ciblée vers Vite 8.3.5 et régénération du verrou ; audit npm sans vulnérabilité signalée et contrôles GitHub réussis. |
 | F04 | P2 | `server/src/server.js:saveReservation` vérifie les conflits par `SELECT ... FOR UPDATE`, tandis que le schéma ne contient pas de contrainte d’exclusion des périodes. Deux premières réservations concurrentes peuvent ne verrouiller aucune ligne existante. | Risque étayé par lecture du code, non corrigé dans cette extraction et non reproduit sur PostgreSQL. Prochain contrôle : soumettre deux réservations simultanées du même logement, puis ajouter une protection transactionnelle ou une contrainte en base et refaire ce test. |
 
@@ -64,5 +77,4 @@ Les originaux du BAÚL du PC ne font pas partie des fichiers Git et n’ont pas 
 4. Administrateur du serveur : changer seulement la source Git du déploiement en conservant les volumes existants,
    puis vérifier les comptes et la restauration. Une nouvelle ressource Compose peut créer d’autres volumes : contrôler leurs noms effectifs avant la bascule.
 
-Le commit local `f27d196` signalé sur le PC reste à rapprocher séparément ; aucun accès direct au PC
-ne permet de prouver qu’il est inclus dans l’extraction. Aucune ancienne branche n’est supprimée et aucun historique n’est réécrit.
+Le commit `f27d196` signalé sur le PC a été retrouvé dans l’historique GitHub : ses fichiers GPS uniques sont rapatriés en archive dans FINCA_MARIA. Son module GPS n’est pas activé dans la version courante et les éventuelles modifications non commitées du PC ne sont pas accessibles. Aucune ancienne branche n’est supprimée et aucun historique n’est réécrit.
