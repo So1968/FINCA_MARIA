@@ -56,7 +56,7 @@ async function api(path, options = {}) {
   }
   const response = await fetch(path, { ...options, headers });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload.error || `Erreur FINCA (${response.status})`);
+  if (!response.ok) throw new Error(payload.error || (response.status === 404 ? "Le serveur privé des réunions n’est pas démarré. Le lancement npm run dev seul ouvre l’interface, sans la base de données des réunions." : `Erreur FINCA (${response.status})`));
   return payload;
 }
 
