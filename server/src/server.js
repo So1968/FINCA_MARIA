@@ -5,6 +5,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
+import { createMeetingRouter } from "./meetings.js";
 
 const { Pool } = pg;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -251,8 +252,14 @@ async function ensureBaulDirectories() {
 }
 
 async function runMigrations() {
-  const sql = await fs.readFile(path.join(__dirname, "../sql/001_init.sql"), "utf8");
-  await pool.query(sql);
+  const sqlDir = path.join(__dirname, "../sql");
+  const files = (await fs.readdir(sqlDir))
+    .filter((name) => /^\\d+_.+\\.sql$/u.test(name))
+    .sort();
+  for (const name of files) {
+    const sql = await fs.readFile(path.join(sqlDir, name), "utf8");
+    await pool.query(sql);
+  }
 }
 
 async function rolesForUser(userId, client = pool) {
@@ -833,6 +840,15 @@ async function listAudit(req, res, url) {
   return json(res, 200, { events: result.rows });
 }
 
+const meetingRoute = createMeetingRouter({
+  pool,
+  requireAdmin,
+  audit,
+  readBody,
+  json,
+  baulRoot: BAUL_ROOT
+});
+
 async function route(req, res) {
   const url = new URL(req.url, "http://localhost");
   if (url.pathname === "/healthz" || url.pathname === "/api/healthz") return json(res, 200, { ok: true });
@@ -882,6 +898,8 @@ async function route(req, res) {
   if (userMatch && req.method === "PUT") return updateUser(req, res, Number(userMatch[1]));
   if (url.pathname === "/api/admin/audit" && req.method === "GET") return listAudit(req, res, url);
 
+  if (await meetingRoute(req, res, url)) return;
+
   return json(res, 404, { error: "Route inconnue" });
 }
 
@@ -898,6 +916,7 @@ const server = http.createServer(async (req, res) => {
 async function start() {
   await runMigrations();
   await ensureBaulDirectories();
+  await meetingRoute.ensureRoot();
   await pool.query("DELETE FROM sessions WHERE expires_at <= NOW()");
   await ensureBootstrapAdmin();
   server.listen(PORT, "0.0.0.0", () => console.log(`FINCA MARIA API prête sur :${PORT}`));
