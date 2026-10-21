@@ -1,0 +1,5 @@
+# Module optionnel de transcription locale FINCA MARIA.
+# Les bornes évitent les changements de versions majeures non testés.
+faster-whisper>=1.1,<2
+av>=13,<16
+pyannote.audio>=3.3,<5
