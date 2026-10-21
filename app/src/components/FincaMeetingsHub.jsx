@@ -431,6 +431,14 @@ export default function FincaMeetingsHub() {
     if (!recording) await finalizeRecordedAudio();
   }
 
+  async function confirmRecordingConsent() {
+    if (!meeting?.id) throw new Error("Réunion non enregistrée.");
+    await api(`/api/meetings/${meeting.id}/recording-consent`, {
+      method: "POST",
+      body: { informed: true, notice: RECORDING_NOTICE }
+    });
+  }
+
   async function startRecording() {
     if (!meeting?.id || meeting.hasAudio) return;
     if (!recordingConsent) {
@@ -442,8 +450,10 @@ export default function FincaMeetingsHub() {
       return;
     }
     setError("");
-    setAudioStatus("Demande d’accès au microphone…");
+    setAudioStatus("Confirmation de l’information des participants…");
     try {
+      await confirmRecordingConsent();
+      setAudioStatus("Demande d’accès au microphone…");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const preferred = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"].find((type) => MediaRecorder.isTypeSupported?.(type));
       const recorder = new MediaRecorder(stream, preferred ? { mimeType: preferred } : undefined);
@@ -498,8 +508,10 @@ export default function FincaMeetingsHub() {
     }
     setBusy(true);
     setError("");
-    setAudioStatus("Import de l’enregistrement…");
+    setAudioStatus("Confirmation de l’information des participants…");
     try {
+      await confirmRecordingConsent();
+      setAudioStatus("Import de l’enregistrement…");
       const response = await fetch(`/api/meetings/${meeting.id}/audio/import`, {
         method: "POST",
         headers: {
