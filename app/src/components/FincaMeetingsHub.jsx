@@ -104,19 +104,6 @@ function reportGroups(markers) {
   return groups;
 }
 
-function saveActionLocally(action) {
-  if (!action?.id) return;
-  try {
-    const key = "cortijo_custom_missions_v1";
-    const current = JSON.parse(localStorage.getItem(key) || "[]");
-    const list = Array.isArray(current) ? current : [];
-    if (!list.some((item) => item?.id === action.id)) {
-      localStorage.setItem(key, JSON.stringify([action, ...list]));
-    }
-  } catch {
-    // La source serveur reste la référence ; ce miroir local est seulement un confort immédiat.
-  }
-}
 
 export default function FincaMeetingsHub() {
   const [meetings, setMeetings] = useState([]);
@@ -632,7 +619,6 @@ export default function FincaMeetingsHub() {
         method: "POST",
         body: { confirmed: true }
       });
-      saveActionLocally(payload.action);
       setMeeting(payload.meeting);
       setNotice(payload.duplicate ? "Cette action était déjà rattachée : aucun doublon créé." : "Action confirmée créée dans FINCA MARIA.");
     } catch (err) {
