@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { deletePendingChunk, listPendingChunks, savePendingChunk } from "../lib/meetingAudioStore.js";
 import "../meetings.css";
+import HistoricMeetingImport from "./HistoricMeetingImport.jsx";
 
 const STAGES = ["Ouverture", "Participants", "Contexte", "Ordre du jour", "Échanges", "Validation", "Clôture"];
 const RECORDING_NOTICE = "Cette réunion peut être enregistrée pour conserver une mémoire familiale fidèle. L’audio reste dans le stockage privé de FINCA MARIA. Être cité comme participant ne donne pas automatiquement accès au fichier.";
@@ -111,6 +112,7 @@ export default function FincaMeetingsHub() {
   const [meeting, setMeeting] = useState(null);
   const [preparation, setPreparation] = useState(emptyPreparation);
   const [newMode, setNewMode] = useState(false);
+  const [historicMode, setHistoricMode] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -706,10 +708,11 @@ export default function FincaMeetingsHub() {
 
       <div className="meetingLayout">
         <aside className="meetingSidebar">
-          <div className="meetingSidebarHead"><strong>Réunions</strong><button type="button" className="meetingBtn primary" onClick={startNew}>+ Nouvelle</button></div>
+          <div className="meetingSidebarHead"><strong>Réunions</strong><button type="button" className="meetingBtn primary" onClick={() => { setHistoricMode(false); startNew(); }}>+ Nouvelle</button></div>
+          <button className="meetingBtn" type="button" onClick={() => { setHistoricMode(true); setNewMode(false); }} style={{ width: "100%", marginBottom: "1rem" }}>Importer des comptes rendus</button>
           <div className="meetingList">
             {meetings.map((item) => (
-              <button type="button" key={item.id} className={selectedId === item.id && !newMode ? "isActive" : ""} onClick={() => { setNewMode(false); setSelectedId(item.id); }}>
+              <button type="button" key={item.id} className={selectedId === item.id && !newMode ? "isActive" : ""} onClick={() => { setHistoricMode(false); setNewMode(false); setSelectedId(item.id); }}>
                 <strong>{item.title}</strong>
                 <span>{item.date} · {item.meetingType}</span>
                 <small>{item.presentCount} présent(s) · {item.markerCount} repère(s){item.validatedVersion ? ` · CR v${item.validatedVersion}` : ""}</small>
@@ -723,13 +726,16 @@ export default function FincaMeetingsHub() {
           {error ? <div className="meetingNotice error">{error}</div> : null}
           {notice ? <div className="meetingNotice ok">{notice}</div> : null}
 
-          {newMode ? (
+          {historicMode ? (
+            <HistoricMeetingImport onClose={() => setHistoricMode(false)} onImported={async (id) => { await loadList(id); }} />
+          ) : newMode ? (
             <form onSubmit={createMeeting}>
               <div className="meetingSection"><h2>Préparer une nouvelle réunion</h2>{renderPreparationFields(true)}</div>
               <div className="meetingActions"><button type="submit" className="meetingBtn primary" disabled={busy}>Créer et préparer la réunion</button><button type="button" className="meetingBtn" onClick={() => setNewMode(false)}>Annuler</button></div>
             </form>
           ) : meeting ? (
             <>
+              {meeting.reportDraft?.historicImport ? <section className="meetingSection"><h2>Compte rendu historique d’origine</h2><p className="meetingMuted">Document original conservé. Décisions proposées à vérifier dans les marqueurs ci-dessous.</p><pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontFamily: "inherit" }}>{meeting.reportDraft.historicOriginal}</pre></section> : null}
               <section className="meetingSection">
                 <div className="meetingActions" style={{ justifyContent: "space-between", marginTop: 0 }}>
                   <div><h2 style={{ marginBottom: ".2rem" }}>{meeting.title}</h2><div className="meetingStatus"><strong>{meeting.date}</strong> · {meeting.meetingType} · état : {meeting.status}</div></div>
