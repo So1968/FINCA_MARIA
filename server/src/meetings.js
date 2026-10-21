@@ -764,8 +764,8 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
     try {
       await client.query("BEGIN");
       const detail = await fullMeeting(safeId, client);
-      const previous = await client.query("SELECT COALESCE(MAX(version),0) AS version FROM meeting_report_versions WHERE meeting_id=$1 FOR UPDATE", [safeId]);
-      const version = Number(previous.rows[0].version || 0) + 1;
+      const previous = await client.query("SELECT version FROM meeting_report_versions WHERE meeting_id=$1 ORDER BY version DESC LIMIT 1 FOR UPDATE", [safeId]);
+      const version = Number(previous.rows[0]?.version || 0) + 1;
       const snapshot = {
         schema: "finca-meeting-report-v1",
         meeting: {
