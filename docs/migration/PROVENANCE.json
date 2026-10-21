@@ -1,0 +1,2248 @@
+{
+  "sourceRepository": "So1968/AZOTH_STUDIO",
+  "sourceCommit": "4318312590f461bb8458b2078214b0a61b889b08",
+  "previousStandaloneCommit": "db5cdb907a1b430348e6540a1fe431bbc0519b95",
+  "localCommitToPreserve": "f27d196",
+  "files": [
+    {
+      "source": ".env.finca.example",
+      "path": ".env.finca.example",
+      "sourceBlob": "00aa7278d859b80dd2de1bff43bfac7bb53c8961",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": ".github/workflows/finca-maria-security.yml",
+      "path": ".github/workflows/finca-ci.yml",
+      "sourceBlob": "5b00babe3c8d9b0686357f81905d65fa18d2a119",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/00_FICHE_MAITRE/ARCHITECTURE_AUTONOME_FINCA_MARIA.md",
+      "path": "dossier/00_FICHE_MAITRE/ARCHITECTURE_AUTONOME_FINCA_MARIA.md",
+      "sourceBlob": "9e5740fe1d380899269c7ad62e5c22c68c6e95e6",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/00_FICHE_MAITRE/AUDIT_ERGONOMIE_EXPORTABILITE_V02.md",
+      "path": "dossier/00_FICHE_MAITRE/AUDIT_ERGONOMIE_EXPORTABILITE_V02.md",
+      "sourceBlob": "c8861e6293861658585ae2ad8a18750ca0e632f6",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/00_FICHE_MAITRE/BASCULE_CONTRAT_VERS_GESTION_DIRECTE_2007_2026.md",
+      "path": "dossier/00_FICHE_MAITRE/BASCULE_CONTRAT_VERS_GESTION_DIRECTE_2007_2026.md",
+      "sourceBlob": "e7253860d6c329accd7b5dcdebf6512bc5e6b39d",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/00_FICHE_MAITRE/CHANTIER_LOGICIEL_AZOTH_V42.md",
+      "path": "dossier/00_FICHE_MAITRE/CHANTIER_LOGICIEL_AZOTH_V42.md",
+      "sourceBlob": "519831be1599140ed22fb11cd41dca288d45203d",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/00_FICHE_MAITRE/CHECKLIST_RECUPERATION_PROTECTION_MARIE_JO_2026-08-25.md",
+      "path": "dossier/00_FICHE_MAITRE/CHECKLIST_RECUPERATION_PROTECTION_MARIE_JO_2026-08-25.md",
+      "sourceBlob": "60407a89e7743c3da4ad32c2057481e2c75978bf",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/00_FICHE_MAITRE/DOSSIER_PROTECTION_MARIE_JO_2019_2026.md",
+      "path": "dossier/00_FICHE_MAITRE/DOSSIER_PROTECTION_MARIE_JO_2019_2026.md",
+      "sourceBlob": "33cb6ae6c3f571dd1cdfbc38411df17025bc1ef0",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/00_FICHE_MAITRE/FICHE_MAITRE_FINCA_MARIA.md",
+      "path": "dossier/00_FICHE_MAITRE/FICHE_MAITRE_FINCA_MARIA.md",
+      "sourceBlob": "bead512f2f6bbd247e9d4bdecbd1413fc8858718",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/00_FICHE_MAITRE/RECADRAGE_STRATEGIQUE_2026-08-24.md",
+      "path": "dossier/00_FICHE_MAITRE/RECADRAGE_STRATEGIQUE_2026-08-24.md",
+      "sourceBlob": "3045076536f7c5accf930d0946036c97d83bdc0f",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/00_FICHE_MAITRE/REPRISE_NOUVEAU_FIL_2026-08-23.md",
+      "path": "dossier/00_FICHE_MAITRE/REPRISE_NOUVEAU_FIL_2026-08-23.md",
+      "sourceBlob": "a643f76b6b0619f7cbdc2db77a925650dc108dde",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/00_FICHE_MAITRE/TRANSITION_FIL_DOCUMENTAIRE_2026-08-23.md",
+      "path": "dossier/00_FICHE_MAITRE/TRANSITION_FIL_DOCUMENTAIRE_2026-08-23.md",
+      "sourceBlob": "ff96b1de4565f7db96e964f1dff03faef208755f",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/01_TABLEAU_DE_BORD/AUDIT_CORPUS_COMPLET_2026-08-23.md",
+      "path": "dossier/01_TABLEAU_DE_BORD/AUDIT_CORPUS_COMPLET_2026-08-23.md",
+      "sourceBlob": "fd6019050e03322bcb33e734e9801857745fa9bc",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/01_TABLEAU_DE_BORD/AUDIT_SECURITE_PARTAGE_VERCEL_2026-09-13.md",
+      "path": "dossier/01_TABLEAU_DE_BORD/AUDIT_SECURITE_PARTAGE_VERCEL_2026-09-13.md",
+      "sourceBlob": "cf0e423d9b08d95a27986de449188ed2bfaac8f1",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/01_TABLEAU_DE_BORD/DEMARCHE_MAITRE_2026-08-23.md",
+      "path": "dossier/01_TABLEAU_DE_BORD/DEMARCHE_MAITRE_2026-08-23.md",
+      "sourceBlob": "9fb68d39c9c8b0aa478e2aec5f5c17063d604c34",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/01_TABLEAU_DE_BORD/INDEX_ETUDES_DOCUMENTAIRES_V2_V46.md",
+      "path": "dossier/01_TABLEAU_DE_BORD/INDEX_ETUDES_DOCUMENTAIRES_V2_V46.md",
+      "sourceBlob": "519e0ef4f8f6a3a860aaee97f19d02f4fe43240d",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/01_TABLEAU_DE_BORD/TABLEAU_DE_BORD.md",
+      "path": "dossier/01_TABLEAU_DE_BORD/TABLEAU_DE_BORD.md",
+      "sourceBlob": "66326f5ba81c3f71a78ebf8af86cc8ddf47627b2",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/CADASTRE_PARCELLES_25_27_MAISON_2014_2022.md",
+      "path": "dossier/02_TERRES_OLIVIERS/CADASTRE_PARCELLES_25_27_MAISON_2014_2022.md",
+      "sourceBlob": "83e5cbad4693a0248c5fd9836211918ffcba661e",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/CEREALES_TERRES_ARABLES_FLUX_2007_2026.md",
+      "path": "dossier/02_TERRES_OLIVIERS/CEREALES_TERRES_ARABLES_FLUX_2007_2026.md",
+      "sourceBlob": "0a343128d4a03029d034c1abfdaba89c0bdafcff",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/CHRONOLOGIE_PAC_2019_2026.md",
+      "path": "dossier/02_TERRES_OLIVIERS/CHRONOLOGIE_PAC_2019_2026.md",
+      "sourceBlob": "ffd462c9325b80ae312045d284d6b38a2f09c5e8",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/COMPARAISON_PAC_2024_2026.md",
+      "path": "dossier/02_TERRES_OLIVIERS/COMPARAISON_PAC_2024_2026.md",
+      "sourceBlob": "94881b2d95142031d4a020c29225496dcbfb3a87",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/CONTROLE_PAIEMENT_SEMENCES_CEREALES_2024.md",
+      "path": "dossier/02_TERRES_OLIVIERS/CONTROLE_PAIEMENT_SEMENCES_CEREALES_2024.md",
+      "sourceBlob": "593e596d0111aaa3c2acf892e52a1149063567de",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/CORRESPONDANCES_EAU_TERRAIN_2002_2006.md",
+      "path": "dossier/02_TERRES_OLIVIERS/CORRESPONDANCES_EAU_TERRAIN_2002_2006.md",
+      "sourceBlob": "b1738bccbfcde5f31db47456cb32b7aa04e0d08e",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/FISCALITE_AGRICOLE_2017_2022.md",
+      "path": "dossier/02_TERRES_OLIVIERS/FISCALITE_AGRICOLE_2017_2022.md",
+      "sourceBlob": "88bec57e3e734e2a75b9e00592064046bde65f02",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/FISCALITE_AGRICOLE_2025_PELAEZ_2026-08-24.md",
+      "path": "dossier/02_TERRES_OLIVIERS/FISCALITE_AGRICOLE_2025_PELAEZ_2026-08-24.md",
+      "sourceBlob": "acfa1c41397184162fe2e098eeaff761d07426e2",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/HISTORIQUE_EAU_PROPRIETE_TERRAIN.md",
+      "path": "dossier/02_TERRES_OLIVIERS/HISTORIQUE_EAU_PROPRIETE_TERRAIN.md",
+      "sourceBlob": "41a612716b41f16f5b4dfd12ee28d87b989db962",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/HISTORIQUE_EXPLOITATION_1999.md",
+      "path": "dossier/02_TERRES_OLIVIERS/HISTORIQUE_EXPLOITATION_1999.md",
+      "sourceBlob": "ef6989a145bed640f6ff437e112b73232fe2ae4a",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/INTRANTS_TRAVAUX_2024_2026.md",
+      "path": "dossier/02_TERRES_OLIVIERS/INTRANTS_TRAVAUX_2024_2026.md",
+      "sourceBlob": "101534d85d308b99756684cf9d303277adf5dc17",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/JOURNAL_EXPLOITATION.md",
+      "path": "dossier/02_TERRES_OLIVIERS/JOURNAL_EXPLOITATION.md",
+      "sourceBlob": "959d503df8f7ccd9d47470487f006227a27235d2",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/METHODE_COMPTAGE_OLIVIERS_2026-08-22.md",
+      "path": "dossier/02_TERRES_OLIVIERS/METHODE_COMPTAGE_OLIVIERS_2026-08-22.md",
+      "sourceBlob": "35fcbc31f34c7b6b9149676502a7590102b98d74",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/PAC_2019_SUCCESSION_JUNTA_2020.md",
+      "path": "dossier/02_TERRES_OLIVIERS/PAC_2019_SUCCESSION_JUNTA_2020.md",
+      "sourceBlob": "df8a81df900b1bb833bb12bdb34e8e3693239c93",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/PAC_2024_RECINTOS_AIDES.md",
+      "path": "dossier/02_TERRES_OLIVIERS/PAC_2024_RECINTOS_AIDES.md",
+      "sourceBlob": "1b4e510c6f727ab8b0971dda3b8e58e4b436f833",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/PAC_DROITS_SUBVENTION_ET_EXPLOITANT_2020.md",
+      "path": "dossier/02_TERRES_OLIVIERS/PAC_DROITS_SUBVENTION_ET_EXPLOITANT_2020.md",
+      "sourceBlob": "a9e712622c202938b0e293abee686ae87ab7ff44",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/PAC_SIGPAC_HISTORIQUE_AUDIT.md",
+      "path": "dossier/02_TERRES_OLIVIERS/PAC_SIGPAC_HISTORIQUE_AUDIT.md",
+      "sourceBlob": "e46a469688fbe539d2b4be19c9f4fe16cd114f45",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/TERRES_ARABLES_APRES_11_03_2020_BASE_CONTRACTUELLE.md",
+      "path": "dossier/02_TERRES_OLIVIERS/TERRES_ARABLES_APRES_11_03_2020_BASE_CONTRACTUELLE.md",
+      "sourceBlob": "f30407124e2e38fef54f01874aebff11ab06b3ef",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/02_TERRES_OLIVIERS/TRACE_RAMASSAGE_CEREALES_VITINES_2026.md",
+      "path": "dossier/02_TERRES_OLIVIERS/TRACE_RAMASSAGE_CEREALES_VITINES_2026.md",
+      "sourceBlob": "e206d85968edc8a076b8bbfa3e9069f439a8cd8f",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/CAMPAGNES_PRODUCTION.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/CAMPAGNES_PRODUCTION.md",
+      "sourceBlob": "14736f457569716896093e330c362f4ed23b0e0e",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/CAMPAGNE_2014_2015_REPARTOS_1233_2142_2957.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/CAMPAGNE_2014_2015_REPARTOS_1233_2142_2957.md",
+      "sourceBlob": "9158c12ace50b20ec5480302b501c55ead2ede30",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/CAMPAGNE_2015_2016_REPARTOS_1194_2040_2946.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/CAMPAGNE_2015_2016_REPARTOS_1194_2040_2946.md",
+      "sourceBlob": "f2a4c17ec9aa86974a6d8b3868897ed4f49a3c97",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/CAMPAGNE_2016_2017_REPARTOS_ET_LIQUIDATION.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/CAMPAGNE_2016_2017_REPARTOS_ET_LIQUIDATION.md",
+      "sourceBlob": "e155b8d7fbc844318ebed46747892412d5d7bb8c",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/CAMPAGNE_2017_2018_REPARTO_4008KG.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/CAMPAGNE_2017_2018_REPARTO_4008KG.md",
+      "sourceBlob": "f13c6fec0d1c28dac33c16be25d05eb38f3cc261",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/CAMPAGNE_2025_2026_POINTS_A_VERROUILLER.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/CAMPAGNE_2025_2026_POINTS_A_VERROUILLER.md",
+      "sourceBlob": "4e984abcd43bcc23a9a22986ff301a303704af1f",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/CLES_RAPPROCHEMENT_PROVEEDOR_2019_2022.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/CLES_RAPPROCHEMENT_PROVEEDOR_2019_2022.md",
+      "sourceBlob": "da795b718f6d5168cfb86f8040d0b5869ecb545b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/CLIENTE_SAN_JUAN_2015_2020_RAPPROCHEMENTS.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/CLIENTE_SAN_JUAN_2015_2020_RAPPROCHEMENTS.md",
+      "sourceBlob": "63860099a0320b011b214f79b5dc96a387bfc8b1",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/FACTURES_SAN_JUAN_2015_2022_AUDIT.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/FACTURES_SAN_JUAN_2015_2022_AUDIT.md",
+      "sourceBlob": "fa0a23e710fca11c62a405c51e517dbf6d4ad52f",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/FLUX_AGRICOLES_BANQUE_1996_2020.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/FLUX_AGRICOLES_BANQUE_1996_2020.md",
+      "sourceBlob": "3df1f9e343d10cc564bea404afcd102af4b8f640",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/HISTORIQUE_SAN_JUAN_2007_2018.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/HISTORIQUE_SAN_JUAN_2007_2018.md",
+      "sourceBlob": "9662ce20895a2c78c9889607085c1f5dd5726543",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/LISTADO_SAN_JUAN_2018_RECONSTRUCTION_OCR.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/LISTADO_SAN_JUAN_2018_RECONSTRUCTION_OCR.md",
+      "sourceBlob": "1ecbc20b51c86293e783bd3fb3e8b77e494bff55",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/MATRICE_SAN_JUAN_2015_2022_PROVEEDOR_CLIENTE.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/MATRICE_SAN_JUAN_2015_2022_PROVEEDOR_CLIENTE.md",
+      "sourceBlob": "4b21a3d851913161fe8341a44b98a008dddbfba5",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/MODELE_QUOTE_PART_15_POURCENT_2007_2024.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/MODELE_QUOTE_PART_15_POURCENT_2007_2024.md",
+      "sourceBlob": "c92dc57148529f91a5bcd05da83237876deac989",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/PERFORMANCE_PRODUCTION_ECONOMIE_2023_2025.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/PERFORMANCE_PRODUCTION_ECONOMIE_2023_2025.md",
+      "sourceBlob": "abf476726b8e8eff312e72be6b693df7e981f8ff",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/RAPPROCHEMENTS_SAN_JUAN_PROVEEDOR_CLIENTE_2015_2018.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/RAPPROCHEMENTS_SAN_JUAN_PROVEEDOR_CLIENTE_2015_2018.md",
+      "sourceBlob": "573afd2381d5eb8d06e923eb1c3516f7aa4bd166",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/SAN_JUAN_LISTADOS_FACTURAS_2015_2022.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/SAN_JUAN_LISTADOS_FACTURAS_2015_2022.md",
+      "sourceBlob": "71b37c77cd8eb743d56b2aecbdc85d9ab0ba57db",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/03_CAMPAGNES_PRODUCTION/SENS_ECONOMIQUE_LISTADOS_SAN_JUAN_2015_2022.md",
+      "path": "dossier/03_CAMPAGNES_PRODUCTION/SENS_ECONOMIQUE_LISTADOS_SAN_JUAN_2015_2022.md",
+      "sourceBlob": "61c90cbdd6ae06fac4689802e6214eb58cfcc238",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/04_FACTURES_PRESTATAIRES/CONTRATS_JOSE_LOPEZ_GALLEGO_2007_2014_2020.md",
+      "path": "dossier/04_FACTURES_PRESTATAIRES/CONTRATS_JOSE_LOPEZ_GALLEGO_2007_2014_2020.md",
+      "sourceBlob": "7758ac12c439219d63bf35633123a1737e0d9dea",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/04_FACTURES_PRESTATAIRES/DEMANDE_VITINES_CEREALES_ET_1200_2026.md",
+      "path": "dossier/04_FACTURES_PRESTATAIRES/DEMANDE_VITINES_CEREALES_ET_1200_2026.md",
+      "sourceBlob": "3485e8939d7f5d6f899b49215e7801d9a1fb7e68",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/04_FACTURES_PRESTATAIRES/PRESTATAIRES_FACTURES.md",
+      "path": "dossier/04_FACTURES_PRESTATAIRES/PRESTATAIRES_FACTURES.md",
+      "sourceBlob": "67e1d9b250ff7bf8e1272ac2bbcb88d73dc0b340",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/04_FACTURES_PRESTATAIRES/RAPPROCHEMENT_VITINES_2024_2025_1200.md",
+      "path": "dossier/04_FACTURES_PRESTATAIRES/RAPPROCHEMENT_VITINES_2024_2025_1200.md",
+      "sourceBlob": "36b09b298e0af4178fd2c0a0ee2a56ecae6b590e",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/00_A_CLASSER/03_PHOTOS_VIDEOS/ARRIVAGE_GLORIA/.gitignore",
+      "path": "dossier/05_BAUL_PREUVES/00_A_CLASSER/03_PHOTOS_VIDEOS/ARRIVAGE_GLORIA/.gitignore",
+      "sourceBlob": "59f6c6fa03f03f758d23039e706faf122ed1219b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/00_A_CLASSER/03_PHOTOS_VIDEOS/ARRIVAGE_GLORIA/A_ANALYSER/.gitkeep",
+      "path": "dossier/05_BAUL_PREUVES/00_A_CLASSER/03_PHOTOS_VIDEOS/ARRIVAGE_GLORIA/A_ANALYSER/.gitkeep",
+      "sourceBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/00_A_CLASSER/03_PHOTOS_VIDEOS/ARRIVAGE_GLORIA/FICHE_PREUVE_1000026074.md",
+      "path": "dossier/05_BAUL_PREUVES/00_A_CLASSER/03_PHOTOS_VIDEOS/ARRIVAGE_GLORIA/FICHE_PREUVE_1000026074.md",
+      "sourceBlob": "0c5d6be4bfca9920f45d1f0539beae9de710b1cd",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/00_A_CLASSER/03_PHOTOS_VIDEOS/ARRIVAGE_GLORIA/NOTES_ARRIVAGE_GLORIA.md",
+      "path": "dossier/05_BAUL_PREUVES/00_A_CLASSER/03_PHOTOS_VIDEOS/ARRIVAGE_GLORIA/NOTES_ARRIVAGE_GLORIA.md",
+      "sourceBlob": "d4ab032a72a062e308b8e5627bfbcdc91fc0ee1f",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/00_A_CLASSER/03_PHOTOS_VIDEOS/ARRIVAGE_GLORIA/ORIGINAUX/.gitkeep",
+      "path": "dossier/05_BAUL_PREUVES/00_A_CLASSER/03_PHOTOS_VIDEOS/ARRIVAGE_GLORIA/ORIGINAUX/.gitkeep",
+      "sourceBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/00_A_CLASSER/ARRIVAGE_2026-08-22_BIS/INDEX_ARRIVAGE_2026-08-22_BIS.md",
+      "path": "dossier/05_BAUL_PREUVES/00_A_CLASSER/ARRIVAGE_2026-08-22_BIS/INDEX_ARRIVAGE_2026-08-22_BIS.md",
+      "sourceBlob": "593a7c04345b83c2e6c76c21c1118466066163c8",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/00_A_CLASSER/ARRIVAGE_2026-08-22_PDF/ADDENDUM_CARTOGRAPHIE_ENDESA.md",
+      "path": "dossier/05_BAUL_PREUVES/00_A_CLASSER/ARRIVAGE_2026-08-22_PDF/ADDENDUM_CARTOGRAPHIE_ENDESA.md",
+      "sourceBlob": "91c12e35fa368b62dc064babd55fba5938b0a624",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/00_A_CLASSER/ARRIVAGE_2026-08-22_PDF/INDEX_ARRIVAGE_2026-08-22.md",
+      "path": "dossier/05_BAUL_PREUVES/00_A_CLASSER/ARRIVAGE_2026-08-22_PDF/INDEX_ARRIVAGE_2026-08-22.md",
+      "sourceBlob": "dca0ef092ace25c11e7be4ea4b368e99549d5d55",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/00_A_CLASSER/ARRIVAGE_2026-08-23_PDF/DEPOUILLEMENT_DETAILLE_LOT_02.md",
+      "path": "dossier/05_BAUL_PREUVES/00_A_CLASSER/ARRIVAGE_2026-08-23_PDF/DEPOUILLEMENT_DETAILLE_LOT_02.md",
+      "sourceBlob": "84577a187b8196fd34b6fbc5c7e538e73154a201",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/07_BANQUE_COMPTE_COMMUN/CHRONOLOGIE_ADMIN_BANCAIRE_2009_2024.md",
+      "path": "dossier/05_BAUL_PREUVES/07_BANQUE_COMPTE_COMMUN/CHRONOLOGIE_ADMIN_BANCAIRE_2009_2024.md",
+      "sourceBlob": "8feb63c7142075b27e22909c035a2a1c9ea1947c",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/07_BANQUE_COMPTE_COMMUN/EXTRAITS_UNICAJA_1996_2016.md",
+      "path": "dossier/05_BAUL_PREUVES/07_BANQUE_COMPTE_COMMUN/EXTRAITS_UNICAJA_1996_2016.md",
+      "sourceBlob": "7d4bc4f2aa90aa1b0ab3d4a4ba5030f694dcfa8b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/07_BANQUE_COMPTE_COMMUN/INDEX_BANQUE_COMPTE_COMMUN.md",
+      "path": "dossier/05_BAUL_PREUVES/07_BANQUE_COMPTE_COMMUN/INDEX_BANQUE_COMPTE_COMMUN.md",
+      "sourceBlob": "2b6e59989aef4f4bfbca06e647851204b1af4f7b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/07_BANQUE_COMPTE_COMMUN/MOUVEMENTS_FAMILIAUX_ET_CONDITIONS_BANCAIRES.md",
+      "path": "dossier/05_BAUL_PREUVES/07_BANQUE_COMPTE_COMMUN/MOUVEMENTS_FAMILIAUX_ET_CONDITIONS_BANCAIRES.md",
+      "sourceBlob": "50f4b81ace0a32c20fc481745aace9ac731b47d9",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/07_BANQUE_COMPTE_COMMUN/OCR_UNICAJA_2_1996_2016.md",
+      "path": "dossier/05_BAUL_PREUVES/07_BANQUE_COMPTE_COMMUN/OCR_UNICAJA_2_1996_2016.md",
+      "sourceBlob": "f6edbd69f53982a73e6cca8e2ce7dd5e67ff739a",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/BAUL_PREUVES.md",
+      "path": "dossier/05_BAUL_PREUVES/BAUL_PREUVES.md",
+      "sourceBlob": "f0957b268e4dca2ae6fdf52f314840380e7eef61",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/CROISEMENTS_OCR_PRIORITAIRES.md",
+      "path": "dossier/05_BAUL_PREUVES/CROISEMENTS_OCR_PRIORITAIRES.md",
+      "sourceBlob": "7928837f80d77cc9a74c8acffb2ce212fde8cec2",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/INDEX_PREUVES.md",
+      "path": "dossier/05_BAUL_PREUVES/INDEX_PREUVES.md",
+      "sourceBlob": "f41511f3575231a2448853498fbf12ba8ef87394",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/OUTILS/ranger_arrivage_gloria.sh",
+      "path": "dossier/05_BAUL_PREUVES/OUTILS/ranger_arrivage_gloria.sh",
+      "sourceBlob": "5eda6845ca96e320b690943dd947c63ad8c73a7d",
+      "mode": "100755",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/05_BAUL_PREUVES/REGISTRE_DOCUMENTS_OCR.md",
+      "path": "dossier/05_BAUL_PREUVES/REGISTRE_DOCUMENTS_OCR.md",
+      "sourceBlob": "44ffbb30bd4f5f0a7ab3ad7b2a18a2485ce232ff",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/06_MAISON_REGLEMENT/ASSURANCE_MAISON_2013_2018.md",
+      "path": "dossier/06_MAISON_REGLEMENT/ASSURANCE_MAISON_2013_2018.md",
+      "sourceBlob": "d3c40cf16895c42a330016d2b46521a998dd863b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/06_MAISON_REGLEMENT/CONTROLE_VISUEL_FACTURAS_4_P14_52.md",
+      "path": "dossier/06_MAISON_REGLEMENT/CONTROLE_VISUEL_FACTURAS_4_P14_52.md",
+      "sourceBlob": "833f0d52694a6dbac1b4f4ca3f9207f1ac711940",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/06_MAISON_REGLEMENT/CONTROLE_VISUEL_FACTURAS_4_P1_13.md",
+      "path": "dossier/06_MAISON_REGLEMENT/CONTROLE_VISUEL_FACTURAS_4_P1_13.md",
+      "sourceBlob": "c3f013844c3fb44f33fa6e551154d28672c0eead",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/06_MAISON_REGLEMENT/ELECTRICITE_ENDESA_2013_2016.md",
+      "path": "dossier/06_MAISON_REGLEMENT/ELECTRICITE_ENDESA_2013_2016.md",
+      "sourceBlob": "d114118079626c92a54c5cc39b293161b909583b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/06_MAISON_REGLEMENT/GAZ_BUTANE_1996_2006.md",
+      "path": "dossier/06_MAISON_REGLEMENT/GAZ_BUTANE_1996_2006.md",
+      "sourceBlob": "179e62afe3a297628e707d3900749db40081c6e7",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/06_MAISON_REGLEMENT/HISTORIQUE_CHARGES_MAISON.md",
+      "path": "dossier/06_MAISON_REGLEMENT/HISTORIQUE_CHARGES_MAISON.md",
+      "sourceBlob": "081e7588bfd2d5a67ad3cfc88ea41c4223e38eea",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/06_MAISON_REGLEMENT/HISTORIQUE_GAZ_BUTANE_1996.md",
+      "path": "dossier/06_MAISON_REGLEMENT/HISTORIQUE_GAZ_BUTANE_1996.md",
+      "sourceBlob": "78ea3ad2bbab23d8c87d8dd0e6b49b1dbd35bd88",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/06_MAISON_REGLEMENT/INFILTRATIONS_TOIT_ASSURANCE_2026.md",
+      "path": "dossier/06_MAISON_REGLEMENT/INFILTRATIONS_TOIT_ASSURANCE_2026.md",
+      "sourceBlob": "39ba559d9139507856223afa866eadac92de89cd",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/06_MAISON_REGLEMENT/INVENTAIRE_FACTURAS_4.md",
+      "path": "dossier/06_MAISON_REGLEMENT/INVENTAIRE_FACTURAS_4.md",
+      "sourceBlob": "9317e1c6f6142cd3e5f3efea0f8fa28547a85378",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/06_MAISON_REGLEMENT/RAPPROCHEMENTS_TRAVAUX_PAIEMENTS.md",
+      "path": "dossier/06_MAISON_REGLEMENT/RAPPROCHEMENTS_TRAVAUX_PAIEMENTS.md",
+      "sourceBlob": "867445ace76bbc0f026a4dae718163bcae2c5488",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/06_MAISON_REGLEMENT/REGLEMENT_MAISON_V1.md",
+      "path": "dossier/06_MAISON_REGLEMENT/REGLEMENT_MAISON_V1.md",
+      "sourceBlob": "ad925ef2615f3d243dc63c84e3b9861fa3b73bbd",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/06_MAISON_REGLEMENT/TRAVAUX_MAISON_FACTURAS_2016.md",
+      "path": "dossier/06_MAISON_REGLEMENT/TRAVAUX_MAISON_FACTURAS_2016.md",
+      "sourceBlob": "2bdc754d21976014569d1ad70911ffc5b63c32b0",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/07_CALENDRIER_OCCUPATION/CALENDRIER_OCCUPATION.md",
+      "path": "dossier/07_CALENDRIER_OCCUPATION/CALENDRIER_OCCUPATION.md",
+      "sourceBlob": "0ed1643e1114da6427c050404649a678cdf6ca30",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/08_DECISIONS_FAMILIALES/CHRONOLOGIE_ASAJA_SUCCESSION_2019_2020.md",
+      "path": "dossier/08_DECISIONS_FAMILIALES/CHRONOLOGIE_ASAJA_SUCCESSION_2019_2020.md",
+      "sourceBlob": "d286892a71c359cc35e8d06fcda531db8141495c",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/08_DECISIONS_FAMILIALES/CHRONOLOGIE_FAMILIALE_2015_2020.md",
+      "path": "dossier/08_DECISIONS_FAMILIALES/CHRONOLOGIE_FAMILIALE_2015_2020.md",
+      "sourceBlob": "64afa004519cc85e64e7017b961a643c4ff198de",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/08_DECISIONS_FAMILIALES/CHRONOLOGIE_FAMILIALE_2026.md",
+      "path": "dossier/08_DECISIONS_FAMILIALES/CHRONOLOGIE_FAMILIALE_2026.md",
+      "sourceBlob": "315bdf4cce9b0e4b6f8a18aa76a4f013911ffdbb",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/08_DECISIONS_FAMILIALES/JOURNAL_DECISIONS.md",
+      "path": "dossier/08_DECISIONS_FAMILIALES/JOURNAL_DECISIONS.md",
+      "sourceBlob": "c496600c95a8d9c1392fcf6722f22af792d56901",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/08_DECISIONS_FAMILIALES/REUNIONS_SKYPE_2020.md",
+      "path": "dossier/08_DECISIONS_FAMILIALES/REUNIONS_SKYPE_2020.md",
+      "sourceBlob": "4a5d19c284cbdfca33b0acbfea166fd7014e9317",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/09_QUESTIONS_A_CLARIFIER/LOT_PDF_2026-08-22.md",
+      "path": "dossier/09_QUESTIONS_A_CLARIFIER/LOT_PDF_2026-08-22.md",
+      "sourceBlob": "b8b75d1b3aebe70e5bec95a4248893163719f3cf",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/09_QUESTIONS_A_CLARIFIER/QUESTIONS_A_CLARIFIER.md",
+      "path": "dossier/09_QUESTIONS_A_CLARIFIER/QUESTIONS_A_CLARIFIER.md",
+      "sourceBlob": "44922be45da72ed4fb7d6a7a86dc5010b23dee13",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/10_EXPORTS_FAMILLE_AVOCAT/README_EXPORTS.md",
+      "path": "dossier/10_EXPORTS_FAMILLE_AVOCAT/README_EXPORTS.md",
+      "sourceBlob": "6d07a67ac52e447199c595c8f1ab7a3b1e8933c8",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/ARCHITECTURE_CLASSEURS_PHYSIQUES.md",
+      "path": "dossier/ARCHITECTURE_CLASSEURS_PHYSIQUES.md",
+      "sourceBlob": "fea1a5140420f2c5ecb5cde196ee13983d6fb1c3",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/ARCHITECTURE_MOTEUR_DOCUMENTAIRE_V42.md",
+      "path": "dossier/ARCHITECTURE_MOTEUR_DOCUMENTAIRE_V42.md",
+      "sourceBlob": "6af7b74f17bb187341acef953bbf89400b2e85bf",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/README_FINCA_MARIA.md",
+      "path": "dossier/README_FINCA_MARIA.md",
+      "sourceBlob": "0c028cd2e8206d259c0828f4ba2e1555ddfb0d52",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/REGLE_LECTURE_DOCUMENTAIRE_V42.md",
+      "path": "dossier/REGLE_LECTURE_DOCUMENTAIRE_V42.md",
+      "sourceBlob": "5d8c29c2e134c895a18b94992e80b21ec0d8b37d",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/SECURITE_DEPLOIEMENT_COOLIFY_V42.md",
+      "path": "dossier/SECURITE_DEPLOIEMENT_COOLIFY_V42.md",
+      "sourceBlob": "ad04e68666b818d105129fdfa6faa2a5736c9803",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/STOCKAGE_SERVEUR_BAUL_V42.md",
+      "path": "dossier/STOCKAGE_SERVEUR_BAUL_V42.md",
+      "sourceBlob": "47ac840543e03aec7bb379c61fe35f3b63417470",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "02_PRODUITS/FINCA_MARIA/VERSION_FINCA_MARIA.md",
+      "path": "dossier/VERSION_FINCA_MARIA.md",
+      "sourceBlob": "ababc90c7509bdd798e172156c911ef15c1c9750",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/.gitignore",
+      "path": "archives/pack-famille/.gitignore",
+      "sourceBlob": "732f72b9e57bbf5f245c078fdc177bbda80834c1",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/00_FICHE_MAITRE/FICHE_MAITRE_FINCA_MARIA.md",
+      "path": "archives/pack-famille/00_FICHE_MAITRE/FICHE_MAITRE_FINCA_MARIA.md",
+      "sourceBlob": "727f1fc03bee05aabe422d93dcb855fea89deb60",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/01_TABLEAU_DE_BORD/TABLEAU_DE_BORD.md",
+      "path": "archives/pack-famille/01_TABLEAU_DE_BORD/TABLEAU_DE_BORD.md",
+      "sourceBlob": "99780bd32aec10ec6a81504b171bce94dab39994",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/02_TERRES_OLIVIERS/JOURNAL_EXPLOITATION.md",
+      "path": "archives/pack-famille/02_TERRES_OLIVIERS/JOURNAL_EXPLOITATION.md",
+      "sourceBlob": "13bdcdee9ed2a5716cdfd25cb2c0932f58d97a0b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/03_CAMPAGNES_PRODUCTION/CAMPAGNES_PRODUCTION.md",
+      "path": "archives/pack-famille/03_CAMPAGNES_PRODUCTION/CAMPAGNES_PRODUCTION.md",
+      "sourceBlob": "e87f16761c0dc9ea2a49625e575fe26f6592ec4a",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/04_FACTURES_PRESTATAIRES/PRESTATAIRES_FACTURES.md",
+      "path": "archives/pack-famille/04_FACTURES_PRESTATAIRES/PRESTATAIRES_FACTURES.md",
+      "sourceBlob": "6c881c67c9315049bd7fe4c8a9d7c95451ef859b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/05_BAUL_PREUVES/00_A_CLASSER/A_ANALYSER/.gitkeep",
+      "path": "dossier/05_BAUL_PREUVES/00_A_CLASSER/03_PHOTOS_VIDEOS/ARRIVAGE_GLORIA/ORIGINAUX/.gitkeep",
+      "sourceBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": "100644",
+      "deduplicated": true
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/05_BAUL_PREUVES/00_A_CLASSER/ORIGINAUX/.gitkeep",
+      "path": "dossier/05_BAUL_PREUVES/00_A_CLASSER/03_PHOTOS_VIDEOS/ARRIVAGE_GLORIA/ORIGINAUX/.gitkeep",
+      "sourceBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": "100644",
+      "deduplicated": true
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/05_BAUL_PREUVES/BAUL_PREUVES.md",
+      "path": "dossier/05_BAUL_PREUVES/BAUL_PREUVES.md",
+      "sourceBlob": "f0957b268e4dca2ae6fdf52f314840380e7eef61",
+      "mode": "100644",
+      "deduplicated": true
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/05_BAUL_PREUVES/INDEX_PREUVES.md",
+      "path": "archives/pack-famille/05_BAUL_PREUVES/INDEX_PREUVES.md",
+      "sourceBlob": "743ec9022bf3e893223b3c541f37bf689420638a",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/05_BAUL_PREUVES/OUTILS/ranger_arrivage_gloria.sh",
+      "path": "dossier/05_BAUL_PREUVES/OUTILS/ranger_arrivage_gloria.sh",
+      "sourceBlob": "5eda6845ca96e320b690943dd947c63ad8c73a7d",
+      "mode": "100755",
+      "deduplicated": true
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/05_BAUL_PREUVES/README_ACCES_BAUL.md",
+      "path": "archives/pack-famille/05_BAUL_PREUVES/README_ACCES_BAUL.md",
+      "sourceBlob": "04fe5417375ac07f1460e7a28ac8d90fa892e0f1",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/05_BAUL_PREUVES/README_BAUL.md",
+      "path": "archives/pack-famille/05_BAUL_PREUVES/README_BAUL.md",
+      "sourceBlob": "64fa1f6c73dbaf858629b63e6e4a01ff77d3a586",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/06_MAISON_REGLEMENT/REGLEMENT_MAISON_V1.md",
+      "path": "dossier/06_MAISON_REGLEMENT/REGLEMENT_MAISON_V1.md",
+      "sourceBlob": "ad925ef2615f3d243dc63c84e3b9861fa3b73bbd",
+      "mode": "100644",
+      "deduplicated": true
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/07_CALENDRIER_OCCUPATION/CALENDRIER_OCCUPATION.md",
+      "path": "dossier/07_CALENDRIER_OCCUPATION/CALENDRIER_OCCUPATION.md",
+      "sourceBlob": "0ed1643e1114da6427c050404649a678cdf6ca30",
+      "mode": "100644",
+      "deduplicated": true
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/08_DECISIONS_FAMILIALES/JOURNAL_DECISIONS.md",
+      "path": "dossier/08_DECISIONS_FAMILIALES/JOURNAL_DECISIONS.md",
+      "sourceBlob": "c496600c95a8d9c1392fcf6722f22af792d56901",
+      "mode": "100644",
+      "deduplicated": true
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/09_QUESTIONS_A_CLARIFIER/QUESTIONS_A_CLARIFIER.md",
+      "path": "archives/pack-famille/09_QUESTIONS_A_CLARIFIER/QUESTIONS_A_CLARIFIER.md",
+      "sourceBlob": "16a888bb16de9e05f0a7ee6b2fa4b618782a85aa",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/10_EXPORTS_FAMILLE_AVOCAT/README_EXPORTS.md",
+      "path": "dossier/10_EXPORTS_FAMILLE_AVOCAT/README_EXPORTS.md",
+      "sourceBlob": "6d07a67ac52e447199c595c8f1ab7a3b1e8933c8",
+      "mode": "100644",
+      "deduplicated": true
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/GUIDE_UTILISATION_V02.md",
+      "path": "archives/pack-famille/GUIDE_UTILISATION_V02.md",
+      "sourceBlob": "71d4eb5268bac3587d5331116c1019b27530546a",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/MANIFESTE_PACK_FINCA_MARIA.md",
+      "path": "archives/pack-famille/MANIFESTE_PACK_FINCA_MARIA.md",
+      "sourceBlob": "1bb6f09d5937c08a9cb35915270ac1d8b76151a0",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/NOTICE_UTILISATION_SOEUR.md",
+      "path": "archives/pack-famille/NOTICE_UTILISATION_SOEUR.md",
+      "sourceBlob": "95654cb8447cf31b62223b6a89b79e9a91e709a9",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/OUTILS_TRANSCRIPTION/README.md",
+      "path": "archives/pack-famille/OUTILS_TRANSCRIPTION/README.md",
+      "sourceBlob": "4c2f6024df4b0a427ed74a5801a28a61964ee51b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/OUTILS_TRANSCRIPTION/installer-whisper-local.sh",
+      "path": "archives/pack-famille/OUTILS_TRANSCRIPTION/installer-whisper-local.sh",
+      "sourceBlob": "6fe282fcd1b88980f6d1238ac91a6d698533a800",
+      "mode": "100755",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/OUTILS_TRANSCRIPTION/transcrire-audio.sh",
+      "path": "archives/pack-famille/OUTILS_TRANSCRIPTION/transcrire-audio.sh",
+      "sourceBlob": "773db57b0d77e76dd861ac2fd7c3792e390a19f8",
+      "mode": "100755",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/OUTILS_TRANSCRIPTION/transcrire-choisir-fichier.sh",
+      "path": "archives/pack-famille/OUTILS_TRANSCRIPTION/transcrire-choisir-fichier.sh",
+      "sourceBlob": "85fe60559be4a95854df14d4c1ac13a41c25e526",
+      "mode": "100755",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/OUTILS_TRANSCRIPTION/transcrire-dernier-telechargement.sh",
+      "path": "archives/pack-famille/OUTILS_TRANSCRIPTION/transcrire-dernier-telechargement.sh",
+      "sourceBlob": "49bb2e697ea21d11ffda025fc90f816624b9e993",
+      "mode": "100755",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/README.md",
+      "path": "archives/pack-famille/README.md",
+      "sourceBlob": "f7160c4788eebe7388793b1b9dba0e117dd12080",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/README_FINCA_MARIA_SOURCE.md",
+      "path": "archives/pack-famille/README_FINCA_MARIA_SOURCE.md",
+      "sourceBlob": "12595cb2ecb33a4c19fd695f72fa01a3b70b48c2",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "10_PACKS/POUR_SOEUR/PACK_FINCA_MARIA/VERSION_PACK_FINCA_MARIA.md",
+      "path": "archives/pack-famille/VERSION_PACK_FINCA_MARIA.md",
+      "sourceBlob": "00dcf9445ee0f979c02d954d40f80f0836dcc5e4",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "COOLIFY_HANDOFF.md",
+      "path": "COOLIFY_HANDOFF.md",
+      "sourceBlob": "05bb0fb84c02dd43240630efcf2255407514b4c6",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "INSTALLATION_SERVEUR_FINCA_MARIA.md",
+      "path": "INSTALLATION_SERVEUR_FINCA_MARIA.md",
+      "sourceBlob": "383f1b03af81a90f752ae79a2b6d44fc0e2c137a",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/.dockerignore",
+      "path": "app/.dockerignore",
+      "sourceBlob": "798560f02234563e2315191ce7958a140f3ab1fc",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/.env.coolify.example",
+      "path": "app/.env.coolify.example",
+      "sourceBlob": "e9e2684f763e7e16f043496d264d9cd93e7670f4",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/.env.example",
+      "path": "app/.env.example",
+      "sourceBlob": "9bc69ceb722f6cdebf8701dc5f50534eb26fef15",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/DEPLOIEMENT_COOLIFY_SECURITE.md",
+      "path": "app/DEPLOIEMENT_COOLIFY_SECURITE.md",
+      "sourceBlob": "f6710f97e4c5d7a04b22edfc988a34315fcf75d2",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/Dockerfile",
+      "path": "app/Dockerfile",
+      "sourceBlob": "7f37b68ace97dac0da859e686e0cad1bb12089c9",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/deploy/nginx.conf",
+      "path": "app/deploy/nginx.conf",
+      "sourceBlob": "e89223667551ebb1e436bf1c276f9bc8a171c8ea",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/docker-compose.coolify.yml",
+      "path": "app/docker-compose.coolify.yml",
+      "sourceBlob": "2abe5e1bb423a031009b59212ccd71a00fb02e00",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/family-static-v2/analyse/index.html",
+      "path": "archives/ancienne-demo/analyse/index.html",
+      "sourceBlob": "449f2671daf496a1e5517113c4110ca44dbda6f6",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/family-static-v2/deploy-trigger.txt",
+      "path": "archives/ancienne-demo/deploy-trigger.txt",
+      "sourceBlob": "6de476e229396c37acc5454cc31f1c03099efa60",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/family-static-v2/index.html",
+      "path": "archives/ancienne-demo/index.html",
+      "sourceBlob": "33365fb19997c68c52d2c7200b6ec963f9c53d1b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/family-static-v2/vercel.json",
+      "path": "archives/ancienne-demo/vercel.json",
+      "sourceBlob": "8d5b902182c610b1be4acc899d6365f34fac118e",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/family/FincaFamilySafeApp.jsx",
+      "path": "app/family/FincaFamilySafeApp.jsx",
+      "sourceBlob": "7473e16ab36c3ebb36f3bed0c48a7bd5f76e99b7",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/family/finca-family.css",
+      "path": "app/family/finca-family.css",
+      "sourceBlob": "2a1a7ff1957ae2a5fc43d1a709b28ee4e2381656",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/family/index.html",
+      "path": "app/family/index.html",
+      "sourceBlob": "60a46c946582f82c17f543da55dd9007d785fbed",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/family/main.jsx",
+      "path": "app/family/main.jsx",
+      "sourceBlob": "ec1ec6b3645d9946d8b0c8185bc5a1ddf979f1b8",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/index.html",
+      "path": "app/index.html",
+      "sourceBlob": "9657efd9240c1835244c68f95a03bc5d8dc0bdd9",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/nginx.conf",
+      "path": "app/nginx.conf",
+      "sourceBlob": "543d7083487d486fded443495baa6d74a3fe9fdf",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/package-lock.json",
+      "path": "app/package-lock.json",
+      "sourceBlob": "13c565fbe78748e99bc4751c151c51793c527df9",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/package.json",
+      "path": "app/package.json",
+      "sourceBlob": "195a8c781346e26f5cd1df5cf49ebcf07d648efc",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/public/assets/ASSETS_GUIDE.md",
+      "path": "app/public/assets/ASSETS_GUIDE.md",
+      "sourceBlob": "6b4e81ed235210b91c927c4e42fb006e77ec2cbd",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/public/assets/symbols/olive.svg",
+      "path": "app/public/assets/symbols/olive.svg",
+      "sourceBlob": "aa9801ef7d74a0aff2bde082ffe3455696ab6468",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/public/login.html",
+      "path": "app/public/login.html",
+      "sourceBlob": "c778a6a280d80c27858aca3c0cf780f5f6678f3f",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/public/login.js",
+      "path": "app/public/login.js",
+      "sourceBlob": "dacc758c95656be710135869928b8f6b30e0548f",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/scripts/audit-family-build.mjs",
+      "path": "app/scripts/audit-family-build.mjs",
+      "sourceBlob": "91d1de80eaf145aaa385dc5064d850b5ea598ef5",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/scripts/test-finca-data-consistency.mjs",
+      "path": "app/scripts/test-finca-data-consistency.mjs",
+      "sourceBlob": "c2927c537819da53d0a0af5edee725e3b5b1fdee",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/scripts/test-finca-navigation.mjs",
+      "path": "app/scripts/test-finca-navigation.mjs",
+      "sourceBlob": "84ae218c175b276972e7afb0406df1514876854d",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/App.jsx",
+      "path": "app/src/App.jsx",
+      "sourceBlob": "d42f319f38580cb8596da1cc071059e1ca7f5b0c",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/RootApp.jsx",
+      "path": "app/src/RootApp.jsx",
+      "sourceBlob": "c785124ec6bbf1f702e4e9777cbf5b2aa0dcabfe",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/baul-preview.css",
+      "path": "app/src/baul-preview.css",
+      "sourceBlob": "a5ab52eb7db6aed09847bf86eaf0d25289d540c7",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/clickable-highlight.css",
+      "path": "app/src/clickable-highlight.css",
+      "sourceBlob": "cf9a76730dd82fee0ddf4a360cda596b8e19acfb",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/AppErrorBoundary.jsx",
+      "path": "app/src/components/AppErrorBoundary.jsx",
+      "sourceBlob": "19b8dd00d7ac022af64e861487261a69f8a8784d",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/BaulImportPanel.jsx",
+      "path": "app/src/components/BaulImportPanel.jsx",
+      "sourceBlob": "1630d1088c48cf89d05d851e826ea5575949575a",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/CortijoActionDesk.jsx",
+      "path": "app/src/components/CortijoActionDesk.jsx",
+      "sourceBlob": "817f9486300377801de5e87b926a542775ffcb0e",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/CortijoDashboard.jsx",
+      "path": "app/src/components/CortijoDashboard.jsx",
+      "sourceBlob": "d300ae4b5c4892c7824be82137a0c3c5aab73b37",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/CortijoDossierPortal.jsx",
+      "path": "app/src/components/CortijoDossierPortal.jsx",
+      "sourceBlob": "a83d12e709a43d2ec116ac7a06f6f85f989b343d",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/CortijoExportableView.jsx",
+      "path": "app/src/components/CortijoExportableView.jsx",
+      "sourceBlob": "1641322db768e00a0de5ea0f35ccdac02b07eb00",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/CortijoFamilyPortal.jsx",
+      "path": "app/src/components/CortijoFamilyPortal.jsx",
+      "sourceBlob": "c5b758fb02b2df72efea424d437be59de2ae29e0",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/CortijoGovernancePanel.jsx",
+      "path": "app/src/components/CortijoGovernancePanel.jsx",
+      "sourceBlob": "9404e1a68351aad3860ffa2f8db285751a522c0c",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/CortijoHousePortal.jsx",
+      "path": "app/src/components/CortijoHousePortal.jsx",
+      "sourceBlob": "3f512685e98b2a3bbfe79829c753bf399b95befb",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/CortijoMemoryPortal.jsx",
+      "path": "app/src/components/CortijoMemoryPortal.jsx",
+      "sourceBlob": "c6df5da8a80466b18e269f8e540d056358594070",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/CortijoProofVault.jsx",
+      "path": "app/src/components/CortijoProofVault.jsx",
+      "sourceBlob": "108613ccced1f6e782326f099f1dea151ec7e848",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/CortijoTerrainPanel.jsx",
+      "path": "app/src/components/CortijoTerrainPanel.jsx",
+      "sourceBlob": "b9b3a750a074dd9a88fe191aa1935d5367d38f43",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/CortijoTransferPanel.jsx",
+      "path": "app/src/components/CortijoTransferPanel.jsx",
+      "sourceBlob": "ca42a6e53946c58e380a007b6a017eded25dd546",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/FincaDocumentChecklistMount.jsx",
+      "path": "app/src/components/FincaDocumentChecklistMount.jsx",
+      "sourceBlob": "c828cd1be2205ef7f6623d8080f671aa686b812b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/FincaHouseBookingCalendarMount.jsx",
+      "path": "app/src/components/FincaHouseBookingCalendarMount.jsx",
+      "sourceBlob": "45815a5dded78d08212a73f9d836d80f3e2465de",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/FincaHouseExperience.jsx",
+      "path": "app/src/components/FincaHouseExperience.jsx",
+      "sourceBlob": "993376679d97665e010808af289deaf8c3ba89c6",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/FincaHouseInventoryMount.jsx",
+      "path": "app/src/components/FincaHouseInventoryMount.jsx",
+      "sourceBlob": "198547cf8d5ef1eba30bf6f07530199afe947285",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/FincaHouseRulesHistoryMount.jsx",
+      "path": "app/src/components/FincaHouseRulesHistoryMount.jsx",
+      "sourceBlob": "91978c399ccfd5b64db80ada5b1eba2cd1e95f20",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/FincaHouseStatusMount.jsx",
+      "path": "app/src/components/FincaHouseStatusMount.jsx",
+      "sourceBlob": "587ffde16a981bcb932394dd1bae4223200eb945",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/FincaHouseStayOptimizationMount.jsx",
+      "path": "app/src/components/FincaHouseStayOptimizationMount.jsx",
+      "sourceBlob": "f2d19a3762978e38476d47b9436a0c3d1afb20c4",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/FincaMariaAnalysisPanel.jsx",
+      "path": "app/src/components/FincaMariaAnalysisPanel.jsx",
+      "sourceBlob": "13069d82058ea08e54635d5a3802671eeee2ee1b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/FincaMariaDashboard.jsx",
+      "path": "app/src/components/FincaMariaDashboard.jsx",
+      "sourceBlob": "8519415279ff6a03b18504c9c38f6925c7cce1fb",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/FincaOperationsMount.jsx",
+      "path": "app/src/components/FincaOperationsMount.jsx",
+      "sourceBlob": "cf99c1acf4849435de08fbc8b36b924f2b2c6eca",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/FincaSharedSyncMount.jsx",
+      "path": "app/src/components/FincaSharedSyncMount.jsx",
+      "sourceBlob": "cc3c629a5c46930bda0e04a1b59d29083e91bced",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/FincaSimpleNavigationMount.jsx",
+      "path": "app/src/components/FincaSimpleNavigationMount.jsx",
+      "sourceBlob": "b4d4dab2805081c3a16ff74abbbd21551318d127",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/components/FincaTreeCountPanel.jsx",
+      "path": "app/src/components/FincaTreeCountPanel.jsx",
+      "sourceBlob": "aa4adc73a2e28b8e780230b260bdb980668c2ae4",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/cortijo-actions-v2.css",
+      "path": "app/src/cortijo-actions-v2.css",
+      "sourceBlob": "a11a1f5c59073baeb0f5b801f74b7874f53243c0",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/cortijo-actions.css",
+      "path": "app/src/cortijo-actions.css",
+      "sourceBlob": "437e750c356b67cf466831eb505a503e29c516d6",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/cortijo-export.css",
+      "path": "app/src/cortijo-export.css",
+      "sourceBlob": "577e25f66025b16823f5cb4fadb5485c3bee2c23",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/cortijo-terrain-v2.css",
+      "path": "app/src/cortijo-terrain-v2.css",
+      "sourceBlob": "c675d49680ae8d6c6e400dc4fa2d347efcece21b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/cortijo-terrain.css",
+      "path": "app/src/cortijo-terrain.css",
+      "sourceBlob": "aa076a838f3f0ad8b6ce2da475723674eda774a9",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/cortijo-transfer.css",
+      "path": "app/src/cortijo-transfer.css",
+      "sourceBlob": "38e574ca281634055ab3d34f823bcc7682440b0c",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/data/cortijo-alerts.js",
+      "path": "app/src/data/cortijo-alerts.js",
+      "sourceBlob": "c0422851f8d87f2c6a4ccef8ff277c67854a271f",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/data/cortijo-links.js",
+      "path": "app/src/data/cortijo-links.js",
+      "sourceBlob": "1c8310719df1a34f71711f4a82b2c95186a5446d",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/data/cortijo-proofs.js",
+      "path": "app/src/data/cortijo-proofs.js",
+      "sourceBlob": "3ae7c1fec517a981df6d03e8a330ff67ec106dcc",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/data/cortijo-statuses.js",
+      "path": "app/src/data/cortijo-statuses.js",
+      "sourceBlob": "9e0c987aa3769a4394bd90a2e9768e6013370b44",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/data/cortijo.js",
+      "path": "app/src/data/cortijo.js",
+      "sourceBlob": "633e00bed18d0f87c746d793b04643e818d93eb0",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/data/cortijoAccess.js",
+      "path": "app/src/data/cortijoAccess.js",
+      "sourceBlob": "456215dbb87a4adcbf0d117b717edb94ec9225de",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/data/cortijoActionDesk.js",
+      "path": "app/src/data/cortijoActionDesk.js",
+      "sourceBlob": "f1319936109b834314b17247a7d6da946e692930",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/data/cortijoDossiers.js",
+      "path": "app/src/data/cortijoDossiers.js",
+      "sourceBlob": "34a8a96c3611a85f95cdad2d2c4bb6f6ea521dd2",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/data/cortijoHouseInventory.js",
+      "path": "app/src/data/cortijoHouseInventory.js",
+      "sourceBlob": "e9f07e30465fd33f8d0bac6babe7ffabae894adc",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/data/cortijoHouseStatus.js",
+      "path": "app/src/data/cortijoHouseStatus.js",
+      "sourceBlob": "3a84c0b2ee5b564f837acb0db79628161c0c9e2f",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/data/cortijoTerrainHistory.js",
+      "path": "app/src/data/cortijoTerrainHistory.js",
+      "sourceBlob": "d730346cc36c0cf1fbe33ef081cfc73dd2b034a4",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/data/documentProcessingPolicy.js",
+      "path": "app/src/data/documentProcessingPolicy.js",
+      "sourceBlob": "a374be6a7e6d580f52f4b7808729e522c0427d80",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/docs/cortijo-prochaine-integration.md",
+      "path": "app/src/docs/cortijo-prochaine-integration.md",
+      "sourceBlob": "ed82652e85adab0508a773fa37fe4bc80eaa12d0",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/finca-action-accordion.css",
+      "path": "app/src/finca-action-accordion.css",
+      "sourceBlob": "aa119e6108a33984e8087a2902dad7456a391771",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/finca-actions-immediate.css",
+      "path": "app/src/finca-actions-immediate.css",
+      "sourceBlob": "cf600fc38aba694c68ad5682ced7a2ff6efcf220",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/finca-maria-mobile.css",
+      "path": "app/src/finca-maria-mobile.css",
+      "sourceBlob": "20e2132f2994304468d454a1f40e47f108905d9c",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/finca-maria-v42.css",
+      "path": "app/src/finca-maria-v42.css",
+      "sourceBlob": "35f02066bdfdbb7c84e3ce378c08161a20ae8d3f",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/finca-styles.js",
+      "path": "app/src/finca-styles.js",
+      "sourceBlob": "9b5c2043d549c69f3907fb5572644cab6834c14a",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/finca-tabs.css",
+      "path": "app/src/finca-tabs.css",
+      "sourceBlob": "558498e217834a337c56f40c4c993c927933ab7c",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/index.css",
+      "path": "app/src/index.css",
+      "sourceBlob": "959d86b8c62ce6f912d5c77c4df13dc9c01a6623",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/lib/fincaDataGateway.js",
+      "path": "app/src/lib/fincaDataGateway.js",
+      "sourceBlob": "5bbf087a7782e43cfb3d2ad08c4aaa4f69259d80",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/main.jsx",
+      "path": "app/src/main.jsx",
+      "sourceBlob": "73ac92bf58ae5bbfb7e48ebf2d38f40c223ddfa8",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/project-work.css",
+      "path": "app/src/project-work.css",
+      "sourceBlob": "580b104089fae6581cae7224ce97dc29d44ec67e",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/utils/cortijo-export.js",
+      "path": "app/src/utils/cortijo-export.js",
+      "sourceBlob": "6e29f3d42042adb5721419dcb055fff150878148",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/src/vogue-polish.css",
+      "path": "app/src/vogue-polish.css",
+      "sourceBlob": "2663994bd957d41f23f6c61773fec1d0832e8ac3",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/vite.config.family.mjs",
+      "path": "app/vite.config.family.mjs",
+      "sourceBlob": "694c8c939c6e4d5ee398bd1dadc16d548d5895f6",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/vite.config.js",
+      "path": "app/vite.config.js",
+      "sourceBlob": "5ee8a35c773ca65c33ad4dd963406347651519a3",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "app/vite.config.preview.js",
+      "path": "app/vite.config.preview.js",
+      "sourceBlob": "ae30502853d59e005bd3016b00d21e4dac722280",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docker-compose.coolify.ci.yml",
+      "path": "docker-compose.coolify.ci.yml",
+      "sourceBlob": "f20c1c2c9808248efdfb2791073f4677070263ed",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docker-compose.coolify.yml",
+      "path": "docker-compose.coolify.yml",
+      "sourceBlob": "5dddbbfb402b3b0233bed5434c49f96bc1fa9ae1",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docker-compose.finca.yml",
+      "path": "docker-compose.finca.yml",
+      "sourceBlob": "68846f2e95ee0f290f505753a43471281fb68de3",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/azoth-finca/README.md",
+      "path": "docs/historique/azoth-finca/README.md",
+      "sourceBlob": "d7c904f4776a44e687c3ce9252725440efde2d94",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/azoth-finca/index-azoth-finca.md",
+      "path": "docs/historique/azoth-finca/index-azoth-finca.md",
+      "sourceBlob": "5c911289c041fe64815d6ea3d5c4e86dacc17d22",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/azoth-finca/nomenclature.md",
+      "path": "docs/historique/azoth-finca/nomenclature.md",
+      "sourceBlob": "1b015b66047d0df19afe10990a3fa3141a241be7",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/cortijo-alemanes/AUDIT_REORGANISATION_FINCA_MARIA_2026-08-18.md",
+      "path": "docs/historique/cortijo-alemanes/AUDIT_REORGANISATION_FINCA_MARIA_2026-08-18.md",
+      "sourceBlob": "ac209292b96471c73cbd10d5b6e7008964749f22",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/cortijo-alemanes/COLLABORATION_FAMILLE_V1.md",
+      "path": "docs/historique/cortijo-alemanes/COLLABORATION_FAMILLE_V1.md",
+      "sourceBlob": "a5e7040ef65975c73b6b6909bcf934f3f53f3322",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/cortijo-alemanes/architecture-partage-familial.md",
+      "path": "docs/historique/cortijo-alemanes/architecture-partage-familial.md",
+      "sourceBlob": "5e0c8b7214eec9f451b683c287472fe9c2d5ec0f",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/cortijo-alemanes/baul-casa-cortijo-alemanes.md",
+      "path": "docs/historique/cortijo-alemanes/baul-casa-cortijo-alemanes.md",
+      "sourceBlob": "79ce078f7ae4ff4885d29d0fccc53cedd9f5277f",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/cortijo-alemanes/compagnon-chantier-cortijo.md",
+      "path": "docs/historique/cortijo-alemanes/compagnon-chantier-cortijo.md",
+      "sourceBlob": "0b0128cde10a1d996e305511f9b9c5f6433b8238",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/cortijo-alemanes/continuite-cortijo-alemanes.md",
+      "path": "docs/historique/cortijo-alemanes/continuite-cortijo-alemanes.md",
+      "sourceBlob": "35d11f32bc710a6e2bf88d56bfd6f7b421b1f309",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/cortijo-alemanes/convention-nommage-baul.md",
+      "path": "docs/historique/cortijo-alemanes/convention-nommage-baul.md",
+      "sourceBlob": "22f7053c721ae92dbd54198a78d91a62971cd35b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/cortijo-alemanes/index-cortijo-alemanes.md",
+      "path": "docs/historique/cortijo-alemanes/index-cortijo-alemanes.md",
+      "sourceBlob": "27356fe0748a06ecae6e00a85267b7232788c800",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/cortijo-alemanes/multi-administrateurs-et-tracabilite.md",
+      "path": "docs/historique/cortijo-alemanes/multi-administrateurs-et-tracabilite.md",
+      "sourceBlob": "bc81fc5e59b86db35aad768c21e4d1bcde9f8984",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/cortijo-alemanes/ordre-de-travail-cortijo-alemanes.md",
+      "path": "docs/historique/cortijo-alemanes/ordre-de-travail-cortijo-alemanes.md",
+      "sourceBlob": "4441f43aeef412b83f5708b36aa493a261088e7e",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/cortijo-alemanes/point-reprise-v1-operationnelle.md",
+      "path": "docs/historique/cortijo-alemanes/point-reprise-v1-operationnelle.md",
+      "sourceBlob": "1ae9b10ac0efdc2c3fe8d0973c16185bfc40770f",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "docs/cortijo-alemanes/registre-anomalies.md",
+      "path": "docs/historique/cortijo-alemanes/registre-anomalies.md",
+      "sourceBlob": "c839503f793de46b515e4ae4f367359f0a90f2ee",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/affiner-inconnus-v10.mjs",
+      "path": "outils/historique-documentaire/affiner-inconnus-v10.mjs",
+      "sourceBlob": "e3b354cfa04d85d2db910f5cb048719a0b9e6956",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/affiner-tranche-baul-v5.mjs",
+      "path": "outils/historique-documentaire/affiner-tranche-baul-v5.mjs",
+      "sourceBlob": "b65e977b9ecd4499694fb6e56aa2baa49891d2c5",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/analyser-baul-complet-v7.mjs",
+      "path": "outils/historique-documentaire/analyser-baul-complet-v7.mjs",
+      "sourceBlob": "13db610c613f3e0d8ebd2be61ba07c7cf58e8267",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/analyser-baul-contextuel-v3.mjs",
+      "path": "outils/historique-documentaire/analyser-baul-contextuel-v3.mjs",
+      "sourceBlob": "eb3945cf05b0547853a6465651265a39680055d4",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/analyser-baul-masse-v2.mjs",
+      "path": "outils/historique-documentaire/analyser-baul-masse-v2.mjs",
+      "sourceBlob": "7c932742b1043c56ba59f61e2558314c9caaac25",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/analyser-baul-masse.mjs",
+      "path": "outils/historique-documentaire/analyser-baul-masse.mjs",
+      "sourceBlob": "208e63600bad1237b47828a0dc5cc7cffe5069c2",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/analyser-historique-exploitation-v44.mjs",
+      "path": "outils/historique-documentaire/analyser-historique-exploitation-v44.mjs",
+      "sourceBlob": "e18bc2c3ba5383a8e17eb3d5b5598ccfcb495959",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/analyser-tendances-exploitation-v31.mjs",
+      "path": "outils/historique-documentaire/analyser-tendances-exploitation-v31.mjs",
+      "sourceBlob": "80b49a837f6cafcd9ed7eb70ca4777b1d2ed8d60",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/auditer-campagne-2015-2016-v35.mjs",
+      "path": "outils/historique-documentaire/auditer-campagne-2015-2016-v35.mjs",
+      "sourceBlob": "9aaf1f82561bd6206a28331b26564c85d08f71b1",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/auditer-evenements-sans-campagne-v14.mjs",
+      "path": "outils/historique-documentaire/auditer-evenements-sans-campagne-v14.mjs",
+      "sourceBlob": "d9e3b7ba1ceba55f90ee6df1946077034f8f1589",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/auditer-liquidations-sans-campagne-v15.mjs",
+      "path": "outils/historique-documentaire/auditer-liquidations-sans-campagne-v15.mjs",
+      "sourceBlob": "745609736b5ca3a29e17df6797a96945a87fa9ff",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/auditer-preuve-quote-part-v37.mjs",
+      "path": "outils/historique-documentaire/auditer-preuve-quote-part-v37.mjs",
+      "sourceBlob": "0b8fe557a0e6f3b76226b02c75c361a294bf507d",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/auditer-surfaces-parcelles-v32.mjs",
+      "path": "outils/historique-documentaire/auditer-surfaces-parcelles-v32.mjs",
+      "sourceBlob": "48f29fe35ffbc208568daa6a38dc6eb73c7f2017",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/check-coolify-config.sh",
+      "path": "scripts/check-coolify-config.sh",
+      "sourceBlob": "c8ee539b145daec7b3b477184c491a25f6fcdda8",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/ci-finca-runtime-smoke.sh",
+      "path": "scripts/ci-finca-runtime-smoke.sh",
+      "sourceBlob": "09616ed21f5c2a521aca31943bf055ace7737445",
+      "mode": "100755",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/comparer-campagnes-prouvees-v28.mjs",
+      "path": "outils/historique-documentaire/comparer-campagnes-prouvees-v28.mjs",
+      "sourceBlob": "75cb8f35844bc59c2212189dcbe5191c2dd81c58",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/comparer-contrats-jose-v45.mjs",
+      "path": "outils/historique-documentaire/comparer-contrats-jose-v45.mjs",
+      "sourceBlob": "005816fd9c423ae5758f587d7671b57fb0a6860e",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/consolider-base-canonique-v25.mjs",
+      "path": "outils/historique-documentaire/consolider-base-canonique-v25.mjs",
+      "sourceBlob": "c6e4a5227a29c2671672ebc742f53a7c556c9582",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/consolider-baul-v7.mjs",
+      "path": "outils/historique-documentaire/consolider-baul-v7.mjs",
+      "sourceBlob": "45752f31bfe666434cb186da0c05c955165eb3d6",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/consolider-rotations-v12.mjs",
+      "path": "outils/historique-documentaire/consolider-rotations-v12.mjs",
+      "sourceBlob": "038abfbf908d143539d04949df7a651e153fd1b3",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/construire-chronologie-surfaces-v33.mjs",
+      "path": "outils/historique-documentaire/construire-chronologie-surfaces-v33.mjs",
+      "sourceBlob": "e2b96f80931fe279a6fe73c32cf7de434511c2e6",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/construire-tableau-historique-v30.mjs",
+      "path": "outils/historique-documentaire/construire-tableau-historique-v30.mjs",
+      "sourceBlob": "35e6f32c75d07e6639df61bc0cf369c6646c4af4",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/corriger-extractos-vales-v29.mjs",
+      "path": "outils/historique-documentaire/corriger-extractos-vales-v29.mjs",
+      "sourceBlob": "a6e3fc86c3e99980f1ea330cd1c5031c57f411f9",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/corriger-faux-positifs-liquidation-v17.mjs",
+      "path": "outils/historique-documentaire/corriger-faux-positifs-liquidation-v17.mjs",
+      "sourceBlob": "b7ce2a3633df2a4a7e32ea56d6bc2695a3c95046",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/corriger-liquidation-2016-v24.mjs",
+      "path": "outils/historique-documentaire/corriger-liquidation-2016-v24.mjs",
+      "sourceBlob": "62ac8ab97e279c2f3a03a0f8da8fd7bcd5e33846",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/corriger-structuration-nouveau-lot-v41.mjs",
+      "path": "outils/historique-documentaire/corriger-structuration-nouveau-lot-v41.mjs",
+      "sourceBlob": "2623e467b432a05f9c48113fc79793d33bf0066b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/diagnostiquer-structure-exploitation-v32.mjs",
+      "path": "outils/historique-documentaire/diagnostiquer-structure-exploitation-v32.mjs",
+      "sourceBlob": "3f80add6bd3306e889f421939ad22955f0157ef0",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/extraire-faits-nouveau-lot-v42.mjs",
+      "path": "outils/historique-documentaire/extraire-faits-nouveau-lot-v42.mjs",
+      "sourceBlob": "6856ab1e9251eac6304430730024929cfea8ad93",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/fiabiliser-campagnes-vales-v21.mjs",
+      "path": "outils/historique-documentaire/fiabiliser-campagnes-vales-v21.mjs",
+      "sourceBlob": "242c571e56b6c7d2eeda406c0972b0e8776846b3",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/fiabiliser-chronologie-v3-1.mjs",
+      "path": "outils/historique-documentaire/fiabiliser-chronologie-v3-1.mjs",
+      "sourceBlob": "47bc916aca3904089afec5a0481016fcec550652",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/fiabiliser-dates-ocr-vales-v22.mjs",
+      "path": "outils/historique-documentaire/fiabiliser-dates-ocr-vales-v22.mjs",
+      "sourceBlob": "21047afc605edd1e820054f8bebd471347e2b88a",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/fiabiliser-lots-v8.mjs",
+      "path": "outils/historique-documentaire/fiabiliser-lots-v8.mjs",
+      "sourceBlob": "b84fcc7451d5921503ea0e7be4f408317aa85b90",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/fiabiliser-preuves-production-v20.mjs",
+      "path": "outils/historique-documentaire/fiabiliser-preuves-production-v20.mjs",
+      "sourceBlob": "998bf744aabb73a876620e70f0c08a32dec32416",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/finaliser-demande-agri-san-juan-v27.mjs",
+      "path": "outils/historique-documentaire/finaliser-demande-agri-san-juan-v27.mjs",
+      "sourceBlob": "ac2a7f9067eb8959551fff984a1f044357359cfe",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/finaliser-faux-positifs-ibi-v18.mjs",
+      "path": "outils/historique-documentaire/finaliser-faux-positifs-ibi-v18.mjs",
+      "sourceBlob": "d2b66dc62c72783e766bd78af2f08c8af860d1fd",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/finca-coolify-smoke-test.sh",
+      "path": "scripts/finca-coolify-smoke-test.sh",
+      "sourceBlob": "7ae4da8fe295415620679ee7c3f9097342bb0d89",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/installer-raccourci-cortijo.ps1",
+      "path": "scripts/installer-raccourci-cortijo.ps1",
+      "sourceBlob": "912fd0eae520543ac72b09fa133b54ce07d870b6",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/installer-raccourci-cortijo.sh",
+      "path": "scripts/installer-raccourci-cortijo.sh",
+      "sourceBlob": "4dc4a24294774bc742054ccfc823fa72eb52097d",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/nettoyer-evenements-v6.mjs",
+      "path": "outils/historique-documentaire/nettoyer-evenements-v6.mjs",
+      "sourceBlob": "30ee267efaa9bb63f10ee58f33c91bb63b45f91a",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/normaliser-production-surfaces-v34.mjs",
+      "path": "outils/historique-documentaire/normaliser-production-surfaces-v34.mjs",
+      "sourceBlob": "bd9c6d8ed9b76a45ed75b06af7599385bec3f0e2",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/ocr-baul-complet-v43.mjs",
+      "path": "outils/historique-documentaire/ocr-baul-complet-v43.mjs",
+      "sourceBlob": "ff89ae40715f66fc2bfae5ef6f332cd1cddec35e",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/ouvrir-cortijo-famille-local.sh",
+      "path": "scripts/ouvrir-cortijo-famille-local.sh",
+      "sourceBlob": "fc7f25dda248cb66b207247f2b567c887c997c7c",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/ouvrir-cortijo-local.ps1",
+      "path": "scripts/ouvrir-cortijo-local.ps1",
+      "sourceBlob": "7430d229661a6edcdb08772d8dbe22bf223a981b",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/ouvrir-cortijo-local.sh",
+      "path": "scripts/ouvrir-cortijo-local.sh",
+      "sourceBlob": "0093e404c5464c08b80e9a7d66d57f7e4941f862",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/ouvrir-cortijo-memoire-local.sh",
+      "path": "scripts/ouvrir-cortijo-memoire-local.sh",
+      "sourceBlob": "da47b84d0d488cd105c9092fcbcd97e1f677436a",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/preparer-baul-cortijo-local.ps1",
+      "path": "scripts/preparer-baul-cortijo-local.ps1",
+      "sourceBlob": "2da1b024882eebbb4b51a8e51f6508eaccea861e",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/preparer-baul-cortijo-local.sh",
+      "path": "scripts/preparer-baul-cortijo-local.sh",
+      "sourceBlob": "3d37a1ee32eb78e9c04bcba5b3e3854cbd7277a7",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/preparer-demande-groupee-agri-san-juan-v26.mjs",
+      "path": "outils/historique-documentaire/preparer-demande-groupee-agri-san-juan-v26.mjs",
+      "sourceBlob": "9f16feb7814a32b5da25727885b0f98bf1042ca1",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/pretrier-nouveau-lot-v38.mjs",
+      "path": "outils/historique-documentaire/pretrier-nouveau-lot-v38.mjs",
+      "sourceBlob": "86b5a3a5eb2e0766c3a91c9591e9a846900960fc",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/reconnaitre-contenu-v9.mjs",
+      "path": "outils/historique-documentaire/reconnaitre-contenu-v9.mjs",
+      "sourceBlob": "ae2d7c608f26b1f908ca60aecfbe67491b3d3a73",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/reconstruire-campagnes-fiables-v23.mjs",
+      "path": "outils/historique-documentaire/reconstruire-campagnes-fiables-v23.mjs",
+      "sourceBlob": "3bd6e9c51fbc6cd7bcf65f2d94113ac473b7db5a",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/reconstruire-campagnes-nettoyees-v19.mjs",
+      "path": "outils/historique-documentaire/reconstruire-campagnes-nettoyees-v19.mjs",
+      "sourceBlob": "313d07562a08aecb69d61bef17e551fb9e0b2c95",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/reconstruire-campagnes-v13.mjs",
+      "path": "outils/historique-documentaire/reconstruire-campagnes-v13.mjs",
+      "sourceBlob": "7749154865f6f83459a0a33c075cc39041ed4028",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/reconstruire-production-quote-part-v36.mjs",
+      "path": "outils/historique-documentaire/reconstruire-production-quote-part-v36.mjs",
+      "sourceBlob": "1d8dd57a49180358ddced98a48b6c4db409c8f57",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/reconstruire-transition-production-v46.mjs",
+      "path": "outils/historique-documentaire/reconstruire-transition-production-v46.mjs",
+      "sourceBlob": "1cb01f7f53b596ffa97de7b982ff4be5f3979c75",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/regrouper-nouveau-lot-v39.mjs",
+      "path": "outils/historique-documentaire/regrouper-nouveau-lot-v39.mjs",
+      "sourceBlob": "e4228c14d9c8feb57f27774a830f759376aba3b1",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/relire-liquidations-directes-v16.mjs",
+      "path": "outils/historique-documentaire/relire-liquidations-directes-v16.mjs",
+      "sourceBlob": "5995d00d650086b6e4aa4cd868d9b15c6a29e359",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/retester-inconnus-rotations-v11.mjs",
+      "path": "outils/historique-documentaire/retester-inconnus-rotations-v11.mjs",
+      "sourceBlob": "893ec3e50459c3c0447fc72613beb40003d059aa",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/structurer-documents-nouveau-lot-v40.mjs",
+      "path": "outils/historique-documentaire/structurer-documents-nouveau-lot-v40.mjs",
+      "sourceBlob": "6f98233a1ab0e3952af696758120dfddf82c3f15",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/tester-tranche-baul-v4.mjs",
+      "path": "outils/historique-documentaire/tester-tranche-baul-v4.mjs",
+      "sourceBlob": "5069e6d5d2555494f4e573762ce027891750de7a",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "scripts/verify-coolify.sh",
+      "path": "scripts/verify-coolify.sh",
+      "sourceBlob": "ef8d60537cce72f7ca7dfc8dbeb32c341539d3d8",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "server/Dockerfile",
+      "path": "server/Dockerfile",
+      "sourceBlob": "98a39f8ab2826839022ca09d3a16369216dc65a9",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "server/ops/CONSOLIDATION.md",
+      "path": "server/ops/CONSOLIDATION.md",
+      "sourceBlob": "a94b5c9a0510ba87a284d625863d7571ff24ac67",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "server/ops/Dockerfile.backup",
+      "path": "server/ops/Dockerfile.backup",
+      "sourceBlob": "3a20e785fd46c4fd51be960e1c0caf9b258c4771",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "server/ops/README.md",
+      "path": "server/ops/README.md",
+      "sourceBlob": "2a5d71e8f45e7ef8cdbd8cce1677cc93a6a5ed97",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "server/ops/backup-finca.sh",
+      "path": "server/ops/backup-finca.sh",
+      "sourceBlob": "bc02d2a0a0381a8fd99a05f440d332c09a544ec5",
+      "mode": "100755",
+      "deduplicated": false
+    },
+    {
+      "source": "server/package-lock.json",
+      "path": "server/package-lock.json",
+      "sourceBlob": "a8e58a572cd79c500e0663188a7f56361122f3d5",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "server/package.json",
+      "path": "server/package.json",
+      "sourceBlob": "91a8caba397df8e3e3c0b288ac710eccb831a564",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "server/sql/001_init.sql",
+      "path": "server/sql/001_init.sql",
+      "sourceBlob": "f80454da0fb5500e307fb3298ba076b39f2aec01",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "server/src/server.js",
+      "path": "server/src/server.js",
+      "sourceBlob": "bc8f47dac4c8f9fe6eaf8571f3a67c0652cdce4c",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "services/finca-maria-api/.dockerignore",
+      "path": "archives/ancienne-api/.dockerignore",
+      "sourceBlob": "6e37db8618f05dda10187e8c23fe529bdfb4caf2",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "services/finca-maria-api/.env.example",
+      "path": "archives/ancienne-api/.env.example",
+      "sourceBlob": "0bf7f2a2f8b00bec34b7e24bf32b5d9f040ac2af",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "services/finca-maria-api/COOLIFY.md",
+      "path": "archives/ancienne-api/COOLIFY.md",
+      "sourceBlob": "97bae55bd897d9acf9b2bb0014b0a45e544ccce4",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "services/finca-maria-api/Dockerfile",
+      "path": "archives/ancienne-api/Dockerfile",
+      "sourceBlob": "a8211c3101206817c8e355bb6e698cf14c62f8f9",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "services/finca-maria-api/package.json",
+      "path": "archives/ancienne-api/package.json",
+      "sourceBlob": "6acf7e15d9b1923430cf6c82dbb57df79d8dfa88",
+      "mode": "100644",
+      "deduplicated": false
+    },
+    {
+      "source": "services/finca-maria-api/server.mjs",
+      "path": "archives/ancienne-api/server.mjs",
+      "sourceBlob": "4de191a5d6ebc9b79e959bcab4ebe1e6b14f450b",
+      "mode": "100644",
+      "deduplicated": false
+    }
+  ]
+}

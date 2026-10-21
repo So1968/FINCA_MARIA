@@ -1,0 +1,115 @@
+name: FINCA MARIA autonome
+
+on:
+  push:
+    paths:
+      - "app/**"
+      - "server/**"
+      - "scripts/ci-finca-runtime-smoke.sh"
+      - "scripts/check-coolify-config.sh"
+      - "docker-compose.finca.yml"
+      - "docker-compose.coolify.yml"
+      - "docker-compose.coolify.ci.yml"
+      - ".env.finca.example"
+      - ".github/workflows/finca-ci.yml"
+      - "package.json"
+      - "tests/**"
+  pull_request:
+    paths:
+      - "app/**"
+      - "server/**"
+      - "scripts/ci-finca-runtime-smoke.sh"
+      - "scripts/check-coolify-config.sh"
+      - "docker-compose.finca.yml"
+      - "docker-compose.coolify.yml"
+      - "docker-compose.coolify.ci.yml"
+      - ".env.finca.example"
+      - ".github/workflows/finca-ci.yml"
+      - "package.json"
+      - "tests/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install frontend dependencies from lockfile
+        working-directory: app
+        run: npm ci --no-audit --no-fund
+
+      - name: Test FINCA MARIA navigation
+        run: npm test
+
+      - name: Build frontend
+        working-directory: app
+        run: npm run check
+
+      - name: Build and audit isolated family interface
+        run: npm run check:family
+
+      - name: Audit frontend production dependencies
+        working-directory: app
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Check backend syntax
+        run: node --check server/src/server.js
+
+      - name: Build frontend container
+        run: docker build --pull -t finca-maria-web:ci ./app
+
+      - name: Build backend container
+        run: docker build --pull -t finca-maria-api:ci ./server
+
+      - name: Preflight Coolify configuration
+        env:
+          APP_ORIGIN: https://finca.example.test
+          POSTGRES_PASSWORD: CI_database_password_123456789
+          FINCA_BOOTSTRAP_ADMIN_EMAIL: admin@example.test
+          FINCA_BOOTSTRAP_ADMIN_PASSWORD: CI_Admin_password_123456789
+          BACKUP_ENCRYPTION_PASSPHRASE: CI_Backup_encryption_passphrase_123456789
+        run: sh scripts/check-coolify-config.sh
+
+      - name: Validate Docker Compose
+        env:
+          APP_ORIGIN: https://finca.example.test
+          POSTGRES_PASSWORD: CI_password_123456789
+          FINCA_BOOTSTRAP_ADMIN_EMAIL: admin@example.test
+          FINCA_BOOTSTRAP_ADMIN_NAME: CI Admin
+          FINCA_BOOTSTRAP_ADMIN_PASSWORD: CI_Admin_password_123456789
+          BACKUP_ENCRYPTION_PASSPHRASE: CI_Backup_encryption_passphrase_123456789
+        run: |
+          docker compose -f docker-compose.finca.yml config --quiet
+          docker compose -f docker-compose.coolify.yml config --quiet
+          docker compose -f docker-compose.coolify.yml -f docker-compose.coolify.ci.yml config --quiet
+          docker compose -f app/docker-compose.coolify.yml config --quiet
+
+      - name: Runtime smoke test exact Coolify stack
+        env:
+          COMPOSE_FILE: docker-compose.coolify.yml
+          COMPOSE_OVERRIDE_FILE: docker-compose.coolify.ci.yml
+          APP_ORIGIN: http://127.0.0.1:18080
+          FINCA_HTTP_PORT: "18080"
+          POSTGRES_DB: finca_maria_ci
+          POSTGRES_USER: finca_ci
+          POSTGRES_PASSWORD: CI_database_password_123456789
+          FINCA_BOOTSTRAP_ADMIN_EMAIL: admin-ci@example.test
+          FINCA_BOOTSTRAP_ADMIN_NAME: CI Admin
+          FINCA_BOOTSTRAP_ADMIN_PASSWORD: CI_Admin_password_123456789
+          BACKUP_ENCRYPTION_PASSPHRASE: CI_Backup_encryption_passphrase_123456789
+          SESSION_HOURS: "1"
+          BACKUP_INTERVAL_SECONDS: "3600"
+          BACKUP_RETENTION_DAYS: "1"
+        run: sh scripts/ci-finca-runtime-smoke.sh

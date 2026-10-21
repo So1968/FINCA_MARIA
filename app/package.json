@@ -1,0 +1,26 @@
+{
+  "name": "app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config vite.config.preview.js",
+    "build": "vite build --config vite.config.preview.js",
+    "check": "vite build --config vite.config.preview.js",
+    "test": "node scripts/test-finca-navigation.mjs && node scripts/test-finca-data-consistency.mjs",
+    "preview": "vite preview --config vite.config.preview.js",
+    "dev:family": "vite --config vite.config.family.mjs",
+    "build:family": "vite build --config vite.config.family.mjs",
+    "audit:family": "node scripts/audit-family-build.mjs",
+    "check:family": "npm run build:family && npm run audit:family",
+    "preview:family": "vite preview --config vite.config.family.mjs"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "6.0.1",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "vite": "8.3.5"
+  },
+  "engines": {
+    "node": ">=22.12.0 <23"
+  }
+}

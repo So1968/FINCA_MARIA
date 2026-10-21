@@ -1,0 +1,4 @@
+FROM postgres:16-alpine
+RUN apk add --no-cache gnupg
+COPY --chmod=755 ops/backup-finca.sh /usr/local/bin/backup-finca
+CMD ["/usr/local/bin/backup-finca", "--loop"]

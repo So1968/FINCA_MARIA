@@ -1,0 +1,7 @@
+# Ne pas envoyer les photos/vidéos privées sur GitHub
+ORIGINAUX/*
+A_ANALYSER/*
+
+# Garder seulement les dossiers visibles dans Git
+!ORIGINAUX/.gitkeep
+!A_ANALYSER/.gitkeep

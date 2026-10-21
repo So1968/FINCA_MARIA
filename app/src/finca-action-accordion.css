@@ -1,0 +1,177 @@
+.fincaActionSnapshot {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .45rem;
+  margin-top: .8rem;
+}
+
+.fincaActionSnapshot span {
+  min-width: 0;
+  display: grid;
+  gap: .12rem;
+  padding: .55rem .65rem;
+  border: 1px solid rgba(214,169,85,.16);
+  border-radius: 12px;
+  background: rgba(0,0,0,.14);
+  color: #f1dfbb;
+  font-size: .82rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.fincaActionSnapshot b {
+  color: #c7aa72;
+  font-size: .66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+}
+
+.fincaActionRegistered {
+  margin: 0;
+  color: #cdb98d !important;
+  font-size: .88rem !important;
+}
+
+.fincaActionControls {
+  display: grid;
+  gap: .5rem;
+}
+
+.fincaActionControl {
+  border: 1px solid rgba(214,169,85,.18);
+  border-radius: 13px;
+  background: rgba(0,0,0,.13);
+  overflow: hidden;
+}
+
+.fincaActionControl[open] {
+  border-color: rgba(214,169,85,.34);
+  background: rgba(214,169,85,.035);
+}
+
+.fincaActionControl > summary {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) auto;
+  gap: .7rem;
+  align-items: center;
+  min-height: 48px;
+  padding: .65rem .75rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.fincaActionControl > summary::-webkit-details-marker {
+  display: none;
+}
+
+.fincaActionControl > summary::after {
+  content: "›";
+  color: #d6a955;
+  font-family: Georgia, serif;
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: transform .16s ease;
+}
+
+.fincaActionControl[open] > summary::after {
+  transform: rotate(90deg);
+}
+
+.fincaActionControl > summary > span {
+  color: #d6a955;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+}
+
+.fincaActionControl > summary > strong {
+  color: #fff0cf;
+  font-size: .92rem;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.fincaActionControlBody {
+  padding: .75rem;
+  border-top: 1px solid rgba(214,169,85,.12);
+}
+
+.fincaActionControlBody label {
+  display: grid;
+  gap: .35rem;
+  margin: 0 !important;
+}
+
+.fincaActionControlBody label > span {
+  color: #a99570;
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+}
+
+.fincaActionControlBody select,
+.fincaActionControlBody input {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid rgba(214,169,85,.28);
+  border-radius: 10px;
+  padding: .55rem .65rem;
+  color: #f6ead0;
+  background: rgba(5,8,7,.92);
+  font: inherit;
+  font-size: .9rem;
+}
+
+.fincaActionControlBody input[type="date"] {
+  color-scheme: dark;
+}
+
+.fincaReadScript {
+  border: 1px solid rgba(111,145,92,.35);
+  border-radius: 13px;
+  background: rgba(48,79,43,.12);
+  overflow: hidden;
+}
+
+.fincaReadScript > summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding: .7rem .8rem;
+  cursor: pointer;
+  color: #dce7bd;
+  font-weight: 600;
+}
+
+.fincaReadScript > p {
+  margin: 0 !important;
+  padding: .8rem;
+  border-top: 1px solid rgba(111,145,92,.22);
+  white-space: pre-wrap;
+}
+
+@media (max-width: 800px) {
+  .fincaActionSnapshot {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fincaActionControl > summary {
+    grid-template-columns: 118px minmax(0, 1fr) auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .fincaActionSnapshot {
+    grid-template-columns: 1fr;
+  }
+
+  .fincaActionControl > summary {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .fincaActionControl > summary > strong {
+    grid-column: 1 / -1;
+  }
+}

@@ -1,0 +1,322 @@
+/* FINCA MARIA — lecture téléphone / presbytie
+   Mobile-first overrides loaded after the main FINCA stylesheet. */
+
+@media (max-width: 760px) {
+  .cortijoExportApp {
+    padding: 14px 10px 36px;
+    font-size: 19px;
+    line-height: 1.68;
+  }
+
+  .fincaMariaShell {
+    gap: .8rem;
+  }
+
+  .cortijoExportApp p,
+  .cortijoExportApp li,
+  .cortijoExportApp dd,
+  .cortijoExportApp dt,
+  .fincaMariaShell p,
+  .fincaMariaShell li,
+  .fincaActionExpanded p,
+  .fincaActionExpanded li {
+    font-size: 1rem;
+    line-height: 1.68;
+  }
+
+  .cortijoExportHero {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    border-radius: 18px;
+    padding: 20px 16px;
+  }
+
+  .cortijoExportApp .cortijoExportHero h1 {
+    margin: 8px 0 10px;
+    font-size: clamp(2rem, 10vw, 2.8rem);
+    line-height: 1.06;
+    letter-spacing: 1px;
+  }
+
+  .cortijoExportApp .cortijoExportHero p {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .fincaMariaHeader {
+    gap: .85rem;
+  }
+
+  .fincaMariaHeader h2,
+  .cortijoHeader h2 {
+    font-size: 2rem;
+    line-height: 1.12;
+    letter-spacing: 1px;
+  }
+
+  .fincaSectionControls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: .55rem;
+  }
+
+  .fincaSectionControls button {
+    width: 100%;
+    min-height: 50px;
+    padding: .72rem .65rem;
+    font-size: 1rem;
+  }
+
+  .cortijoView {
+    border-radius: 14px;
+  }
+
+  .cortijoView > summary.cortijoPanelTitle {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: .7rem;
+    min-height: 78px;
+    padding: 1rem .85rem;
+  }
+
+  .cortijoView > summary.cortijoPanelTitle > span {
+    width: 2.55rem;
+    height: 2.55rem;
+    font-size: .9rem;
+  }
+
+  .cortijoView > summary.cortijoPanelTitle h3 {
+    font-size: 1.32rem;
+    line-height: 1.28;
+  }
+
+  .cortijoView > summary.cortijoPanelTitle p {
+    margin-top: .32rem;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .cortijoView > summary.cortijoPanelTitle::after {
+    font-size: 1.8rem;
+  }
+
+  .cortijoView > :not(summary) {
+    margin-left: .7rem;
+    margin-right: .7rem;
+  }
+
+  .cortijoWorkflow,
+  .cortijoActionGrid,
+  .cortijoStats,
+  .cortijoExportModules,
+  .cortijoColumns {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cortijoWorkflow,
+  .cortijoFocusPanel,
+  .cortijoExportSummary,
+  .cortijoExportAudience,
+  .cortijoDangerZone {
+    padding: 15px;
+    border-radius: 15px;
+  }
+
+  .cortijoWorkflow li {
+    padding: 12px 11px;
+  }
+
+  .cortijoExportApp .cortijoWorkflow li strong,
+  .cortijoExportApp .cortijoWorkflow li span {
+    font-size: 1rem;
+    line-height: 1.62;
+  }
+
+  .fincaDossierCard {
+    border-radius: 14px;
+  }
+
+  .fincaDossierSummary {
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 76px;
+    padding: 1rem .85rem;
+  }
+
+  .fincaDossierSummary h4 {
+    font-size: 1.2rem;
+    line-height: 1.4;
+  }
+
+  .fincaDossierBody {
+    padding: .7rem;
+  }
+
+  .fincaDossierOpen {
+    width: 100%;
+    min-height: 50px;
+    justify-content: center;
+    font-size: 1rem;
+  }
+
+  .fincaActionCard {
+    border-width: 2px;
+    border-radius: 14px;
+  }
+
+  .fincaActionCard > summary {
+    padding: 1rem .85rem;
+  }
+
+  .fincaActionCard h4,
+  .cortijoExportApp .cortijoCard h4 {
+    font-size: 1.28rem;
+    line-height: 1.38;
+  }
+
+  .fincaActionTopline {
+    gap: .5rem;
+  }
+
+  .fincaActionTopline .cortijoPill,
+  .fincaActionTopline .fincaMiniPill,
+  .fincaMiniPill,
+  .fincaLineLabel,
+  .cortijoExportApp .cortijoPill {
+    min-height: 34px;
+    padding: .4rem .65rem;
+    font-size: .86rem;
+    letter-spacing: .2px;
+  }
+
+  /* Sur téléphone, chaque donnée d'action a sa propre ligne :
+     le libellé d'abord, la valeur ensuite. */
+  .fincaActionLines {
+    gap: .75rem;
+    margin-top: .65rem;
+  }
+
+  .fincaActionLine {
+    grid-template-columns: 1fr;
+    gap: .35rem;
+    align-items: start;
+    min-height: 0;
+    padding: .65rem 0;
+    border-bottom: 1px solid rgba(224,184,98,.16);
+  }
+
+  .fincaActionLine:last-child {
+    border-bottom: 0;
+  }
+
+  .fincaActionLine strong {
+    font-size: 1.05rem;
+    line-height: 1.55;
+  }
+
+  .fincaInlineSelect {
+    width: 100%;
+    min-height: 50px;
+    border-radius: 12px;
+    padding: .65rem 2.2rem .65rem .8rem;
+    font-size: 1.05rem;
+  }
+
+  .fincaQuickChoices {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .55rem;
+    width: 100%;
+  }
+
+  .fincaQuickChip {
+    width: 100%;
+    min-height: 50px;
+    border-radius: 12px;
+    padding: .65rem .55rem;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .fincaActionExpanded {
+    gap: 1rem;
+    padding: 1rem .85rem 1.1rem;
+  }
+
+  .fincaActionEdit {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .75rem;
+  }
+
+  .fincaActionEdit label {
+    min-width: 0;
+  }
+
+  .fincaActionEdit input,
+  .fincaActionEdit select {
+    width: 100%;
+    min-height: 50px;
+    font-size: 1.05rem;
+  }
+
+  .cortijoActionGrid button {
+    min-height: 0;
+    padding: 16px;
+  }
+
+  .cortijoExportApp .cortijoActionGrid button strong {
+    font-size: 1.35rem;
+  }
+
+  .cortijoExportApp .cortijoActionGrid button p {
+    font-size: 1rem;
+  }
+
+  .cortijoQuickForms,
+  .cortijoExportRule {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .75rem;
+  }
+
+  .cortijoExportRule {
+    align-items: stretch;
+    padding: 16px;
+  }
+
+  .cortijoExportRule a,
+  .cortijoExportRule button,
+  .cortijoExportApp button,
+  .cortijoExportApp select,
+  .cortijoExportApp input {
+    min-height: 50px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .cortijoExportApp {
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 19px;
+  }
+
+  .cortijoView > summary.cortijoPanelTitle {
+    padding-left: .7rem;
+    padding-right: .7rem;
+  }
+
+  .cortijoView > summary.cortijoPanelTitle h3 {
+    font-size: 1.25rem;
+  }
+
+  .fincaQuickChoices {
+    grid-template-columns: 1fr;
+  }
+
+  .fincaActionCard h4,
+  .cortijoExportApp .cortijoCard h4 {
+    font-size: 1.24rem;
+  }
+}

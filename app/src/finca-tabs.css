@@ -1,0 +1,21 @@
+/* FINCA MARIA — navigation par onglets.
+   Ces règles passent après les anciens styles d'accordéon pour qu'un onglet masqué
+   soit réellement retiré de l'écran et que la barre reste cliquable. */
+
+.fincaDirectTabs .fincaTabbedSection[hidden] {
+  display: none !important;
+}
+
+.fincaDirectTabs .fincaTabbedSection:not([hidden]) {
+  display: block !important;
+}
+
+.fincaDirectNav {
+  position: relative;
+  z-index: 20;
+}
+
+.fincaDirectNav button {
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}

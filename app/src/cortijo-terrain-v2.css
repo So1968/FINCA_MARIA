@@ -1,0 +1,232 @@
+.cortijoNav {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.terrainMission {
+  border: 1px solid rgba(123, 154, 111, 0.34);
+  border-radius: 18px;
+  padding: 22px;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(123, 154, 111, 0.16), transparent 26%),
+    linear-gradient(145deg, rgba(16, 23, 18, 0.96), rgba(7, 11, 10, 0.96));
+}
+
+.terrainMissionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.terrainMissionHeader h3 {
+  margin: 5px 0 6px;
+  font-family: Georgia, serif;
+  font-weight: 400;
+  color: var(--ivory);
+  font-size: 27px;
+}
+
+.terrainMissionHeader p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.terrainProgress {
+  flex: 0 0 auto;
+  min-width: 112px;
+  display: grid;
+  gap: 2px;
+  text-align: right;
+}
+
+.terrainProgress strong {
+  color: var(--ivory);
+  font-family: Georgia, serif;
+  font-size: 30px;
+}
+
+.terrainProgress span {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.terrainMissionGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.terrainMissionItem {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 11px;
+  align-items: start;
+  padding: 14px;
+  border: 1px solid rgba(214, 169, 85, 0.18);
+  border-radius: 14px;
+  color: #d8d1bd;
+  background: rgba(0, 0, 0, 0.14);
+  text-align: left;
+}
+
+.terrainMissionItem:hover {
+  border-color: rgba(240, 215, 154, 0.45);
+}
+
+.terrainMissionItem.isDone {
+  border-color: rgba(123, 154, 111, 0.42);
+  background: rgba(72, 101, 66, 0.14);
+}
+
+.terrainMissionCheck {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(214, 169, 85, 0.32);
+  color: var(--gold-soft);
+  font-size: 12px;
+}
+
+.terrainMissionItem.isDone .terrainMissionCheck {
+  border-color: rgba(153, 190, 126, 0.56);
+  color: #dce7bd;
+}
+
+.terrainMissionItem strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ivory);
+}
+
+.terrainMissionItem small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.terrainTreeRegister {
+  border: 1px solid rgba(214, 169, 85, 0.24);
+  border-radius: 18px;
+  padding: 22px;
+  background: linear-gradient(145deg, rgba(16, 20, 19, 0.94), rgba(7, 11, 12, 0.96));
+}
+
+.terrainTreeToolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.terrainTreeToolbar p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.terrainTreeToolbar strong {
+  color: var(--gold-soft);
+}
+
+.terrainTreeGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.terrainTreeCard {
+  min-height: 110px;
+  display: grid;
+  align-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(214, 169, 85, 0.18);
+  border-radius: 13px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.terrainTreeCard[data-state="Repéré"] {
+  border-color: rgba(214, 169, 85, 0.42);
+  background: rgba(214, 169, 85, 0.07);
+}
+
+.terrainTreeCard[data-state="Filmé"] {
+  border-color: rgba(123, 154, 111, 0.48);
+  background: rgba(72, 101, 66, 0.14);
+}
+
+.terrainTreeCard strong {
+  color: var(--ivory);
+  font-family: Georgia, serif;
+  font-size: 20px;
+}
+
+.terrainTreeCard span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.terrainTreeCard button {
+  border: 1px solid rgba(214, 169, 85, 0.25);
+  border-radius: 999px;
+  padding: 7px 9px;
+  color: var(--gold-soft);
+  background: rgba(0, 0, 0, 0.16);
+  font: inherit;
+  font-size: 11px;
+}
+
+.terrainTreeCard button:hover {
+  border-color: rgba(240, 215, 154, 0.58);
+  background: rgba(214, 169, 85, 0.1);
+}
+
+.terrainExpertStrip strong.terrainExpertStatus {
+  display: block;
+  margin-top: 8px;
+  color: #dce7bd;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (max-width: 1100px) {
+  .cortijoNav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .terrainTreeGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .cortijoNav,
+  .terrainMissionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .terrainTreeGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .terrainMissionHeader,
+  .terrainTreeToolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .terrainProgress {
+    text-align: left;
+  }
+}
+
+@media (max-width: 520px) {
+  .terrainTreeGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

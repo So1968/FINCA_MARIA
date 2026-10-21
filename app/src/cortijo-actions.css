@@ -1,0 +1,817 @@
+.actionDesk {
+  display: grid;
+  gap: 18px;
+}
+
+.actionDeskHero,
+.actionDeskCard {
+  border: 1px solid rgba(214, 169, 85, .24);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(16, 20, 19, .95), rgba(7, 11, 12, .97));
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .22);
+}
+
+.actionDeskHero {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: center;
+  padding: 22px;
+}
+
+.actionDeskHero h3 {
+  margin: 5px 0 8px;
+  color: var(--ivory);
+  font-family: Georgia, serif;
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.actionDeskHero p {
+  margin: 0;
+  max-width: 780px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.actionDeskProgress {
+  min-width: 150px;
+  display: grid;
+  gap: 4px;
+  text-align: center;
+  padding: 14px;
+  border: 1px solid rgba(214, 169, 85, .2);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, .14);
+}
+
+.actionDeskProgress strong {
+  color: var(--ivory);
+  font-family: Georgia, serif;
+  font-size: 28px;
+}
+
+.actionDeskProgress span {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.actionDeskFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actionDeskFilters button {
+  border: 1px solid rgba(214, 169, 85, .24);
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: var(--muted);
+  background: rgba(0, 0, 0, .16);
+}
+
+.actionDeskFilters button.isActive,
+.actionDeskFilters button:hover {
+  color: var(--ivory);
+  border-color: rgba(240, 215, 154, .65);
+  background: rgba(214, 169, 85, .1);
+}
+
+.actionDeskGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.actionDeskCard {
+  padding: 20px;
+}
+
+.actionDeskCardTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.actionDeskCardTop > div {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.actionCategory,
+.actionPriority,
+.actionStatus {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 11px;
+}
+
+.actionCategory,
+.actionPriority {
+  border: 1px solid rgba(214, 169, 85, .24);
+  color: var(--gold-soft);
+  background: rgba(214, 169, 85, .06);
+}
+
+.actionStatus {
+  border: 1px solid rgba(185, 150, 90, .25);
+  color: #d8c192;
+}
+
+.actionStatus.isDone,
+.actionStatus.isAnswered {
+  border-color: rgba(111, 145, 92, .42);
+  color: #dce7bd;
+  background: rgba(48, 79, 43, .18);
+}
+
+.actionDeskCard h4 {
+  margin: 14px 0 14px;
+  color: var(--ivory);
+  font-family: Georgia, serif;
+  font-size: 23px;
+  font-weight: 400;
+}
+
+.actionContactBlock,
+.actionGoal,
+.actionExpectedProof {
+  display: grid;
+  gap: 5px;
+  padding: 13px 14px;
+  border-radius: 13px;
+  border: 1px solid rgba(214, 169, 85, .14);
+  background: rgba(0, 0, 0, .13);
+}
+
+.actionContactBlock span,
+.actionGoal span,
+.actionExpectedProof span {
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 10px;
+}
+
+.actionContactBlock strong,
+.actionExpectedProof strong {
+  color: var(--ivory);
+}
+
+.actionContactBlock small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.actionContactBlock em {
+  color: #b9c89d;
+  font-style: normal;
+  font-size: 12px;
+}
+
+.actionGoal {
+  margin-top: 10px;
+}
+
+.actionGoal p {
+  margin: 0;
+  color: #d8d1bd;
+  line-height: 1.5;
+}
+
+.actionChecklistDetails,
+.actionHistory {
+  margin-top: 10px;
+  border: 1px solid rgba(214, 169, 85, .14);
+  border-radius: 12px;
+  padding: 11px 13px;
+  background: rgba(255, 255, 255, .02);
+}
+
+.actionChecklistDetails summary,
+.actionHistory summary {
+  cursor: pointer;
+  color: var(--gold-soft);
+}
+
+.actionChecklistDetails ul {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  color: #d8d1bd;
+  line-height: 1.55;
+}
+
+.actionScriptBlock {
+  margin-top: 12px;
+  border: 1px solid rgba(123, 154, 111, .32);
+  border-radius: 15px;
+  padding: 16px;
+  background: rgba(55, 78, 55, .18);
+}
+
+.actionScriptTitle {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.actionScriptTitle strong {
+  color: #dce7bd;
+}
+
+.actionScriptTitle button,
+.actionRecordButton,
+.actionSaveButton,
+.actionCalendarButton {
+  border: 1px solid rgba(214, 169, 85, .32);
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: var(--gold-soft);
+  background: rgba(0, 0, 0, .18);
+}
+
+.actionScriptBlock p {
+  margin: 12px 0 0;
+  color: #eef0dc;
+  line-height: 1.65;
+  white-space: pre-line;
+}
+
+.actionExpectedProof {
+  margin-top: 12px;
+}
+
+.actionRecordButton,
+.actionCalendarButton {
+  margin-top: 12px;
+  margin-right: 8px;
+}
+
+.actionResponseForm {
+  margin-top: 14px;
+  display: grid;
+  gap: 11px;
+  padding: 15px;
+  border-radius: 14px;
+  border: 1px solid rgba(214, 169, 85, .22);
+  background: rgba(0, 0, 0, .16);
+}
+
+.actionResponseForm label {
+  display: grid;
+  gap: 6px;
+  color: var(--gold);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+}
+
+.actionFormRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.actionResponseForm input,
+.actionResponseForm select,
+.actionResponseForm textarea,
+.actionMissionForm input,
+.actionMissionForm select,
+.actionMissionForm textarea,
+.actionTeamPanel input,
+.actionContactDetails input,
+.actionAssignmentBar input,
+.actionAssignmentBar select {
+  width: 100%;
+  border: 1px solid rgba(214, 169, 85, .28);
+  border-radius: 11px;
+  padding: 10px 11px;
+  color: var(--ivory);
+  background: rgba(0, 0, 0, .22);
+  font: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+  box-sizing: border-box;
+}
+
+.actionResponseForm textarea,
+.actionMissionForm textarea {
+  resize: vertical;
+}
+
+.actionSaveButton {
+  justify-self: start;
+}
+
+.actionHistoryList {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.actionHistoryList > article {
+  border-top: 1px solid rgba(214, 169, 85, .12);
+  padding-top: 10px;
+}
+
+.actionHistoryList > article > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.actionHistoryList p {
+  color: #d8d1bd;
+  line-height: 1.5;
+}
+
+.actionHistoryList dl {
+  display: grid;
+  gap: 5px;
+}
+
+.actionHistoryList dl div {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 10px;
+}
+
+.actionHistoryList dt {
+  color: var(--muted);
+}
+
+.actionHistoryList dd {
+  margin: 0;
+  color: var(--ivory);
+}
+
+.cortijoTechnicalFollowUp {
+  border: 1px solid rgba(214, 169, 85, .16);
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, .10);
+}
+
+.cortijoTechnicalFollowUp > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.cortijoTechnicalFollowUp[open] > summary {
+  margin-bottom: 16px;
+  color: var(--gold-soft);
+}
+
+.actionCollaborationStrip,
+.actionTeamPanel,
+.actionMissionComposer,
+.actionAgendaPanel,
+.actionFactsPanel,
+.actionAlertStrip {
+  border: 1px solid rgba(214, 169, 85, .2);
+  border-radius: 17px;
+  padding: 18px;
+  background: rgba(0, 0, 0, .13);
+}
+
+.actionCollaborationStrip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px 22px;
+  align-items: center;
+}
+
+.actionCollaborationStrip strong,
+.actionTeamPanel > summary,
+.actionMissionComposer > summary,
+.actionFactsPanel > summary {
+  color: var(--ivory);
+}
+
+.actionCollaborationStrip p,
+.actionCollaborationStrip small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.actionCollaborationStrip small {
+  grid-column: 1 / -1;
+}
+
+.actionCollaborationButtons,
+.actionContactButtons,
+.actionAgendaButtons,
+.actionMissionTemplates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actionCollaborationButtons button,
+.actionImportButton,
+.actionContactButtons a,
+.actionAgendaButtons a,
+.actionAgendaButtons button,
+.actionMissionTemplates button,
+.actionMissionForm button,
+.actionTeamAdd button,
+.actionAssignmentBar button,
+.actionDoneList button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(214, 169, 85, .3);
+  border-radius: 999px;
+  padding: 8px 11px;
+  color: var(--gold-soft);
+  background: rgba(0, 0, 0, .17);
+  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.actionImportButton input {
+  display: none;
+}
+
+.actionTeamPanel > summary,
+.actionMissionComposer > summary,
+.actionFactsPanel > summary {
+  cursor: pointer;
+  font-family: Georgia, serif;
+  font-size: 18px;
+}
+
+.actionTeamGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.actionTeamGrid article {
+  display: grid;
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid rgba(214, 169, 85, .14);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .02);
+}
+
+.actionTeamGrid article strong {
+  color: var(--ivory);
+  font-size: 17px;
+}
+
+.actionTeamGrid label,
+.actionMissionForm label,
+.actionAssignmentBar label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.actionTeamAdd {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) auto;
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.actionMissionTemplates {
+  margin: 15px 0 12px;
+}
+
+.actionMissionForm {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.actionMissionForm .wide {
+  grid-column: span 2;
+}
+
+.actionMissionForm button {
+  align-self: end;
+}
+
+.actionAgendaHeading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.actionAgendaHeading h4 {
+  margin: 5px 0 0;
+  color: var(--ivory);
+  font-family: Georgia, serif;
+  font-size: 23px;
+  font-weight: 400;
+}
+
+.actionAgendaHeading > strong {
+  min-width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(214, 169, 85, .28);
+  border-radius: 50%;
+  color: var(--ivory);
+}
+
+.actionAgendaList {
+  display: grid;
+  gap: 10px;
+}
+
+.actionAgendaList > article {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 15px;
+  padding: 14px;
+  border: 1px solid rgba(214, 169, 85, .14);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .02);
+}
+
+.actionAgendaList > article.isLate {
+  border-color: rgba(183, 79, 65, .55);
+  background: rgba(123, 42, 32, .12);
+}
+
+.actionAgendaList > article.isToday {
+  border-color: rgba(214, 169, 85, .55);
+  background: rgba(214, 169, 85, .08);
+}
+
+.actionAgendaList > article.isSoon {
+  border-color: rgba(184, 150, 78, .34);
+}
+
+.actionAgendaDate {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding-right: 12px;
+  border-right: 1px solid rgba(214, 169, 85, .12);
+}
+
+.actionAgendaDate strong {
+  color: var(--ivory);
+}
+
+.actionAgendaDate span,
+.actionAgendaDate small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.actionAgendaMain h5 {
+  margin: 7px 0 7px;
+  color: var(--ivory);
+  font-family: Georgia, serif;
+  font-size: 19px;
+}
+
+.actionAgendaMain p {
+  margin: 5px 0;
+  color: #d8d1bd;
+  line-height: 1.45;
+}
+
+.actionAgendaTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.actionAgendaTags span {
+  border: 1px solid rgba(214, 169, 85, .18);
+  border-radius: 999px;
+  padding: 4px 7px;
+  color: var(--gold-soft);
+  font-size: 10px;
+}
+
+.actionAgendaButtons {
+  margin-top: 10px;
+}
+
+.actionDoneList {
+  margin-top: 14px;
+  color: var(--muted);
+}
+
+.actionDoneList > article {
+  display: grid;
+  grid-template-columns: 110px 1fr 130px auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 0;
+  border-top: 1px solid rgba(214, 169, 85, .1);
+}
+
+.actionAssignmentBar {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) 150px 135px auto;
+  gap: 9px;
+  align-items: end;
+  margin-bottom: 12px;
+  padding: 11px;
+  border: 1px solid rgba(214, 169, 85, .14);
+  border-radius: 13px;
+  background: rgba(214, 169, 85, .04);
+}
+
+.actionReminderBadge {
+  display: grid;
+  gap: 2px;
+  min-height: 40px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(214, 169, 85, .14);
+}
+
+.actionReminderBadge span {
+  color: var(--muted);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+}
+
+.actionReminderBadge strong {
+  color: var(--ivory);
+  font-size: 12px;
+}
+
+.actionReminderBadge.isLate {
+  border-color: rgba(183, 79, 65, .55);
+}
+
+.actionReminderBadge.isToday,
+.actionReminderBadge.isSoon {
+  border-color: rgba(214, 169, 85, .55);
+}
+
+.actionContactButtons {
+  margin-top: 8px;
+}
+
+.actionContactDetails {
+  margin-top: 7px;
+}
+
+.actionContactDetails summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.actionContactDetails > div {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.actionAutoMemoryNote {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: rgba(48, 79, 43, .14);
+  border: 1px solid rgba(111, 145, 92, .28);
+}
+
+.actionAutoMemoryNote strong {
+  color: #dce7bd;
+}
+
+.actionAutoMemoryNote span {
+  color: #c4cfb2;
+  font-size: 12px;
+}
+
+.actionAlertStrip {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  border-color: rgba(183, 119, 65, .46);
+  background: rgba(126, 73, 31, .12);
+}
+
+.actionAlertStrip strong {
+  color: #f0d79a;
+}
+
+.actionAlertStrip span {
+  color: #d8c192;
+}
+
+.actionFactsList {
+  display: grid;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.actionFactsList article {
+  padding: 11px 0;
+  border-top: 1px solid rgba(214, 169, 85, .1);
+}
+
+.actionFactsList article > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.actionFactsList p,
+.actionFactsList small,
+.actionEmpty {
+  color: var(--muted);
+}
+
+.actionFactsPanel > a {
+  display: inline-flex;
+  margin-top: 12px;
+  color: var(--gold-soft);
+}
+
+@media (max-width: 1100px) {
+  .actionMissionForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .actionAssignmentBar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .actionTeamAdd {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 980px) {
+  .actionDeskGrid,
+  .actionCollaborationStrip,
+  .actionTeamGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actionCollaborationStrip small {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .actionDeskHero,
+  .actionDeskCardTop,
+  .actionScriptTitle,
+  .actionAgendaHeading,
+  .actionAlertStrip {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .actionFormRow,
+  .actionMissionForm,
+  .actionAssignmentBar,
+  .actionTeamAdd,
+  .actionContactDetails > div {
+    grid-template-columns: 1fr;
+  }
+
+  .actionMissionForm .wide {
+    grid-column: auto;
+  }
+
+  .actionDeskProgress {
+    width: 100%;
+  }
+
+  .actionAgendaList > article {
+    grid-template-columns: 1fr;
+  }
+
+  .actionAgendaDate {
+    padding-right: 0;
+    padding-bottom: 9px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(214, 169, 85, .12);
+  }
+
+  .actionDoneList > article {
+    grid-template-columns: 1fr;
+  }
+}
