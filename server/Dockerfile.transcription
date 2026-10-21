@@ -1,0 +1,20 @@
+FROM node:22-bookworm-slim
+WORKDIR /srv
+ENV NODE_ENV=production \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+COPY package*.json ./
+RUN npm ci --omit=dev --no-audit --no-fund
+COPY requirements-transcription.txt ./
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3 python3-pip ffmpeg \
+ && python3 -m pip install --break-system-packages --no-cache-dir -r requirements-transcription.txt \
+ && rm -rf /var/lib/apt/lists/*
+COPY src ./src
+COPY sql ./sql
+COPY transcription ./transcription
+RUN mkdir -p /data/baul/meetings && chown -R node:node /data/baul
+USER node
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 CMD node -e "fetch('http://127.0.0.1:3000/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+CMD ["node", "src/server.js"]

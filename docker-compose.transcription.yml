@@ -1,0 +1,14 @@
+# Overlay optionnel : active la transcription locale des réunions.
+# Usage local :
+# docker compose -f docker-compose.finca.yml -f docker-compose.transcription.yml up -d --build
+services:
+  finca-api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.transcription
+    environment:
+      FINCA_TRANSCRIPTION_ENABLED: "1"
+      FINCA_WHISPER_MODEL: ${FINCA_WHISPER_MODEL:-large-v3-turbo}
+      FINCA_WHISPER_DEVICE: ${FINCA_WHISPER_DEVICE:-cpu}
+      FINCA_WHISPER_COMPUTE: ${FINCA_WHISPER_COMPUTE:-int8}
+      HF_TOKEN: ${HF_TOKEN:-}

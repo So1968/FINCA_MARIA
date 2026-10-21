@@ -277,7 +277,8 @@ export function FincaMariaDashboard() {
 
       <div className="fincaTopBar">
         <BrandMark />
-        <div className="fincaTopTools" aria-label="Sauvegarde FINCA MARIA">
+        <div className="fincaTopTools" aria-label="Outils FINCA MARIA">
+          <button type="button" onClick={() => window.location.assign(appViewUrl("reunions"))}>Réunions</button>
           <button type="button" onClick={exportFincaData}>Sauvegarder les données</button>
           <label>Restaurer<input ref={importRef} type="file" accept="application/json,.json" onChange={handleImport} /></label>
         </div>
