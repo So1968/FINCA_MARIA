@@ -108,6 +108,35 @@ grep -qi '^Set-Cookie: .*Secure' "$TMP_DIR/login-headers" || fail "cookie de ses
 pass "connexion administrateur et cookie sécurisé"
 
 # Parcours Réunions et conseils de famille.
+
+# Historique : import en lot, conservation de la source, anti-doublon et registre
+HISTORIC_BODY='{"items":[{"title":"Conseil historique CI","date":"2024-05-12","originalText":"Conseil du 12/05/2024\nDécision : refaire le toit.","candidates":["Décision : refaire le toit."]}]}'
+historic_code="$(curl -sS -o "$TMP_DIR/historic-import" -w '%{http_code}' -X POST \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H "Content-Type: application/json" \
+  --data "$HISTORIC_BODY" "$BASE_URL/api/meetings/import-historic" || true)"
+[ "$historic_code" = "200" ] || fail "import historique = $historic_code"
+historic_again_code="$(curl -sS -o "$TMP_DIR/historic-duplicate" -w '%{http_code}' -X POST \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H "Content-Type: application/json" \
+  --data "$HISTORIC_BODY" "$BASE_URL/api/meetings/import-historic" || true)"
+[ "$historic_again_code" = "200" ] || fail "réimport historique = $historic_again_code"
+curl -fsS -H "Cookie: $COOKIE" "$BASE_URL/api/meetings/decision-register" > "$TMP_DIR/historic-register"
+node --input-type=module - "$TMP_DIR/historic-import" "$TMP_DIR/historic-duplicate" "$TMP_DIR/historic-register" <<'JS'
+import assert from "node:assert/strict";
+import fs from "node:fs";
+const first = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+const second = JSON.parse(fs.readFileSync(process.argv[3], "utf8"));
+const register = JSON.parse(fs.readFileSync(process.argv[4], "utf8"));
+assert.equal(first.imported, 1);
+assert.equal(first.duplicates, 0);
+assert.equal(second.imported, 0);
+assert.equal(second.duplicates, 1);
+const item = register.decisions.find(x => x.title === "Conseil historique CI");
+assert.ok(item);
+assert.equal(item.classification, "a_valider");
+assert.equal(item.date, "2024-05-12");
+JS
+pass "archives : import unique, anti-doublon et registre à valider"
+
 meeting_create_code="$(curl -sS -o "$TMP_DIR/meeting-create" -w '%{http_code}' \
   -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
   --data '{"title":"Conseil de famille CI","date":"2026-10-21","meetingType":"Conseil de famille","theme":"Test intégration","objective":"Valider le parcours complet sans inventer de décision","agenda":["Ouverture","Travaux","Validation"],"previousRecap":"Aucune décision précédente à reprendre.","recordingNotice":"Participants informés pour le test CI.","participants":[{"name":"Sofia","presence":"present","role":"Animatrice","isFacilitator":true},{"name":"Marie","presence":"excused","role":"Membre de la famille"}]}' \
