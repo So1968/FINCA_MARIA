@@ -33,8 +33,11 @@ function safeText(value, max = 5000) {
 }
 
 function safeDate(value, fallback = "") {
-  const date = String(value || fallback).trim();
-  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : "";
+  const source = value || fallback;
+  const date = source instanceof Date
+    ? source.toISOString().slice(0, 10)
+    : String(source || "").trim();
+  return /^\\d{4}-\\d{2}-\\d{2}$/.test(date) ? date : "";
 }
 
 function safeMeetingId(value) {
