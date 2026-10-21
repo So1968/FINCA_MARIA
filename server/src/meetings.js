@@ -118,7 +118,7 @@ function meetingSummary(row) {
   return {
     id: row.id,
     title: row.title,
-    date: row.meeting_date,
+    date: safeDate(row.meeting_date),
     meetingType: row.meeting_type,
     theme: row.theme,
     objective: row.objective,
@@ -150,7 +150,7 @@ function markerView(row) {
     note: row.note || "",
     classification: row.classification,
     responsible: row.responsible || "",
-    dueDate: row.due_date || "",
+    dueDate: safeDate(row.due_date),
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
