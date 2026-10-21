@@ -112,11 +112,11 @@ pass "connexion administrateur et cookie sécurisé"
 # Historique : import en lot, conservation de la source, anti-doublon et registre
 HISTORIC_BODY='{"items":[{"title":"Conseil historique CI","date":"2024-05-12","originalText":"Conseil du 12/05/2024\nDécision : refaire le toit.","candidates":["Décision : refaire le toit."]}]}'
 historic_code="$(curl -sS -o "$TMP_DIR/historic-import" -w '%{http_code}' -X POST \
-  -H "Cookie: $COOKIE" -H "Content-Type: application/json" \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H "Content-Type: application/json" \
   --data "$HISTORIC_BODY" "$BASE_URL/api/meetings/import-historic" || true)"
 [ "$historic_code" = "200" ] || fail "import historique = $historic_code"
 historic_again_code="$(curl -sS -o "$TMP_DIR/historic-duplicate" -w '%{http_code}' -X POST \
-  -H "Cookie: $COOKIE" -H "Content-Type: application/json" \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H "Content-Type: application/json" \
   --data "$HISTORIC_BODY" "$BASE_URL/api/meetings/import-historic" || true)"
 [ "$historic_again_code" = "200" ] || fail "réimport historique = $historic_again_code"
 curl -fsS -H "Cookie: $COOKIE" "$BASE_URL/api/meetings/decision-register" > "$TMP_DIR/historic-register"
