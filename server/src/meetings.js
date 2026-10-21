@@ -465,6 +465,27 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
     return json(res, 200, { meeting: await fullMeeting(id) });
   }
 
+  async function confirmRecordingNotice(req, res, id) {
+    const user = await requireAdmin(req);
+    const safeId = safeMeetingId(id);
+    const body = await readBody(req);
+    if (body.informed !== true) return json(res, 400, { error: "Confirmation explicite de l’information des participants requise" });
+    const notice = safeText(body.notice, 2000);
+    if (!notice) return json(res, 400, { error: "Texte d’information manquant" });
+    const saved = await pool.query(
+      `UPDATE meetings SET recording_notice=$2,recording_notice_confirmed_at=NOW(),updated_by=$3,updated_at=NOW()
+       WHERE id=$1 RETURNING id,recording_notice,recording_notice_confirmed_at`,
+      [safeId, notice, user.id]
+    );
+    if (!saved.rowCount) return json(res, 404, { error: "Réunion introuvable" });
+    await audit(user, req, "meeting_recording_notice_confirm", "meeting", safeId, null, { informed: true });
+    return json(res, 200, {
+      ok: true,
+      recordingNotice: saved.rows[0].recording_notice,
+      confirmedAt: saved.rows[0].recording_notice_confirmed_at
+    });
+  }
+
   async function saveAudioChunk(req, res, id, seqRaw) {
     const user = await requireAdmin(req);
     await ensureRoot();
@@ -964,6 +985,12 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
     match = url.pathname.match(/^\/api\/meetings\/([^/]+)\/markers\/([^/]+)\/link-document$/);
     if (match && req.method === "POST") {
       await linkDocument(req, res, match[1], match[2]);
+      return true;
+    }
+
+    match = url.pathname.match(/^\/api\/meetings\/([^/]+)\/recording-consent$/);
+    if (match && req.method === "POST") {
+      await confirmRecordingNotice(req, res, match[1]);
       return true;
     }
 
