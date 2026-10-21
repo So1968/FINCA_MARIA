@@ -1,0 +1,362 @@
+/* SURBRILLANCES DEMO - ELEMENTS CLIQUABLES */
+
+:root {
+  --click-glow: rgba(240, 215, 154, 0.32);
+  --click-glow-strong: rgba(240, 215, 154, 0.58);
+  --click-bg: rgba(214, 169, 85, 0.12);
+  --click-bg-strong: rgba(214, 169, 85, 0.22);
+}
+
+a,
+button,
+.folderCard,
+.navMenu button,
+.topActionBar a,
+.topActionBar button,
+.folderActions button,
+.studioFooter a,
+.cortijoResetButton,
+.cortijoForm button,
+.searchZone button {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease, text-shadow 0.18s ease, filter 0.18s ease;
+}
+
+a {
+  color: #f0d79a;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgba(240, 215, 154, 0.52);
+  text-underline-offset: 4px;
+}
+
+a:hover,
+a:focus-visible {
+  color: #fff4d4;
+  text-decoration-color: #fff4d4;
+  text-shadow: 0 0 14px var(--click-glow);
+}
+
+button,
+.folderCard {
+  cursor: pointer;
+}
+
+button:hover,
+button:focus-visible,
+.topActionBar a:hover,
+.topActionBar a:focus-visible,
+.studioFooter a:hover,
+.studioFooter a:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 1px rgba(240, 215, 154, 0.25), 0 0 22px rgba(214, 169, 85, 0.18);
+}
+
+button:focus-visible,
+a:focus-visible,
+.folderCard:focus-visible,
+.folderCard:focus-within {
+  outline: 2px solid rgba(240, 215, 154, 0.88);
+  outline-offset: 4px;
+}
+
+.topActionBar a,
+.topActionBar button,
+.folderActions button,
+.cortijoForm button,
+.cortijoResetButton,
+.searchZone button {
+  border-color: rgba(214, 169, 85, 0.50);
+  background: radial-gradient(circle at 50% 0%, rgba(240, 215, 154, 0.14), transparent 48%), rgba(0, 0, 0, 0.22);
+  color: #f0d79a;
+}
+
+.topActionBar a:hover,
+.topActionBar button:hover,
+.folderActions button:hover,
+.cortijoForm button:hover,
+.cortijoResetButton:hover,
+.searchZone button:hover {
+  border-color: rgba(240, 215, 154, 0.86);
+  background: radial-gradient(circle at 50% 0%, rgba(240, 215, 154, 0.24), transparent 52%), rgba(214, 169, 85, 0.16);
+  color: #fff4d4;
+}
+
+.primaryAction {
+  animation: azothClickablePulse 2.2s ease-in-out infinite;
+}
+
+@keyframes azothClickablePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(240, 215, 154, 0.24), 0 0 16px rgba(214, 169, 85, 0.12);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(240, 215, 154, 0.62), 0 0 30px rgba(214, 169, 85, 0.32);
+  }
+}
+
+.folderCard {
+  position: relative;
+}
+
+.folderCard:hover,
+.folderCard:focus,
+.folderCard:focus-within {
+  border-color: rgba(240, 215, 154, 0.90);
+  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.54), 0 0 38px rgba(214, 169, 85, 0.24), inset 0 0 0 1px rgba(240, 215, 154, 0.14);
+}
+
+.folderCard:hover .projectSymbol img,
+.folderCard:focus .projectSymbol img,
+.folderCard:focus-within .projectSymbol img {
+  filter: drop-shadow(0 0 18px rgba(240, 215, 154, 0.34)) drop-shadow(0 0 38px rgba(214, 169, 85, 0.18));
+}
+
+.folderCard h3::after {
+  content: " *";
+  color: rgba(240, 215, 154, 0.88);
+  opacity: 0;
+  text-shadow: 0 0 14px rgba(240, 215, 154, 0.24);
+  transition: opacity 0.18s ease;
+}
+
+.folderCard:hover h3::after,
+.folderCard:focus h3::after,
+.folderCard:focus-within h3::after {
+  opacity: 1;
+}
+
+.clickHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px auto 8px;
+  padding: 5px 10px;
+  border: 1px solid rgba(240, 215, 154, 0.42);
+  border-radius: 999px;
+  color: #f0d79a;
+  background: rgba(214, 169, 85, 0.08);
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+.clickHint::before {
+  content: ">";
+  color: #fff4d4;
+}
+
+.folderCard:hover .clickHint,
+.folderCard:focus .clickHint,
+.folderCard:focus-within .clickHint {
+  color: #fff4d4;
+  border-color: rgba(240, 215, 154, 0.76);
+  background: rgba(214, 169, 85, 0.18);
+  box-shadow: 0 0 18px rgba(214, 169, 85, 0.18);
+}
+
+.folderActions button {
+  background: linear-gradient(180deg, rgba(214, 169, 85, 0.12), rgba(0, 0, 0, 0.18));
+  font-weight: 700;
+}
+
+.folderActions button:hover,
+.folderActions button:focus-visible {
+  background: linear-gradient(180deg, rgba(240, 215, 154, 0.26), rgba(214, 169, 85, 0.12));
+  color: #fff4d4;
+}
+
+.navMenu button:hover,
+.navMenu button:focus-visible {
+  background: linear-gradient(90deg, rgba(214, 169, 85, 0.24), rgba(214, 169, 85, 0.06));
+  border-color: rgba(240, 215, 154, 0.48);
+  color: #fff4d4;
+}
+
+.searchZone input:focus,
+.cortijoForm input:focus,
+.cortijoForm textarea:focus,
+.cortijoForm select:focus {
+  outline: none;
+  border-color: rgba(240, 215, 154, 0.82);
+  box-shadow: 0 0 0 1px rgba(240, 215, 154, 0.26), 0 0 24px rgba(214, 169, 85, 0.18);
+}
+
+.studioFooter a {
+  padding: 8px 10px;
+  border-radius: 999px;
+}
+
+.studioFooter a:hover,
+.studioFooter a:focus-visible {
+  background: rgba(214, 169, 85, 0.14);
+}
+
+/* PANNEAU DEMO ASSOCIE */
+
+.demoWednesdayPanel {
+  margin: 28px 0 26px;
+  border: 1px solid rgba(240, 215, 154, 0.54);
+  border-radius: 26px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1.35fr;
+  gap: 24px;
+  background: radial-gradient(circle at 86% 22%, rgba(214, 169, 85, 0.18), transparent 24%), linear-gradient(135deg, rgba(27, 25, 20, 0.96), rgba(5, 8, 12, 0.94));
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.42), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  position: relative;
+  overflow: hidden;
+}
+
+.demoWednesdayPanel::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(214, 169, 85, 0.16);
+  border-radius: 20px;
+  pointer-events: none;
+}
+
+.demoWednesdayText,
+.demoWednesdayCards {
+  position: relative;
+  z-index: 1;
+}
+
+.demoEyebrow {
+  display: inline-block;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+
+.demoWednesdayText h2,
+.demoPathHeader h2 {
+  margin: 0;
+  max-width: 720px;
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(26px, 3vw, 42px);
+  line-height: 1.05;
+  color: #f8edd2;
+}
+
+.demoWednesdayText p,
+.demoPathHeader p {
+  max-width: 700px;
+  color: #d8c192;
+  line-height: 1.55;
+  font-size: 15px;
+}
+
+.demoWednesdayCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.demoWednesdayCards article {
+  border: 1px solid rgba(214, 169, 85, 0.30);
+  border-radius: 18px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.demoWednesdayCards strong {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(240, 215, 154, 0.44);
+  color: var(--gold-soft);
+  font-family: Georgia, serif;
+  margin-bottom: 10px;
+}
+
+.demoWednesdayCards h3 {
+  margin: 0 0 8px;
+  color: #f6ead0;
+  font-family: Georgia, serif;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+.demoWednesdayCards p {
+  margin: 0;
+  color: #cbb891;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* PARCOURS DEMO 5 MINUTES */
+
+.demoPathPanel {
+  margin: 0 0 28px;
+  border: 1px solid rgba(214, 169, 85, 0.38);
+  border-radius: 24px;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(8, 12, 17, 0.92), rgba(23, 20, 14, 0.88));
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+}
+
+.demoPathHeader {
+  margin-bottom: 18px;
+}
+
+.demoPathHeader h2 {
+  font-size: clamp(22px, 2vw, 32px);
+}
+
+.demoPathSteps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.demoPathSteps li {
+  border: 1px solid rgba(214, 169, 85, 0.28);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.20);
+}
+
+.demoPathSteps li > span {
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #fff4d4;
+  background: rgba(214, 169, 85, 0.16);
+  border: 1px solid rgba(240, 215, 154, 0.28);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.demoPathSteps h3 {
+  margin: 0 0 8px;
+  color: #f6ead0;
+  font-family: Georgia, serif;
+  font-weight: 400;
+}
+
+.demoPathSteps p {
+  margin: 0;
+  color: #cbb891;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@media (max-width: 1100px) {
+  .demoWednesdayPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .demoWednesdayCards,
+  .demoPathSteps {
+    grid-template-columns: 1fr;
+  }
+}

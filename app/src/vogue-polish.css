@@ -1,0 +1,317 @@
+/* HABILLAGE VOGUE MARRY ET TABLEAUX DE BORD DEMO */
+
+.cortijoDashboard {
+  margin: 30px 0;
+  padding: 26px;
+  border: 1px solid rgba(240, 215, 154, 0.42);
+  border-radius: 28px;
+  background: radial-gradient(circle at 80% 10%, rgba(214, 169, 85, 0.16), transparent 28%), linear-gradient(135deg, rgba(8, 12, 17, 0.96), rgba(15, 18, 19, 0.92));
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.42), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  position: relative;
+  overflow: hidden;
+}
+
+.cortijoDashboard::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border: 1px solid rgba(214, 169, 85, 0.13);
+  border-radius: 22px;
+  pointer-events: none;
+}
+
+.vogueMarryDashboard {
+  background: radial-gradient(circle at 84% 18%, rgba(214, 169, 85, 0.20), transparent 26%), radial-gradient(circle at 10% 80%, rgba(83, 126, 150, 0.12), transparent 32%), linear-gradient(135deg, rgba(5, 10, 15, 0.98), rgba(19, 18, 15, 0.94));
+}
+
+.cortijoHeader,
+.cortijoStats,
+.cortijoQuickForms,
+.cortijoReminderPanel,
+.cortijoColumns {
+  position: relative;
+  z-index: 1;
+}
+
+.cortijoHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 22px;
+}
+
+.cortijoEyebrow {
+  display: inline-block;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+
+.cortijoHeader h2 {
+  margin: 0 0 10px;
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(28px, 3vw, 44px);
+  color: #f8edd2;
+}
+
+.cortijoHeader p {
+  margin: 0;
+  max-width: 780px;
+  color: #d8c192;
+  line-height: 1.55;
+}
+
+.cortijoResetButton {
+  border: 1px solid rgba(214, 169, 85, 0.44);
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.24);
+  color: #f0d79a;
+  white-space: nowrap;
+}
+
+.cortijoStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.cortijoStats > div {
+  border: 1px solid rgba(214, 169, 85, 0.30);
+  border-radius: 20px;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.cortijoStats strong {
+  display: block;
+  color: #fff4d4;
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: 30px;
+  margin-bottom: 4px;
+}
+
+.cortijoStats span {
+  color: #cbb891;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  font-size: 11px;
+}
+
+.cortijoQuickForms {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.cortijoForm {
+  border: 1px solid rgba(214, 169, 85, 0.32);
+  border-radius: 22px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.24);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.cortijoForm h3 {
+  margin: 0 0 14px;
+  color: #f6ead0;
+  font-family: Georgia, serif;
+  font-weight: 400;
+}
+
+.cortijoForm input,
+.cortijoForm textarea,
+.cortijoForm select {
+  width: 100%;
+  display: block;
+  margin: 10px 0;
+  border: 1px solid rgba(214, 169, 85, 0.34);
+  border-radius: 14px;
+  padding: 11px 12px;
+  background: rgba(3, 5, 8, 0.78);
+  color: #f8edd2;
+  font: inherit;
+}
+
+.cortijoForm textarea {
+  resize: vertical;
+  min-height: 92px;
+}
+
+.cortijoForm input::placeholder,
+.cortijoForm textarea::placeholder {
+  color: rgba(246, 234, 208, 0.46);
+}
+
+.cortijoForm select {
+  color: #f8edd2;
+}
+
+.cortijoForm option {
+  color: #111922;
+}
+
+.cortijoForm button {
+  width: 100%;
+  margin-top: 12px;
+  border: 1px solid rgba(240, 215, 154, 0.48);
+  border-radius: 999px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(214, 169, 85, 0.22), rgba(143, 102, 49, 0.18));
+  color: #fff4d4;
+  font-weight: 700;
+}
+
+.cortijoForm p {
+  color: #cbb891;
+  line-height: 1.5;
+}
+
+.cortijoReminderPanel {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  margin: 22px 0;
+  border: 1px solid rgba(214, 169, 85, 0.30);
+  border-radius: 22px;
+  padding: 20px;
+  background: rgba(214, 169, 85, 0.08);
+}
+
+.cortijoReminderPanel h3 {
+  margin: 0;
+  color: #f6ead0;
+  font-family: Georgia, serif;
+  font-weight: 400;
+}
+
+.cortijoReminderPanel ol {
+  margin: 0;
+  color: #d8c192;
+  line-height: 1.65;
+}
+
+.cortijoColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.cortijoPanel {
+  border: 1px solid rgba(214, 169, 85, 0.30);
+  border-radius: 24px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.20);
+}
+
+.cortijoPanelTitle {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.cortijoPanelTitle span {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(240, 215, 154, 0.42);
+  color: #f0d79a;
+  font-family: Georgia, serif;
+}
+
+.cortijoPanelTitle h3 {
+  margin: 0;
+  color: #f6ead0;
+  font-family: Georgia, serif;
+  font-weight: 400;
+}
+
+.cortijoList {
+  display: grid;
+  gap: 14px;
+}
+
+.cortijoCard {
+  border: 1px solid rgba(214, 169, 85, 0.24);
+  border-radius: 18px;
+  padding: 16px;
+  background: rgba(3, 5, 8, 0.50);
+}
+
+.cortijoCardTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.cortijoPill {
+  display: inline-flex;
+  border: 1px solid rgba(240, 215, 154, 0.36);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: #f0d79a;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.cortijoCard small {
+  color: #bda77c;
+}
+
+.cortijoCard h4 {
+  margin: 0 0 10px;
+  color: #fff4d4;
+  font-family: Georgia, serif;
+  font-weight: 400;
+}
+
+.cortijoCard p,
+.cortijoCard dd,
+.cortijoCard dt {
+  color: #d8c192;
+}
+
+.cortijoCard dl {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.cortijoCard dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #bda77c;
+}
+
+.cortijoCard dd {
+  margin: 2px 0 0;
+}
+
+.cortijoAnomaly {
+  border-color: rgba(201, 142, 87, 0.42);
+}
+
+@media (max-width: 1100px) {
+  .cortijoHeader,
+  .cortijoQuickForms,
+  .cortijoReminderPanel,
+  .cortijoColumns,
+  .cortijoStats {
+    grid-template-columns: 1fr;
+  }
+}

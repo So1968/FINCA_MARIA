@@ -1,56 +1,48 @@
 # FINCA MARIA
 
-Version autonome et publique de l’interface FINCA MARIA, extraite du dépôt privé AZOTH_STUDIO.
+Application autonome de gestion de la terre, de la maison familiale et des documents.
+Le code, les tests, les installations et les évolutions sont gérés ici :
+https://github.com/So1968/FINCA_MARIA
 
-Ce dépôt contient uniquement la partie FINCA MARIA utile à l’équipe technique : situation de l’exploitation, dossiers & actions, synthèse et maison.
+AZOTH_STUDIO conserve uniquement une fiche de suivi du projet. Il ne lance ni ne construit FINCA MARIA.
 
-## Séparation volontaire
+## Démarrer sur le PC
 
-- Aucun autre projet AZOTH Studio n’est inclus.
-- Le Baúl / coffre privé de preuves n’est pas inclus.
-- Les données bancaires, identifiants sensibles et pièces justificatives privées ne sont pas publiés ici.
-
-## Lancer le projet
-
-Node.js 22.12 ou supérieur (Node.js 24 utilisé pour les vérifications). Les versions des dépendances sont fixées dans `package-lock.json`.
+Node.js 22.12 minimum, version 22 (voir `.nvmrc`). Depuis la racine du dépôt :
 
 ```bash
-npm ci
+npm run setup
 npm run dev
 ```
 
-Puis ouvrir l’adresse indiquée par Vite.
+Ouvrir http://127.0.0.1:5173/ : le logiciel s'ouvre directement. Les anciens liens `?project=cortijo&drop=1` restent acceptés.
+Le BAÚL local est conservé dans `~/Documents/FINCA_MARIA/BAUL_PRIVE`, ou dans le dossier indiqué par `CORTIJO_BAUL_DIR`.
+Les clés de stockage du navigateur sont conservées pour retrouver les données existantes à la même adresse.
+Les originaux du BAÚL et les sauvegardes personnelles restent hors Git.
 
-## Vues
+## Organisation
 
-- `/` : FINCA MARIA
-- `/?view=cortijo-memoire&contact=san-juan` : dossiers & actions
-- `/?view=cortijo-famille` : synthèse
-- `/?view=cortijo-maison` : maison
+- `app/` : interface FINCA MARIA et interface familiale isolée.
+- `server/` : comptes, droits, PostgreSQL, documents et sauvegardes chiffrées.
+- `dossier/` : dossier documentaire et historique métier privé.
+- `scripts/` : lancement, installation et contrôles.
+- `outils/historique-documentaire/` : anciens traitements documentaires, conservés comme archives techniques, sans exécution automatique.
+- `archives/` : variantes antérieures et pièces uniques de l'ancien pack familial ; aucun déploiement actif.
+- `docs/migration/` : audit, provenance et procédure de séparation d'AZOTH_STUDIO.
 
-- `/?view=cortijo-travaux` : travaux
-
-## Sauvegarder et transférer son travail
-
-En bas de chaque vue, **Mes sauvegardes** permet d’exporter les suivis d’actions, les travaux, les notes et les présences au format JSON. Conservez ce fichier hors du navigateur. Il contient des informations personnelles : ne le publiez pas dans Git.
-
-Sur un autre appareil, **Importer une sauvegarde** affiche d’abord un aperçu. Rien n’est écrit avant de choisir **Fusionner cette sauvegarde**. Les éléments absents du fichier sont conservés ; pour un identifiant commun, les champs importés prennent la priorité. Une copie de l’état précédent est proposée au téléchargement avant la fusion. Vérifiez que votre navigateur a bien enregistré cette copie.
-
-Les clés de stockage historiques sont conservées pour relire les données existantes. Les onglets d’un même navigateur se mettent à jour à réception des événements de stockage. Les modifications utilisent les données les plus récemment enregistrées ; cela ne constitue pas un service de synchronisation entre appareils. Deux modifications réellement simultanées d’un même champ peuvent encore se remplacer.
-
-Si le stockage est plein ou inaccessible, un message signale les modifications conservées seulement en mémoire. Exportez-les avant de quitter la page. Les données illisibles ne sont jamais remplacées automatiquement. Un import invalide est refusé avant toute écriture ; si une écriture échoue pendant l’import, l’application tente de rétablir les valeurs précédentes et signale si ce retour échoue. Une fermeture brutale pendant l’import n’est pas une transaction garantie par le navigateur.
-
-## Vérifications
+## Vérifier
 
 ```bash
 npm test
 npm run build
-npx playwright install chromium
-npm run test:e2e
+npm run check:family
 ```
 
-Les tests couvrent la compatibilité avec les données existantes, l’export/restauration, la fusion, le refus des fichiers invalides, les échecs de stockage et les dates de présence. Les tests de navigateur vérifient aussi les six rubriques, le clavier, la persistance, le transfert de sauvegarde, les erreurs de stockage et un écran mobile. GitHub Actions exécute ces tests et la compilation sur les propositions de modification et sur `main`.
+Les contrôles complets du serveur et des sauvegardes sont dans le workflow GitHub Actions.
+Le déploiement utilise `docker-compose.coolify.yml` : voir [la fiche Coolify](COOLIFY_HANDOFF.md).
+Le transfert du code ne déplace pas automatiquement les bases de données ni les volumes du serveur existant.
 
 ## Confidentialité
 
-Ce dépôt décrit une interface publique contenant des informations de gestion familiale. Vérifiez son niveau de visibilité avant tout ajout de données personnelles ou de documents. Le champ `private` du `package.json` empêche une publication npm accidentelle ; il ne rend pas le dépôt GitHub privé. Aucune synchronisation distante ni authentification n’est ajoutée par cette version.
+Ce dépôt complet doit être privé : le dossier documentaire contient des informations familiales.
+L'ancien prototype public demeure dans l'historique du dépôt, sans constituer une seconde application active.

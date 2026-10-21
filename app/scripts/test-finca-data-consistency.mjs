@@ -1,0 +1,38 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+
+const dashboard = fs.readFileSync("src/components/FincaMariaDashboard.jsx", "utf8");
+const actionDesk = fs.readFileSync("src/data/cortijoActionDesk.js", "utf8");
+const sharedSync = fs.readFileSync("src/components/FincaSharedSyncMount.jsx", "utf8");
+const operations = fs.readFileSync("src/components/FincaOperationsMount.jsx", "utf8");
+const app = fs.readFileSync("src/App.jsx", "utf8");
+const main = fs.readFileSync("src/main.jsx", "utf8");
+const fincaStyles = fs.readFileSync("src/finca-styles.js", "utf8");
+const server = fs.readFileSync("../server/src/server.js", "utf8");
+const nginx = fs.readFileSync("deploy/nginx.conf", "utf8");
+const errorBoundary = fs.readFileSync("src/components/AppErrorBoundary.jsx", "utf8");
+const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+
+assert.ok(!dashboard.includes("Object.assign(sanJuanAction"), "Le dashboard ne doit plus écraser la source canonique San Juan");
+assert.ok(!dashboard.includes("const SAN_JUAN_SCRIPT_ES"), "Le script espagnol San Juan doit rester dans la source d’action canonique");
+assert.ok(actionDesk.includes("18 210 kg"), "La source San Juan doit conserver la base 18 210 kg");
+assert.ok(dashboard.includes("18 210 kg"), "L’analyse affichée doit reprendre la base 18 210 kg");
+assert.ok(dashboard.includes("3 860,64 kg"), "L’analyse affichée doit reprendre les kilos d’huile 2025/26");
+assert.ok(dashboard.includes("21,20 %"), "L’analyse affichée doit reprendre le rendement 2025/26");
+assert.ok(sharedSync.includes("storageSet(localStorage"), "La synchronisation doit protéger les écritures localStorage");
+assert.ok(sharedSync.includes("asArray(bootstrap.reservations)"), "La synchronisation doit valider la forme des réservations serveur");
+assert.ok(operations.includes("writeLocal("), "Les outils opérationnels doivent protéger les écritures localStorage");
+assert.ok(!app.includes('href="/?view='), "App.jsx ne doit plus forcer les vues à la racine du domaine");
+assert.ok(sharedSync.includes("expectedVersion"), "La synchronisation partagée doit utiliser les versions serveur pour éviter les écrasements concurrents");
+assert.ok(sharedSync.includes("sharedVersions"), "La base locale doit mémoriser les versions serveur");
+assert.ok(sharedSync.includes("visibilitychange"), "La synchronisation doit se mettre en veille lorsque l’onglet est inactif");
+assert.ok(server.includes("FOR UPDATE"), "Le backend doit verrouiller l’état partagé pendant une mise à jour versionnée");
+assert.ok(server.includes("expectedVersion !== currentVersion"), "Le backend doit refuser une écriture basée sur une version périmée");
+assert.ok(nginx.includes('proxy_set_header Connection "";'), "Nginx doit réellement réutiliser les connexions vers l’API");
+assert.ok(app.includes('window.addEventListener("popstate", syncRoute)'), "La navigation doit suivre retour/avance du navigateur");
+assert.ok(main.includes('import("./finca-styles.js")'), "Les styles FINCA doivent être chargés avec les modules FINCA");
+assert.ok(!main.includes('import "./finca-maria-v42.css";'), "Les styles FINCA ne doivent plus alourdir l’accueil Azoth");
+assert.ok(fincaStyles.includes('import "./finca-maria-v42.css";'), "Le paquet de styles FINCA doit conserver les styles métier");
+assert.ok(errorBoundary.includes("getDerivedStateFromError"), "L’interface doit afficher un écran de reprise en cas d’erreur React");
+for (const name of ["react", "react-dom", "vite", "@vitejs/plugin-react"]) assert.notEqual(pkg.dependencies[name], "latest", `${name} doit être versionné explicitement`);
+console.log("✓ Cohérence métier, stockage et build FINCA MARIA vérifiés");

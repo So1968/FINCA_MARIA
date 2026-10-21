@@ -1,0 +1,13 @@
+{
+  "name": "finca-maria-api",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "check": "node --check server.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  }
+}

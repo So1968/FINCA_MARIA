@@ -1,0 +1,109 @@
+services:
+  finca-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-finca_maria}
+      POSTGRES_USER: ${POSTGRES_USER:-finca}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD obligatoire}
+      POSTGRES_INITDB_ARGS: --data-checksums
+    volumes:
+      - finca_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-finca} -d ${POSTGRES_DB:-finca_maria}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - finca_private
+
+  finca-api:
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-finca}:${POSTGRES_PASSWORD}@finca-db:5432/${POSTGRES_DB:-finca_maria}
+      APP_ORIGIN: ${APP_ORIGIN:?APP_ORIGIN obligatoire}
+      COOKIE_SECURE: "true"
+      SESSION_HOURS: ${SESSION_HOURS:-12}
+      BAUL_ROOT: /data/baul
+      FINCA_BOOTSTRAP_ADMIN_EMAIL: ${FINCA_BOOTSTRAP_ADMIN_EMAIL:?Email admin initial obligatoire}
+      FINCA_BOOTSTRAP_ADMIN_NAME: ${FINCA_BOOTSTRAP_ADMIN_NAME:-Administrateur FINCA MARIA}
+      FINCA_BOOTSTRAP_ADMIN_PASSWORD: ${FINCA_BOOTSTRAP_ADMIN_PASSWORD:?Mot de passe admin initial obligatoire}
+    depends_on:
+      finca-db:
+        condition: service_healthy
+    expose:
+      - "3000"
+    volumes:
+      - finca_baul:/data/baul
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - finca_private
+
+  finca-backup:
+    build:
+      context: ../server
+      dockerfile: ops/Dockerfile.backup
+    restart: unless-stopped
+    depends_on:
+      finca-db:
+        condition: service_healthy
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-finca_maria}
+      POSTGRES_USER: ${POSTGRES_USER:-finca}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD obligatoire}
+      BACKUP_ENCRYPTION_PASSPHRASE: ${BACKUP_ENCRYPTION_PASSPHRASE:?Clé de chiffrement des sauvegardes obligatoire}
+      GNUPGHOME: /tmp/finca-gnupg
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+    volumes:
+      - finca_baul:/data/baul:ro
+      - finca_backups:/backups
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - finca_private
+
+  finca-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_FINCA_SERVER_MODE: "1"
+    restart: unless-stopped
+    depends_on:
+      finca-api:
+        condition: service_healthy
+    expose:
+      - "8080"
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - finca_private
+
+volumes:
+  finca_postgres:
+  finca_baul:
+  finca_backups:
+
+networks:
+  finca_private:
+    driver: bridge

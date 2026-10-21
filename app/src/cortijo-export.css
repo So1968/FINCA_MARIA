@@ -1,0 +1,970 @@
+.cortijoExportApp {
+  min-height: 100vh;
+  padding: 28px clamp(16px, 4vw, 58px) 56px;
+  color: #f6ead0;
+  background:
+    radial-gradient(circle at 82% 16%, rgba(154, 122, 45, .22), transparent 26%),
+    radial-gradient(circle at 18% 82%, rgba(80, 100, 55, .20), transparent 30%),
+    linear-gradient(135deg, #040604 0%, #10140d 48%, #050704 100%);
+}
+
+.cortijoExportHero,
+.cortijoExportRule,
+.cortijoExportModules article,
+.cortijoExportApp .cortijoDashboard {
+  border: 1px solid rgba(214, 169, 85, .34);
+  background: rgba(5, 8, 7, .78);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .34);
+}
+
+.cortijoExportHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 26px;
+  align-items: end;
+  border-radius: 28px;
+  padding: clamp(24px, 4vw, 44px);
+}
+
+.cortijoExportEyebrow,
+.cortijoEyebrow,
+.cortijoExportVersion span,
+.cortijoExportModules > article > span {
+  color: #d6a955;
+  text-transform: uppercase;
+  letter-spacing: 2.6px;
+  font-size: 11px;
+}
+
+.cortijoExportHero h1 {
+  margin: 10px 0 14px;
+  font-family: Georgia, serif;
+  font-size: clamp(42px, 8vw, 88px);
+  font-weight: 400;
+  letter-spacing: clamp(7px, 2vw, 20px);
+  color: #fff3d4;
+}
+
+.cortijoExportHero p,
+.cortijoExportRule p,
+.cortijoExportModules p,
+.cortijoHeader p,
+.cortijoWorkflow p,
+.cortijoExportSummary p,
+.cortijoDangerZone p {
+  color: #d8c192;
+  line-height: 1.6;
+}
+
+.cortijoExportBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.cortijoExportBadges span {
+  border: 1px solid rgba(214, 169, 85, .28);
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #f0d79a;
+  background: rgba(0, 0, 0, .18);
+  font-size: 12px;
+}
+
+.cortijoExportVersion {
+  border: 1px solid rgba(214, 169, 85, .28);
+  border-radius: 22px;
+  padding: 20px;
+  background: rgba(0, 0, 0, .18);
+}
+
+.cortijoExportVersion strong {
+  display: block;
+  margin: 10px 0;
+  font-family: Georgia, serif;
+  font-size: 48px;
+  color: #fff3d4;
+}
+
+.cortijoExportRule {
+  margin: 20px 0;
+  border-radius: 22px;
+  padding: 18px 22px;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+}
+
+.cortijoExportRule strong {
+  color: #f0d79a;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+}
+
+.cortijoExportRule a,
+.cortijoExportRule button,
+.cortijoNav button,
+.baulImportActions button,
+.baulValidationTitle button,
+.baulConfirmButton,
+.cortijoCard button,
+.cortijoFocusPanel button,
+.cortijoPrimaryButton,
+.cortijoDangerZone button {
+  font: inherit;
+}
+
+.cortijoExportRule a {
+  color: #f0d79a;
+  border: 1px solid rgba(214, 169, 85, .34);
+  border-radius: 999px;
+  padding: 10px 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cortijoExportModules {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.cortijoExportModules article {
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.cortijoExportModules h2 {
+  margin: 10px 0 6px;
+  color: #fff3d4;
+  font-family: Georgia, serif;
+  font-size: 20px;
+  letter-spacing: 2px;
+}
+
+.cortijoExportApp .cortijoDashboard {
+  border-radius: 28px;
+  padding: clamp(18px, 3vw, 30px);
+}
+
+.cortijoHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+
+.cortijoHeader h2 {
+  margin: 8px 0 8px;
+  font-family: Georgia, serif;
+  font-size: clamp(30px, 5vw, 52px);
+  font-weight: 400;
+  color: #fff3d4;
+  letter-spacing: 4px;
+}
+
+.cortijoHeader p {
+  max-width: 800px;
+  margin: 0;
+}
+
+.cortijoPrivacyBadge {
+  min-width: 230px;
+  display: grid;
+  gap: 6px;
+  border: 1px solid rgba(111, 145, 92, .42);
+  border-radius: 18px;
+  padding: 15px;
+  background: rgba(48, 79, 43, .18);
+}
+
+.cortijoPrivacyBadge strong {
+  color: #dce7bd;
+}
+
+.cortijoPrivacyBadge span {
+  color: #b9c89d;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.cortijoNav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.cortijoNav button {
+  min-height: 78px;
+  display: grid;
+  gap: 5px;
+  text-align: left;
+  border: 1px solid rgba(214, 169, 85, .22);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(0, 0, 0, .18);
+  color: #d8c192;
+}
+
+.cortijoNav button:hover,
+.cortijoNav button.isActive {
+  border-color: rgba(240, 215, 154, .72);
+  background: rgba(214, 169, 85, .12);
+  transform: translateY(-1px);
+}
+
+.cortijoNav button strong {
+  color: #fff3d4;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.cortijoNav button span {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.cortijoView {
+  display: grid;
+  gap: 22px;
+}
+
+.cortijoStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cortijoStats > div,
+.cortijoExportNumbers > div {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(214, 169, 85, .20);
+  border-radius: 16px;
+  padding: 16px;
+  background: rgba(0, 0, 0, .16);
+}
+
+.cortijoStats strong,
+.cortijoExportNumbers strong {
+  font-family: Georgia, serif;
+  font-size: 34px;
+  color: #fff3d4;
+}
+
+.cortijoStats span,
+.cortijoExportNumbers span {
+  color: #cdb98d;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cortijoActionGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.cortijoActionGrid button {
+  min-height: 210px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  border: 1px solid rgba(214, 169, 85, .26);
+  border-radius: 20px;
+  padding: 18px;
+  text-align: left;
+  color: #d8c192;
+  background:
+    radial-gradient(circle at 90% 8%, rgba(214, 169, 85, .13), transparent 30%),
+    rgba(0, 0, 0, .18);
+}
+
+.cortijoActionGrid button:hover {
+  border-color: rgba(240, 215, 154, .72);
+  background-color: rgba(214, 169, 85, .10);
+  transform: translateY(-2px);
+}
+
+.cortijoActionGrid button > span {
+  color: #d6a955;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+.cortijoActionGrid button strong {
+  color: #fff3d4;
+  font-family: Georgia, serif;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.cortijoActionGrid button p {
+  margin: 0;
+  color: #cdb98d;
+  line-height: 1.5;
+}
+
+.cortijoWorkflow,
+.cortijoFocusPanel,
+.cortijoExportSummary,
+.cortijoExportAudience,
+.cortijoDangerZone {
+  border: 1px solid rgba(214, 169, 85, .22);
+  border-radius: 20px;
+  padding: 20px;
+  background: rgba(0, 0, 0, .16);
+}
+
+.cortijoWorkflow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, .9fr);
+  gap: 22px;
+}
+
+.cortijoWorkflow h3,
+.cortijoFocusPanel h3,
+.cortijoExportSummary h3,
+.cortijoExportAudience h3,
+.cortijoDangerZone h3,
+.baulValidationTitle h4 {
+  margin: 7px 0;
+  color: #fff3d4;
+  font-family: Georgia, serif;
+  font-size: 26px;
+  font-weight: 400;
+}
+
+.cortijoWorkflow ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.cortijoWorkflow li {
+  display: grid;
+  gap: 3px;
+  border-left: 3px solid rgba(214, 169, 85, .52);
+  padding: 10px 12px;
+  background: rgba(214, 169, 85, .05);
+}
+
+.cortijoWorkflow li strong {
+  color: #f0d79a;
+}
+
+.cortijoWorkflow li span {
+  color: #cdb98d;
+  font-size: 13px;
+}
+
+.cortijoFocusPanel {
+  display: grid;
+  gap: 14px;
+}
+
+.cortijoFocusPanel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.cortijoFocusPanel li {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid rgba(214, 169, 85, .14);
+  padding: 10px 0;
+}
+
+.cortijoFocusPanel li strong {
+  color: #fff3d4;
+}
+
+.cortijoFocusPanel li span {
+  color: #ad9b76;
+  text-align: right;
+}
+
+.cortijoFocusPanel button,
+.cortijoCard button,
+.baulValidationTitle button,
+.cortijoDangerZone button {
+  justify-self: start;
+  border: 1px solid rgba(214, 169, 85, .32);
+  border-radius: 999px;
+  padding: 9px 13px;
+  color: #f0d79a;
+  background: rgba(0, 0, 0, .18);
+}
+
+.baulImportPanel {
+  border: 1px solid rgba(214, 169, 85, .38);
+  border-radius: 24px;
+  padding: clamp(18px, 3vw, 24px);
+  background:
+    radial-gradient(circle at 84% 18%, rgba(214, 169, 85, .16), transparent 28%),
+    linear-gradient(135deg, rgba(12, 18, 10, .92), rgba(3, 6, 5, .86));
+}
+
+.baulImportHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 22px;
+  align-items: flex-start;
+}
+
+.baulImportHeader h3 {
+  margin: 8px 0 8px;
+  font-family: Georgia, serif;
+  font-size: clamp(25px, 4vw, 38px);
+  font-weight: 400;
+  letter-spacing: 3px;
+  color: #fff3d4;
+}
+
+.baulImportHeader p,
+.baulImportMessage {
+  color: #d8c192;
+  line-height: 1.55;
+}
+
+.baulMiniStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  min-width: 320px;
+}
+
+.baulMiniStats span {
+  display: grid;
+  gap: 3px;
+  border: 1px solid rgba(214, 169, 85, .20);
+  border-radius: 13px;
+  padding: 10px;
+  background: rgba(0, 0, 0, .18);
+  color: #cdb98d;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+}
+
+.baulMiniStats strong {
+  color: #fff3d4;
+  font-size: 22px;
+}
+
+.baulImportActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+  margin: 18px 0;
+}
+
+.baulImportActions label,
+.baulValidationChoice {
+  display: grid;
+  gap: 7px;
+  color: #d6a955;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 10px;
+}
+
+.baulImportActions select,
+.baulImportActions button,
+.baulValidationChoice select,
+.cortijoForm input {
+  min-height: 42px;
+  border: 1px solid rgba(214, 169, 85, .32);
+  border-radius: 13px;
+  background: rgba(0, 0, 0, .24);
+  color: #f0d79a;
+  padding: 10px 12px;
+}
+
+.baulImportActions button:hover,
+.baulValidationTitle button:hover,
+.baulConfirmButton:hover,
+.cortijoCard button:hover,
+.cortijoFocusPanel button:hover,
+.cortijoDangerZone button:hover {
+  border-color: rgba(240, 215, 154, .72);
+  background: rgba(214, 169, 85, .14);
+}
+
+.baulDropZone {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 190px;
+  border: 2px dashed rgba(214, 169, 85, .46);
+  border-radius: 22px;
+  background: rgba(0, 0, 0, .20);
+  color: #f0d79a;
+  text-align: center;
+  cursor: pointer;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.baulDropZone:hover,
+.baulDropZone.isDragging {
+  transform: translateY(-2px);
+  border-color: rgba(240, 215, 154, .88);
+  background: rgba(214, 169, 85, .12);
+}
+
+.baulDropZone strong {
+  font-size: clamp(19px, 3vw, 30px);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #fff3d4;
+}
+
+.baulDropZone span {
+  color: #d8c192;
+}
+
+.baulDropZone small {
+  color: #ad9b76;
+}
+
+.baulDropZone input {
+  display: none;
+}
+
+.baulImportMessage {
+  min-height: 24px;
+  margin: 14px 0 8px;
+}
+
+.baulPath {
+  display: block;
+  padding: 10px 12px;
+  border: 1px solid rgba(214, 169, 85, .18);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, .20);
+  color: #f0d79a;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.baulValidationArea {
+  margin-top: 22px;
+  border-top: 1px solid rgba(214, 169, 85, .18);
+  padding-top: 20px;
+}
+
+.baulValidationTitle {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.baulPendingList {
+  display: grid;
+  gap: 12px;
+}
+
+.baulPendingCard {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(180px, .8fr) minmax(190px, .9fr) auto;
+  gap: 14px;
+  align-items: center;
+  border: 1px solid rgba(214, 169, 85, .20);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(0, 0, 0, .18);
+}
+
+.baulPendingIdentity,
+.baulSuggestion {
+  display: grid;
+  gap: 4px;
+}
+
+.baulPendingIdentity strong,
+.baulSuggestion strong {
+  color: #fff3d4;
+  overflow-wrap: anywhere;
+}
+
+.baulPendingIdentity span,
+.baulPendingIdentity small,
+.baulSuggestion span,
+.baulSuggestion small {
+  color: #bba77f;
+  font-size: 12px;
+}
+
+.baulSuggestion {
+  border-left: 2px solid rgba(214, 169, 85, .38);
+  padding-left: 12px;
+}
+
+.baulConfirmButton,
+.cortijoPrimaryButton {
+  border: 1px solid rgba(240, 215, 154, .58);
+  border-radius: 14px;
+  padding: 11px 14px;
+  background: linear-gradient(135deg, rgba(214, 169, 85, .28), rgba(102, 83, 39, .20));
+  color: #fff3d4;
+}
+
+.cortijoEmpty {
+  margin: 0;
+  color: #ad9b76;
+  font-style: italic;
+}
+
+.cortijoQuickForms {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.cortijoForm {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(214, 169, 85, .22);
+  border-radius: 20px;
+  padding: 18px;
+  background: rgba(0, 0, 0, .16);
+}
+
+.cortijoForm h3 {
+  margin: 0 0 4px;
+  color: #fff3d4;
+  font-family: Georgia, serif;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.cortijoForm input::placeholder {
+  color: #8f8064;
+}
+
+.cortijoForm input:focus,
+.baulImportActions select:focus,
+.baulValidationChoice select:focus {
+  outline: 2px solid rgba(240, 215, 154, .42);
+  outline-offset: 2px;
+}
+
+.cortijoForm button {
+  border: 1px solid rgba(240, 215, 154, .52);
+  border-radius: 14px;
+  padding: 11px 14px;
+  background: rgba(214, 169, 85, .14);
+  color: #fff3d4;
+}
+
+.cortijoColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.cortijoPanel {
+  border: 1px solid rgba(214, 169, 85, .22);
+  border-radius: 20px;
+  padding: 18px;
+  background: rgba(0, 0, 0, .16);
+}
+
+.cortijoPanelTitle {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.cortijoPanelTitle > span {
+  color: #d6a955;
+  letter-spacing: 2px;
+  font-size: 11px;
+}
+
+.cortijoPanelTitle h3 {
+  margin: 0;
+  color: #fff3d4;
+  font-family: Georgia, serif;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.cortijoPanelTitle p {
+  margin: 4px 0 0;
+  color: #ad9b76;
+  font-size: 12px;
+}
+
+.cortijoList {
+  display: grid;
+  gap: 12px;
+}
+
+.cortijoCard {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(214, 169, 85, .18);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(0, 0, 0, .18);
+}
+
+.cortijoCard.isClosed {
+  opacity: .62;
+}
+
+.cortijoCardTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.cortijoPill {
+  display: inline-flex;
+  border: 1px solid rgba(214, 169, 85, .26);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: #f0d79a;
+  font-size: 11px;
+}
+
+.cortijoCardTop small {
+  color: #ad9b76;
+}
+
+.cortijoCard h4 {
+  margin: 0;
+  color: #fff3d4;
+  font-size: 17px;
+}
+
+.cortijoCard dl {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.cortijoCard dl > div {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 10px;
+}
+
+.cortijoCard dt {
+  color: #ad9b76;
+  font-size: 12px;
+}
+
+.cortijoCard dd {
+  margin: 0;
+  color: #d8c192;
+  font-size: 13px;
+}
+
+.cortijoCard p {
+  margin: 0;
+  color: #cdb98d;
+  line-height: 1.5;
+}
+
+.cortijoAnomaly {
+  border-color: rgba(201, 142, 87, .28);
+}
+
+.cortijoReminderPanel {
+  display: grid;
+  grid-template-columns: minmax(220px, .7fr) minmax(0, 1.3fr);
+  gap: 18px;
+  border: 1px solid rgba(214, 169, 85, .22);
+  border-radius: 20px;
+  padding: 18px;
+  background: rgba(0, 0, 0, .16);
+}
+
+.cortijoReminderPanel h3 {
+  margin: 7px 0;
+  color: #fff3d4;
+  font-family: Georgia, serif;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.cortijoReminderPanel ol {
+  margin: 0;
+  padding-left: 22px;
+  color: #d8c192;
+  display: grid;
+  gap: 8px;
+}
+
+.cortijoExportWorkspace {
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+}
+
+.cortijoExportSummary {
+  grid-row: span 2;
+}
+
+.cortijoExportNumbers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.cortijoExportAudience > div {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.cortijoExportAudience article {
+  display: grid;
+  gap: 4px;
+  border-left: 3px solid rgba(214, 169, 85, .42);
+  padding: 9px 12px;
+  background: rgba(214, 169, 85, .05);
+}
+
+.cortijoExportAudience strong {
+  color: #fff3d4;
+}
+
+.cortijoExportAudience span {
+  color: #cdb98d;
+  font-size: 13px;
+}
+
+.cortijoDangerZone {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  border-color: rgba(201, 142, 87, .28);
+}
+
+.cortijoDangerZone h3 {
+  font-size: 20px;
+}
+
+.cortijoDangerZone p {
+  margin: 0;
+  font-size: 13px;
+}
+
+@media (max-width: 1120px) {
+  .cortijoExportModules,
+  .cortijoActionGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .baulPendingCard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cortijoExportWorkspace {
+    grid-template-columns: 1fr;
+  }
+
+  .cortijoExportSummary {
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 820px) {
+  .cortijoExportHero,
+  .cortijoExportRule,
+  .cortijoHeader,
+  .baulImportHeader,
+  .cortijoWorkflow,
+  .cortijoReminderPanel,
+  .cortijoDangerZone {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .cortijoExportModules,
+  .cortijoNav,
+  .cortijoStats,
+  .cortijoActionGrid,
+  .cortijoQuickForms,
+  .cortijoColumns,
+  .cortijoExportNumbers {
+    grid-template-columns: 1fr;
+  }
+
+  .cortijoPrivacyBadge,
+  .baulMiniStats {
+    min-width: 0;
+  }
+
+  .baulMiniStats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .baulPendingCard {
+    grid-template-columns: 1fr;
+  }
+
+  .baulSuggestion {
+    border-left: 0;
+    border-top: 1px solid rgba(214, 169, 85, .18);
+    padding-left: 0;
+    padding-top: 10px;
+  }
+
+  .baulImportActions {
+    display: grid;
+  }
+
+  .baulImportActions > * {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .cortijoExportApp {
+    padding: 12px 10px 34px;
+  }
+
+  .cortijoExportHero,
+  .cortijoExportRule,
+  .cortijoExportApp .cortijoDashboard {
+    border-radius: 20px;
+  }
+
+  .cortijoExportHero h1 {
+    font-size: 36px;
+    letter-spacing: 6px;
+  }
+
+  .baulMiniStats {
+    grid-template-columns: 1fr;
+  }
+
+  .cortijoFocusPanel li,
+  .baulValidationTitle {
+    align-items: flex-start;
+    flex-direction: column;
+    display: flex;
+  }
+}

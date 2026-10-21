@@ -1,0 +1,215 @@
+.baulPendingCard.hasPreview {
+  border-color: rgba(240, 215, 154, .46);
+  background: rgba(214, 169, 85, .06);
+}
+
+.baulCardActions {
+  display: grid;
+  gap: 8px;
+  min-width: 150px;
+}
+
+.baulPreviewButton,
+.baulConfirmButton {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(214, 169, 85, .34);
+  border-radius: 13px;
+  padding: 10px 12px;
+  color: #f0d79a;
+  background: rgba(0, 0, 0, .22);
+  font: inherit;
+  cursor: pointer;
+}
+
+.baulPreviewButton:hover,
+.baulPreviewButton:focus-visible,
+.baulConfirmButton:hover,
+.baulConfirmButton:focus-visible {
+  border-color: rgba(240, 215, 154, .82);
+  background: rgba(214, 169, 85, .15);
+  outline: none;
+}
+
+.baulPreviewHint {
+  margin: 4px 0 0;
+  color: #ad9b76;
+  font-size: 12px;
+}
+
+.baulLogicalNameField {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 7px;
+  border-top: 1px solid rgba(214, 169, 85, .14);
+  padding-top: 12px;
+  color: #d6a955;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 10px;
+}
+
+.baulLogicalNameRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.baulLogicalNameRow input,
+.baulLogicalNameRow button {
+  min-height: 42px;
+  border: 1px solid rgba(214, 169, 85, .32);
+  border-radius: 13px;
+  background: rgba(0, 0, 0, .24);
+  color: #f0d79a;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.baulLogicalNameRow input {
+  text-transform: none;
+  letter-spacing: .3px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.baulLogicalNameRow button {
+  cursor: pointer;
+}
+
+.baulLogicalNameRow input:focus,
+.baulLogicalNameRow button:hover,
+.baulLogicalNameRow button:focus-visible {
+  border-color: rgba(240, 215, 154, .82);
+  outline: none;
+}
+
+.baulLogicalNameField small {
+  color: #9f8f70;
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+
+.baulQuickPreview {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid rgba(214, 169, 85, .18);
+  padding-top: 14px;
+}
+
+.baulQuickPreviewHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: end;
+}
+
+.baulQuickPreviewHeader > div {
+  display: grid;
+  gap: 5px;
+}
+
+.baulQuickPreviewHeader strong {
+  color: #fff3d4;
+  overflow-wrap: anywhere;
+}
+
+.baulQuickPreviewHeader small {
+  color: #ad9b76;
+}
+
+.baulPreviewCanvas {
+  overflow: hidden;
+  min-height: 280px;
+  max-height: 68vh;
+  border: 1px solid rgba(214, 169, 85, .22);
+  border-radius: 16px;
+  background: #0a0b09;
+}
+
+.baulPreviewCanvas.isImage {
+  display: grid;
+  place-items: center;
+  padding: 10px;
+}
+
+.baulPreviewCanvas img,
+.baulPreviewCanvas video {
+  display: block;
+  max-width: 100%;
+  max-height: 64vh;
+  margin: auto;
+  object-fit: contain;
+}
+
+.baulPreviewCanvas video {
+  width: 100%;
+}
+
+.baulPreviewCanvas iframe {
+  display: block;
+  width: 100%;
+  height: min(64vh, 760px);
+  min-height: 420px;
+  border: 0;
+  background: #f7f4eb;
+}
+
+.baulPreviewUnavailable {
+  display: grid;
+  gap: 7px;
+  min-height: 120px;
+  align-content: center;
+  border: 1px dashed rgba(214, 169, 85, .30);
+  border-radius: 16px;
+  padding: 18px;
+  color: #cdb98d;
+  background: rgba(0, 0, 0, .16);
+}
+
+.baulPreviewUnavailable strong {
+  color: #fff3d4;
+}
+
+@media (max-width: 980px) {
+  .baulPendingCard {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .baulLogicalNameField,
+  .baulCardActions {
+    grid-column: 1 / -1;
+  }
+
+  .baulCardActions {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .baulPendingCard {
+    grid-template-columns: 1fr;
+  }
+
+  .baulSuggestion,
+  .baulValidationChoice,
+  .baulLogicalNameField,
+  .baulCardActions {
+    grid-column: auto;
+  }
+
+  .baulLogicalNameRow,
+  .baulCardActions {
+    grid-template-columns: 1fr;
+  }
+
+  .baulQuickPreviewHeader {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .baulPreviewCanvas iframe {
+    min-height: 360px;
+  }
+}

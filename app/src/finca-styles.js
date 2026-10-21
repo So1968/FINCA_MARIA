@@ -1,0 +1,12 @@
+import "./cortijo-export.css";
+import "./cortijo-transfer.css";
+import "./baul-preview.css";
+import "./cortijo-terrain.css";
+import "./cortijo-terrain-v2.css";
+import "./cortijo-actions.css";
+import "./cortijo-actions-v2.css";
+import "./finca-maria-v42.css";
+import "./finca-action-accordion.css";
+import "./finca-maria-mobile.css";
+import "./finca-actions-immediate.css";
+import "./finca-tabs.css";

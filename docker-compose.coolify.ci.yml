@@ -1,0 +1,4 @@
+services:
+  finca-web:
+    ports:
+      - "127.0.0.1:${FINCA_HTTP_PORT:-18080}:8080"
