@@ -1,6 +1,3 @@
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-
 const rows = [
   { period: "2007/08", level: "À confirmer", have: "Premier bail écrit 12/02/2007–11/02/2013 ; pièces San Juan 4 468 kg / 815,03 kg d’huile / 18,24 % ; contrôle PAC terrain du 12/07/2007.", missing: "Vérifier si le contrôle PAC comporte réellement une page absente ; obtenir le relevé/jeu San Juan complet si la coopérative peut encore le fournir.", ask: ["San Juan", "ASAJA"], contacts: ["san-juan", "asaja"] },
   { period: "2008/09", level: "À confirmer", have: "Pièces San Juan : 1 795 kg, 316,49 kg d’huile, rendement 17,63 %.", missing: "Vales et liquidation complète si les pièces conservées ne couvrent pas toute la campagne.", ask: ["San Juan"], contacts: ["san-juan"] },
@@ -26,16 +23,7 @@ const rows = [
 
 const dossierLabels = { "san-juan": "San Juan", asaja: "ASAJA", pelaez: "Peláez", agriculteur: "Vitines" };
 
-function findTarget() {
-  const privateSections = Array.from(document.querySelectorAll("#finca-maria-sections > details.cortijoView"));
-  const privateDossiers = privateSections.find((item) => item.querySelector("h3")?.textContent?.includes("Dossiers & actions"));
-  if (privateDossiers) return privateDossiers;
-  const publicSections = Array.from(document.querySelectorAll(".dashboard-sections > details.section"));
-  const publicDossiers = publicSections.find((item) => item.querySelector("h3")?.textContent?.includes("Dossiers & actions"));
-  return publicDossiers?.querySelector(".section-body") || null;
-}
-
-function Checklist() {
+export function FincaDocumentChecklist() {
   return (
     <details style={{ border: "1px solid rgba(214,169,85,.28)", borderRadius: "14px", background: "rgba(0,0,0,.14)", overflow: "hidden", marginTop: ".8rem" }}>
       <summary style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: ".8rem", padding: ".8rem .9rem", cursor: "pointer", listStyle: "none" }}>
@@ -60,26 +48,4 @@ function Checklist() {
       </div>
     </details>
   );
-}
-
-export function FincaDocumentChecklistMount() {
-  const [target, setTarget] = useState(null);
-  useEffect(() => {
-    let observer;
-    let frame;
-    const resolve = () => {
-      const found = findTarget();
-      if (!found) return;
-      setTarget(found);
-      observer?.disconnect();
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-    resolve();
-    frame = window.requestAnimationFrame(resolve);
-    observer = new MutationObserver(resolve);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => { observer?.disconnect(); if (frame) window.cancelAnimationFrame(frame); };
-  }, []);
-  if (!target) return null;
-  return createPortal(<Checklist />, target);
 }

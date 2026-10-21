@@ -130,3 +130,38 @@ textarea { resize: vertical; min-height: 96px; }
   .form-grid button { grid-column: auto; }
   .footer-nav { align-items: flex-start; flex-direction: column; }
 }
+
+
+        .fincaTabsNav { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:7px; padding:7px; border:1px solid rgba(214,169,85,.24); border-radius:18px; background:rgba(5,9,7,.82); box-shadow:0 14px 34px rgba(0,0,0,.18); }
+        .fincaTabsNav button { min-height:58px; display:flex; align-items:center; justify-content:center; gap:.52rem; border:1px solid transparent; border-radius:12px; padding:.68rem .7rem; color:#d9c8a3; background:transparent; font:inherit; font-weight:700; cursor:pointer; }
+        .fincaTabsNav button:hover { background:rgba(214,169,85,.08); color:#fff2d1; }
+        .fincaTabsNav button.isActive { color:#172019; background:#efd99d; border-color:#f7e6b7; box-shadow:0 5px 16px rgba(0,0,0,.22); }
+        .fincaTabsNav button svg { flex:0 0 auto; }
+        .fincaTabIntro { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.8rem .95rem .9rem; }
+        .fincaTabIntro strong { display:block; color:#fff3d4; font-family:Georgia,'Times New Roman',serif; font-size:1.15rem; }
+        .fincaTabIntro span { display:block; margin-top:.12rem; color:#cdb98d; font-size:.9rem; line-height:1.4; }
+        .fincaBrand { display:inline-flex; align-items:center; gap:.72rem; }
+        .fincaBrandMark { width:58px; height:58px; display:grid; place-items:center; border-radius:18px; background:linear-gradient(145deg,rgba(239,217,157,.16),rgba(97,120,78,.14)); border:1px solid rgba(239,217,157,.34); box-shadow:inset 0 0 0 1px rgba(255,255,255,.025); }
+        .fincaBrandMark svg { width:48px; height:48px; fill:none; stroke:#efd99d; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+        .fincaBrandMark ellipse { fill:rgba(239,217,157,.18); }
+        .fincaBrand strong { display:block; color:#fff4d7; font-family:Georgia,'Times New Roman',serif; font-size:1.28rem; letter-spacing:.075em; }
+        .fincaBrand span { display:block; margin-top:.08rem; color:#bfae88; font-size:.76rem; letter-spacing:.035em; }
+        @media (max-width:760px) { .fincaTabsNav { grid-template-columns:repeat(3,minmax(0,1fr)); } .fincaTabsNav button { min-height:56px; font-size:.92rem; } .fincaTabIntro { padding:.72rem .55rem .82rem; } }
+        @media (max-width:470px) { .fincaTabsNav { grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; } .fincaTabsNav button { min-height:54px; justify-content:flex-start; padding:.64rem .72rem; } .fincaBrandMark { width:52px; height:52px; border-radius:16px; } .fincaBrandMark svg { width:43px; height:43px; } .fincaBrand strong { font-size:1.16rem; } .fincaTabIntro strong { font-size:1.05rem; } .fincaTabIntro span { font-size:.86rem; } }
+
+[hidden] { display: none !important; }
+.panel-heading { display: flex; align-items: center; gap: .8rem; padding: 1rem; }
+.panel-heading .section-title { flex: 1; }
+.panel-heading .section-title p { display: block; }
+.dashboard-sections > .section > .section-body { padding-top: .5rem; }
+.backup-tools { padding-top: 0; }
+.backup-tools .section-title h2 { font-size: 1.25rem; }
+.backup-tools .section > summary { grid-template-columns: 1fr auto; }
+.storage-warning { border: 1px solid #e8b64b; border-radius: 12px; padding: .8rem; background: #30230d; }
+.import-preview { margin-top: 1rem; }
+:focus-visible { outline: 3px solid #efd99d !important; outline-offset: 3px; }
+.form-grid select { min-width: 0; min-height: 44px; color: #fff3d4; background: #172019; border: 1px solid #74643e; border-radius: 9px; padding: .5rem; }
+@media (max-width:760px) { .fincaTabsNav { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media (max-width:470px) { .fincaTabsNav { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+
+.storage-notices { padding-bottom: 0; }

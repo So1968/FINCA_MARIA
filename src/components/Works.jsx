@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-
-const STORAGE_KEY = "finca_maria_travaux_v1";
+import { KEYS } from "../lib/storage.js";
+import { useStoredState } from "../lib/useStoredState.js";
+import { useMemo, useState } from "react";
 
 const initialWorks = [
   { id: "g-taille-cerisier", zone: "Jardin", title: "Terminer la taille du cerisier", detail: "Diminuer l’ombre sur le citronnier sans abîmer l’arbre.", priority: "Haute" },
@@ -39,15 +39,9 @@ const initialWorks = [
 const priorities = ["Urgente", "Haute", "Normale", "Basse"];
 const statuses = ["À faire", "En cours", "Terminé"];
 
-function loadState() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; }
-}
-
 export function Works() {
-  const [state, setState] = useState(loadState);
+  const [state, setState] = useStoredState(KEYS.works);
   const [filter, setFilter] = useState("Tous");
-
-  useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }, [state]);
 
   function patch(id, value) {
     setState((current) => ({ ...current, [id]: { ...(current[id] || {}), ...value } }));
@@ -77,10 +71,10 @@ export function Works() {
             </div>
             <p>{work.detail}</p>
             <div className="form-grid">
-              <select value={work.status} onChange={(e) => patch(work.id, { status: e.target.value })}>{statuses.map((item) => <option key={item}>{item}</option>)}</select>
-              <select value={work.priority} onChange={(e) => patch(work.id, { priority: e.target.value })}>{priorities.map((item) => <option key={item}>{item}</option>)}</select>
+              <select aria-label={`Statut — ${work.title}`} value={work.status} onChange={(e) => patch(work.id, { status: e.target.value })}>{statuses.map((item) => <option key={item}>{item}</option>)}</select>
+              <select aria-label={`Priorité — ${work.title}`} value={work.priority} onChange={(e) => patch(work.id, { priority: e.target.value })}>{priorities.map((item) => <option key={item}>{item}</option>)}</select>
             </div>
-            <textarea rows="3" value={work.note || ""} onChange={(e) => patch(work.id, { note: e.target.value })} placeholder="Note, matériel nécessaire, personne chargée, date prévue…" />
+            <textarea aria-label={`Notes — ${work.title}`} rows="3" value={work.note || ""} onChange={(e) => patch(work.id, { note: e.target.value })} placeholder="Note, matériel nécessaire, personne chargée, date prévue…" />
           </article>
         ))}
       </div>
