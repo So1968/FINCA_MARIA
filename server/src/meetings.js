@@ -301,6 +301,67 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
     });
   }
 
+
+  async function importHistoricMeetings(req, res) {
+    const user = await requireAdmin(req);
+    const body = await readBody(req);
+    const items = body.items;
+    if (!Array.isArray(items) || !items.length || items.length > 50) {
+      return json(res, 400, { error: "Importer entre 1 et 50 comptes rendus par lot." });
+    }
+    const normalized = [];
+    for (const [index, item] of items.entries()) {
+      const originalText = String(item?.originalText || "").trim();
+      const date = safeDate(item?.date);
+      if (!originalText || originalText.length > 100000 || !date) {
+        return json(res, 400, { error: "Compte rendu " + (index + 1) + " : texte et date exacte obligatoires." });
+      }
+      const hash = crypto.createHash("sha256").update(originalText.normalize("NFC")).digest("hex");
+      const candidates = (Array.isArray(item?.candidates) ? item.candidates : []).map((value) => safeText(value, 2500)).filter(Boolean).slice(0, 100);
+      normalized.push({ originalText, hash, date, title: safeText(item?.title, 240) || "Compte rendu historique", candidates });
+    }
+    const results = [];
+    for (const item of normalized) {
+      const id = crypto.randomUUID();
+      const draft = {
+        historicImport: true,
+        historicHash: item.hash,
+        historicOriginal: item.originalText,
+        historicCandidateCount: item.candidates.length,
+        historicImportNote: "Archive originale conservée. Extraits automatiques non validés."
+      };
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        const existing = await client.query("SELECT id FROM meetings WHERE report_draft->>'historicHash'=$1 LIMIT 1", [item.hash]);
+        if (existing.rowCount) {
+          await client.query("COMMIT");
+          results.push({ id: existing.rows[0].id, title: item.title, duplicate: true, candidates: item.candidates.length });
+          continue;
+        }
+        await client.query(
+          "INSERT INTO meetings (id,title,meeting_date,meeting_type,stage,status,report_draft,created_by,updated_by) VALUES ($1,$2,$3,'Conseil de famille · archive','Clôture','review',$4::jsonb,$5,$5)",
+          [id, item.title, item.date, JSON.stringify(draft), user.id]
+        );
+        for (const candidate of item.candidates) {
+          await client.query(
+            "INSERT INTO meeting_markers (id,meeting_id,marker_type,time_seconds,note,classification,created_by) VALUES ($1,$2,'decision',0,$3,'a_valider',$4)",
+            [crypto.randomUUID(), id, candidate, user.id]
+          );
+        }
+        await audit(user, req, "meeting_historic_import", "meeting", id, null, { hash: item.hash, candidates: item.candidates.length }, "ok", client);
+        await client.query("COMMIT");
+        results.push({ id, title: item.title, duplicate: false, candidates: item.candidates.length });
+      } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+      } finally {
+        client.release();
+      }
+    }
+    return json(res, 200, { imported: results.filter((x) => !x.duplicate).length, duplicates: results.filter((x) => x.duplicate).length, results });
+  }
+
   async function createMeeting(req, res) {
     const user = await requireAdmin(req);
     const body = await readBody(req);
@@ -937,6 +998,10 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
     }
     if (url.pathname === "/api/meetings/documents" && req.method === "GET") {
       await listDocuments(req, res);
+      return true;
+    }
+    if (url.pathname === "/api/meetings/import-historic" && req.method === "POST") {
+      await importHistoricMeetings(req, res);
       return true;
     }
     if (url.pathname === "/api/meetings" && req.method === "GET") {
