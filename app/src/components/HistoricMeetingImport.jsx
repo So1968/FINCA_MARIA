@@ -22,7 +22,7 @@ export default function HistoricMeetingImport({ onImported, onClose }) {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items })
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Échec de l’import");
+      if (!response.ok) throw new Error(data.error || (response.status === 404 ? "Le serveur privé des réunions est absent : npm run dev seul ne permet pas la sauvegarde. Ne colle pas tes archives avant d’avoir démarré le serveur." : "Échec de l’import"));
       setMessage(data.imported + " compte(s) rendu(s) importé(s), " + data.duplicates + " doublon(s) ignoré(s). Décisions en attente de vérification.");
       setSource("");
       setDates({});
