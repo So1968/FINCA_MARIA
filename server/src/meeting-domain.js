@@ -89,7 +89,7 @@ export function finalizeTurns(turns = [], participants = []) {
   const mapping = mapSpeakersFromIntroductions(turns, participants);
   const segments = turns.map((turn, index) => {
     const mapped = mapping.map[turn.sourceSpeaker];
-    const fallbackNumber = mapping.order[turn.sourceSpeaker] || "?";
+    const fallbackNumber = mapping.order[turn.sourceSpeaker] || 1;
     return {
       id: index + 1,
       start: Number(turn.start || 0),
