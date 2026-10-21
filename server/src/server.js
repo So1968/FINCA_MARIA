@@ -254,7 +254,7 @@ async function ensureBaulDirectories() {
 async function runMigrations() {
   const sqlDir = path.join(__dirname, "../sql");
   const files = (await fs.readdir(sqlDir))
-    .filter((name) => /^\\d+_.+\\.sql$/u.test(name))
+    .filter((name) => /^\d+_.+\.sql$/u.test(name))
     .sort();
   for (const name of files) {
     const sql = await fs.readFile(path.join(sqlDir, name), "utf8");
