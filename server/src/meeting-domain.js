@@ -193,7 +193,7 @@ export function buildConfirmedAction({ meeting, marker }) {
     title: String(marker.note || "Action décidée en réunion").trim().slice(0, 220),
     category: "Conseil de famille",
     assignedTo: String(marker.responsible || "").trim() || "À attribuer",
-    dueAt: marker.due_date || "",
+    dueAt: marker.due_date instanceof Date ? marker.due_date.toISOString().slice(0, 10) : String(marker.due_date || "").slice(0, 10),
     notifyAt: "",
     contactName: "",
     contactPhone: "",
