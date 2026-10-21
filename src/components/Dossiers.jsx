@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { KEYS } from "../lib/storage.js";
+import { useStoredState } from "../lib/useStoredState.js";
+import { useMemo, useState } from "react";
 import { actions } from "../data/actions.js";
 import { dossiers } from "../data/dossiers.js";
 import { ActionCard, actionBucket } from "./ActionCard.jsx";
 
-const STORAGE_KEY = "finca_maria_action_assignments_v1";
 const FILTERS = [
   ["todo", "À compléter"],
   ["progress", "En cours"],
@@ -11,19 +12,13 @@ const FILTERS = [
   ["all", "Toutes"]
 ];
 
-function loadAssignments() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; }
-}
-
 export function Dossiers() {
   const params = new URLSearchParams(window.location.search);
   const requested = params.get("contact");
   const initial = dossiers.some((item) => item.id === requested) ? requested : "san-juan";
   const [activeId, setActiveId] = useState(initial);
   const [filter, setFilter] = useState("todo");
-  const [assignments, setAssignments] = useState(loadAssignments);
-
-  useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(assignments)); }, [assignments]);
+  const [assignments, setAssignments] = useStoredState(KEYS.actions);
 
   const active = dossiers.find((item) => item.id === activeId) || dossiers[0];
   const activeActions = active.actionIds.map((id) => actions.find((action) => action.id === id)).filter(Boolean);
