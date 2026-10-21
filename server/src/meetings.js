@@ -302,6 +302,22 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
   }
 
 
+
+  async function decisionRegister(req, res) {
+    await requireAdmin(req);
+    const result = await pool.query(
+      "SELECT k.id, k.meeting_id, k.note, k.classification, k.responsible, k.due_date, m.title, m.meeting_date, m.meeting_type FROM meeting_markers k JOIN meetings m ON m.id=k.meeting_id WHERE k.marker_type='decision' OR k.classification='decision_confirmee' ORDER BY m.meeting_date DESC, k.created_at DESC LIMIT 5000"
+    );
+    return json(res, 200, {
+      decisions: result.rows.map((row) => ({
+        id: row.id, meetingId: row.meeting_id, note: row.note,
+        classification: row.classification, responsible: row.responsible,
+        dueDate: safeDate(row.due_date), title: row.title,
+        date: safeDate(row.meeting_date), meetingType: row.meeting_type
+      }))
+    });
+  }
+
   async function importHistoricMeetings(req, res) {
     const user = await requireAdmin(req);
     const body = await readBody(req);
@@ -998,6 +1014,10 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
     }
     if (url.pathname === "/api/meetings/documents" && req.method === "GET") {
       await listDocuments(req, res);
+      return true;
+    }
+    if (url.pathname === "/api/meetings/decision-register" && req.method === "GET") {
+      await decisionRegister(req, res);
       return true;
     }
     if (url.pathname === "/api/meetings/import-historic" && req.method === "POST") {
