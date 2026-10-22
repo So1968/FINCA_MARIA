@@ -15,7 +15,6 @@ CREATE TABLE IF NOT EXISTS trash_purge_receipts (
  deleted_by BIGINT,
  purged_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
  purged_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
- item_summary TEXT NOT NULL,
- UNIQUE(kind,object_id)
+ item_summary TEXT NOT NULL
 );
 COMMIT;
