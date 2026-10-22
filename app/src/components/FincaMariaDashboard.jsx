@@ -220,7 +220,7 @@ function SubNav({ items, active, onChange, label }) { return <nav className="fin
 export function FincaMariaDashboard() {
   const initialNavigation = useMemo(loadNavigation, []);
   const [assignments, setAssignments] = useState(loadAssignments);
-  const [area, setArea] = useState(initialNavigation.area || "home");
+  const [area, setArea] = useState("home");
   const [earthTab, setEarthTab] = useState(initialNavigation.earthTab || "gestion");
   const [houseTab, setHouseTab] = useState(initialNavigation.houseTab || "gerer");
   const importRef = useRef(null);
