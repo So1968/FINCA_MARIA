@@ -181,7 +181,7 @@ export default function FincaBaulHub() {
       </form>
       <p style={{fontSize:".82rem"}}>Sélectionne plusieurs fichiers avec Ctrl ou Maj. L'import se fait un fichier à la fois, sans remplacer les doublons. Le classement reste à confirmer.</p>
       {progress && <div role="status" className="baulInfo"><p>Fichier {progress.current} sur {progress.total} : {progress.name}</p><progress value={progress.current - 1} max={progress.total} style={{width:"100%"}} /></div>}
-      {batchResults.length > 0 && <details open className="baulInfo"><summary>Résultats de l'import ({batchResults.length})</summary><ul>{batchResults.map((item, i) => <li key={i}>{item.name} — {item.status}{item.detail ? ` : ${item.detail}` : ""}</li>)}</ul></details>
+      {batchResults.length > 0 && <details open className="baulInfo"><summary>Résultats de l'import ({batchResults.length})</summary><ul>{batchResults.map((item, i) => <li key={i}>{item.name} — {item.status}{item.detail ? ` : ${item.detail}` : ""}</li>)}</ul></details>}
     </section>}
     {admin && <section>
       <h2>À classer {counts ? `(${counts.pending})` : ""}</h2>
