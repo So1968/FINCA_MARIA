@@ -526,11 +526,18 @@ async function saveReservation(req, res) {
 }
 
 async function deleteReservation(req, res, id) {
-  const user = await requireUser(req);
+  const user = await requireAdmin(req);
   // Compatibilité avec l'ancienne interface : ne détruit plus jamais une réservation.
-  const result = await pool.query("UPDATE reservations SET deleted_at=NOW(),deleted_by=$2 WHERE id=$1 AND deleted_at IS NULL RETURNING *", [id,user.id]);
-  if (result.rowCount) await audit(user,req,"reservation_soft_delete","reservation",id,result.rows[0],{deleted:true});
-  return noContent(res);
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const before = await client.query("SELECT * FROM reservations WHERE id=$1 AND deleted_at IS NULL FOR UPDATE", [id]);
+    if (!before.rowCount) { await client.query("ROLLBACK"); return json(res,404,{error:"Réservation active introuvable"}); }
+    const result = await client.query("UPDATE reservations SET deleted_at=NOW(),deleted_by=$2 WHERE id=$1 RETURNING *", [id,user.id]);
+    await audit(user,req,"reservation_soft_delete","reservation",id,before.rows[0],result.rows[0],"ok",client);
+    await client.query("COMMIT");
+    return noContent(res);
+  } catch (error) { await client.query("ROLLBACK"); throw error; } finally { client.release(); }
 }
 
 async function saveRoomReady(req, res, room) {
