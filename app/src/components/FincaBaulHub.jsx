@@ -58,6 +58,7 @@ export default function FincaBaulHub() {
   const [progress, setProgress] = useState(null);
   const [batchResults, setBatchResults] = useState([]);
   const [folderMode, setFolderMode] = useState(false);
+  const [failedFiles, setFailedFiles] = useState([]);
   const [category, setCategory] = useState("auto");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -97,8 +98,9 @@ export default function FincaBaulHub() {
     event.preventDefault();
     if (!admin || !files.length || busy) return;
     if (files.length > MAX_BATCH) { setError("Maximum 50 fichiers par lot. Sélectionne un dossier plus petit."); return; }
-    setBusy(true); setError(""); setMessage(""); setBatchResults([]);
+    setBusy(true); setError(""); setMessage(""); setBatchResults([]); setFailedFiles([]);
     const results = [];
+    const retry = [];
     let imported = 0, duplicates = 0, failed = 0;
     try {
       if (!globalThis.crypto?.subtle) throw new Error("Le navigateur ne permet pas le contrôle SHA-256 sur cette connexion.");
@@ -120,10 +122,12 @@ export default function FincaBaulHub() {
           else { imported++; results.push({ name: file.name, status: "Importé" }); }
         } catch (e) {
           failed++;
+          retry.push(file);
           results.push({ name: file.name, status: "Échec", detail: e.message });
         }
         setBatchResults([...results]);
       }
+      setFailedFiles(retry);
       setMessage(`Lot terminé : ${imported} importé(s), ${duplicates} doublon(s), ${failed} échec(s). Aucun document existant remplacé.`);
       await refresh();
     } catch (e) { setError(e.message); }
@@ -168,12 +172,12 @@ export default function FincaBaulHub() {
     {admin && <section>
       <h2>Ajouter un document</h2>
       <form onSubmit={importFile} className="baulTools">
-        <label>Mode de sélection<select value={folderMode ? "folder" : "files"} disabled={busy} onChange={e => { setFolderMode(e.target.value === "folder"); setFiles([]); setBatchResults([]); }}><option value="files">Plusieurs fichiers</option><option value="folder">Un dossier complet (50 fichiers maximum)</option></select></label>
+        <label>Mode de sélection<select value={folderMode ? "folder" : "files"} disabled={busy} onChange={e => { setFolderMode(e.target.value === "folder"); setFiles([]); setBatchResults([]); setFailedFiles([]); }}><option value="files">Plusieurs fichiers</option><option value="folder">Un dossier complet (50 fichiers maximum)</option></select></label>
         {folderMode
-          ? <label>Dossier à importer<input key="folder" type="file" multiple webkitdirectory="" directory="" onChange={e => { setFiles(Array.from(e.target.files || [])); setBatchResults([]); }} required disabled={busy}/></label>
+          ? <label>Dossier à importer<input key="folder" type="file" multiple webkitdirectory="" directory="" onChange={e => { setFiles(Array.from(e.target.files || [])); setBatchResults([]); setFailedFiles([]); }} required disabled={busy}/></label>
           : <label>Fichiers à importer<input key="files" type="file" multiple onChange={e => { setFiles(Array.from(e.target.files || [])); setBatchResults([]); }} required disabled={busy}/></label>}
         <label>Catégorie suggérée<select value={category} onChange={e => setCategory(e.target.value)}><option value="auto">À vérifier</option>{CATEGORIES.map(([key, label]) => <option value={key} key={key}>{label}</option>)}</select></label>
-        <button type="submit" disabled={busy || !files.length}>{busy ? "Import en cours…" : `Importer ${files.length || ""} fichier(s)`}</button>
+        <button type="submit" disabled={busy || !files.length || files.length > MAX_BATCH}>{busy ? "Import en cours…" : `Importer ${files.length || ""} fichier(s)`}</button>
       </form>
       <p style={{fontSize:".82rem"}}>Sélectionne plusieurs fichiers avec Ctrl ou Maj. L'import se fait un fichier à la fois, sans remplacer les doublons. Le classement reste à confirmer.</p>
       {progress && <div role="status" className="baulInfo"><p>Fichier {progress.current} sur {progress.total} : {progress.name}</p><progress value={progress.current - 1} max={progress.total} style={{width:"100%"}} /></div>}
