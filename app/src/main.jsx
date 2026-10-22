@@ -4,6 +4,7 @@ import "./index.css";
 import "./clickable-highlight.css";
 import "./vogue-polish.css";
 import RootApp from "./RootApp.jsx";
+import GlobalNavigation from "./components/GlobalNavigation.jsx";
 import { AppErrorBoundary } from "./components/AppErrorBoundary.jsx";
 
 function lazyFincaMount(loader, exportName) {
@@ -68,6 +69,7 @@ createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AppErrorBoundary>
       <RootApp />
+      <GlobalNavigation />
       <DeferredFincaEnhancements />
     </AppErrorBoundary>
   </React.StrictMode>
