@@ -39,7 +39,7 @@ export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit
       if (kind !== "reservation") return json(res, 409, {
         error: "Purge définitive bloquée : sauvegardes et fichiers associés à contrôler avant implémentation"
       });
-      if (body.confirmation !== "VIDER DEFINITIVEMENT" || body.itemId !== id || body.kind !== kind) {
+      if (body.confirmation !== "VIDER DEFINITIVEMENT" || body.itemId !== id || body.kind !== kind || body.reviewed !== true) {
         return json(res, 400, { error: "Confirmation explicite de la purge requise" });
       }
     }
