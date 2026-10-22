@@ -724,6 +724,9 @@ async function handleBaulPreview(req, res, url) {
   if (!result.rowCount) return json(res, 404, { error: "Document BAÚL introuvable" });
   const row = result.rows[0];
   if (row.deleted_at) return json(res, 404, { error: "Document en corbeille" });
+  // Les documents non validés ne sont visibles qu'aux administrateurs.
+  // Leur contenu pourrait encore être sensible ou mal classé.
+  if (row.status !== "validated") await requireAdmin(req);
   const absolutePath = baulAbsolute(row.storage_path);
   let stat;
   try { stat = await fs.stat(absolutePath); } catch { return json(res, 404, { error: "Fichier BAÚL introuvable" }); }
