@@ -24,6 +24,18 @@ export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit
       }
       return json(res, 200, { items: data });
     }
+    if (url.pathname === "/api/trash/manage" && req.method === "GET") {
+      const actor = await requireAdmin(req);
+      if (!actor.roles.includes("admin-projet")) return json(res, 403, { error: "Réservé à l'administration familiale" });
+      const data = {};
+      for (const [kind, spec] of Object.entries(ITEMS)) {
+        const result = await pool.query(
+          `SELECT id,${spec.label} AS label FROM ${spec.table} WHERE deleted_at IS NULL ORDER BY id LIMIT 500`
+        );
+        data[kind] = result.rows;
+      }
+      return json(res, 200, { active: data });
+    }
     const match = url.pathname.match(/^\/api\/trash\/(reservation|meeting|document)\/([^/]+)\/(delete|restore|purge)$/);
     if (!match || req.method !== "POST") return json(res, 404, { error: "Route de corbeille inconnue" });
     const admin = await requireAdmin(req);
