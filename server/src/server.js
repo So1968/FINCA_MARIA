@@ -449,7 +449,7 @@ async function handleLogout(req, res) {
 async function bootstrap(req, res) {
   await requireUser(req);
   const [reservations, rooms, state] = await Promise.all([
-    pool.query("SELECT id, name, place, arrival::text, departure::text, note FROM reservations ORDER BY arrival, place"),
+    pool.query("SELECT id, name, place, arrival::text, departure::text, note FROM reservations WHERE deleted_at IS NULL ORDER BY arrival, place"),
     pool.query("SELECT room, ready, updated_at FROM room_ready ORDER BY room"),
     pool.query("SELECT key, value, version, updated_at FROM shared_state WHERE key = ANY($1::text[]) ORDER BY key", [[...SHARED_KEYS]])
   ]);
@@ -461,7 +461,7 @@ async function bootstrap(req, res) {
 async function familyBootstrap(req, res) {
   await requireFamilyUser(req);
   const [reservations, rooms, state] = await Promise.all([
-    pool.query("SELECT id, name, place, arrival::text, departure::text, note FROM reservations ORDER BY arrival, place"),
+    pool.query("SELECT id, name, place, arrival::text, departure::text, note FROM reservations WHERE deleted_at IS NULL ORDER BY arrival, place"),
     pool.query("SELECT room, ready, updated_at FROM room_ready ORDER BY room"),
     pool.query("SELECT key, value, version, updated_at FROM shared_state WHERE key = ANY($1::text[]) ORDER BY key", [[...FAMILY_SHARED_KEYS]])
   ]);
@@ -492,7 +492,7 @@ async function saveReservation(req, res) {
     const conflict = await client.query(
       `SELECT id, name, arrival::text, departure::text
          FROM reservations
-        WHERE place = $1 AND id <> $2 AND arrival < $4::date AND departure > $3::date
+        WHERE deleted_at IS NULL AND place = $1 AND id <> $2 AND arrival < $4::date AND departure > $3::date
         LIMIT 1
         FOR UPDATE`,
       [place, id, arrival, departure]
@@ -502,6 +502,10 @@ async function saveReservation(req, res) {
       return json(res, 409, { error: "Cette chambre est déjà réservée sur une partie de cette période", conflict: conflict.rows[0] });
     }
     const before = await client.query("SELECT * FROM reservations WHERE id = $1", [id]);
+    if (before.rowCount && before.rows[0].deleted_at) {
+      await client.query("ROLLBACK");
+      return json(res, 409, { error: "Réservation dans la corbeille : restaurer avant de modifier" });
+    }
     const saved = await client.query(
       `INSERT INTO reservations (id, name, place, arrival, departure, note, updated_by)
        VALUES ($1,$2,$3,$4,$5,$6,$7)
@@ -521,10 +525,75 @@ async function saveReservation(req, res) {
 }
 
 async function deleteReservation(req, res, id) {
-  const user = await requireUser(req);
-  const result = await pool.query("DELETE FROM reservations WHERE id = $1 RETURNING *", [id]);
-  if (result.rowCount) await audit(user, req, "reservation_delete", "reservation", id, result.rows[0], null);
-  return noContent(res);
+  const user = await requireAdmin(req);
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const existing = await client.query("SELECT * FROM reservations WHERE id=$1 FOR UPDATE", [id]);
+    if (!existing.rowCount || existing.rows[0].deleted_at) {
+      await client.query("ROLLBACK");
+      return json(res, 404, { error: "Réservation active introuvable" });
+    }
+    const result = await client.query(
+      "UPDATE reservations SET deleted_at=NOW(), deleted_by=$2, updated_at=NOW() WHERE id=$1 RETURNING *",
+      [id, user.id]
+    );
+    await audit(user, req, "reservation_soft_delete", "reservation", id, existing.rows[0], result.rows[0], "ok", client);
+    await client.query("COMMIT");
+    return noContent(res);
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function listDeletedReservations(req, res) {
+  await requireFamilyUser(req);
+  const result = await pool.query(
+    `SELECT r.id,r.name,r.place,r.arrival::text,r.departure::text,r.note,r.deleted_at,
+            r.deleted_by,u.display_name AS deleted_by_name
+       FROM reservations r LEFT JOIN users u ON u.id=r.deleted_by
+      WHERE r.deleted_at IS NOT NULL ORDER BY r.deleted_at DESC LIMIT 500`
+  );
+  return json(res, 200, { deletedReservations: result.rows });
+}
+
+async function restoreReservation(req, res, id) {
+  const actor = await requireAdmin(req);
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const existing = await client.query("SELECT * FROM reservations WHERE id=$1 FOR UPDATE", [id]);
+    if (!existing.rowCount || !existing.rows[0].deleted_at) {
+      await client.query("ROLLBACK");
+      return json(res, 404, { error: "Réservation supprimée introuvable" });
+    }
+    const row = existing.rows[0];
+    const conflict = await client.query(
+      `SELECT id FROM reservations
+        WHERE deleted_at IS NULL AND place=$1 AND id <> $2 AND arrival < $4::date AND departure > $3::date
+        LIMIT 1 FOR UPDATE`,
+      [row.place, id, row.arrival, row.departure]
+    );
+    if (conflict.rowCount) {
+      await client.query("ROLLBACK");
+      return json(res, 409, { error: "Restauration impossible : réservation active en conflit", conflictId: conflict.rows[0].id });
+    }
+    const updated = await client.query(
+      "UPDATE reservations SET deleted_at=NULL,deleted_by=NULL,updated_at=NOW(),updated_by=$2 WHERE id=$1 RETURNING *",
+      [id, actor.id]
+    );
+    await audit(actor, req, "reservation_restore", "reservation", id, row, updated.rows[0], "ok", client);
+    await client.query("COMMIT");
+    return json(res, 200, { reservation: updated.rows[0] });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 async function saveRoomReady(req, res, room) {
@@ -877,6 +946,9 @@ async function route(req, res) {
   if (url.pathname === "/api/family/bootstrap" && req.method === "GET") return familyBootstrap(req, res);
   if (url.pathname === "/api/bootstrap" && req.method === "GET") return bootstrap(req, res);
   if (url.pathname === "/api/reservations" && req.method === "POST") return saveReservation(req, res);
+  if (url.pathname === "/api/trash/reservations" && req.method === "GET") return listDeletedReservations(req, res);
+  const restoreMatch = url.pathname.match(/^\/api\/trash\/reservations\/([^/]+)\/restore$/);
+  if (restoreMatch && req.method === "POST") return restoreReservation(req, res, decodeURIComponent(restoreMatch[1]));
   const reservationMatch = url.pathname.match(/^\/api\/reservations\/([^/]+)$/);
   if (reservationMatch && req.method === "DELETE") return deleteReservation(req, res, decodeURIComponent(reservationMatch[1]));
   const roomMatch = url.pathname.match(/^\/api\/room-ready\/([^/]+)$/);
