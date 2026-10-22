@@ -1022,7 +1022,7 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
       json(res, 200, { meetings: result.rows });
       return true;
     }
-    const restore = url.pathname.match(/^\\/api\\/meetings\\/([^/]+)\\/restore$/);
+    const restore = url.pathname.match(/^\/api\/meetings\/([^/]+)\/restore$/);
     if (restore && req.method === "POST") {
       const actor = await requireAdmin(req);
       const id = safeMeetingId(restore[1]);
