@@ -196,9 +196,16 @@ export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit
         // PostgreSQL est déjà validé : un échec ultérieur du disque ne doit
         // pas tenter de revenir en arrière ni cacher que la purge a eu lieu.
         let cleanup;
-        try { cleanup = await processTrashFileCleanup(pool, baulRoot); }
-        catch { cleanup = { processed:0, failed:1 }; }
-        return json(res,200,{ok:true,kind,id,action,cleanup,pendingCleanup:cleanup.failed > 0});
+        let pendingCleanup = true;
+        try {
+          cleanup = await processTrashFileCleanup(pool, baulRoot);
+          const pending = await pool.query(
+            "SELECT COUNT(*)::int AS count FROM trash_file_cleanup WHERE kind=$1 AND object_id=$2 AND processed_at IS NULL",
+            [kind, id]
+          );
+          pendingCleanup = Number(pending.rows[0]?.count || 0) > 0;
+        } catch { cleanup = { processed:0, failed:1 }; }
+        return json(res,200,{ok:true,kind,id,action,cleanup,pendingCleanup});
       }
       return json(res,200,{ok:true,kind,id,action});
     } catch(error) {
