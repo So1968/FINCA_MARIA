@@ -230,9 +230,9 @@ function documentView(row) {
 async function baulStatus() {
   const [countsResult, pendingResult] = await Promise.all([
     pool.query(`SELECT COUNT(*)::int AS total,
-                       COUNT(*) FILTER (WHERE status='pending')::int AS pending,
-                       COUNT(*) FILTER (WHERE status='validated')::int AS validated
-                  FROM baul_documents WHERE deleted_at IS NULL`),
+                       COUNT(*) FILTER (WHERE deleted_at IS NULL AND status='pending')::int AS pending,
+                       COUNT(*) FILTER (WHERE deleted_at IS NULL AND status='validated')::int AS validated
+                  FROM baul_documents WHERE deleted_at IS NULL WHERE deleted_at IS NULL`),
     pool.query(`SELECT * FROM baul_documents WHERE deleted_at IS NULL AND status='pending' ORDER BY received_at DESC LIMIT 250`)
   ]);
   const counts = countsResult.rows[0] || { total: 0, pending: 0, validated: 0 };
