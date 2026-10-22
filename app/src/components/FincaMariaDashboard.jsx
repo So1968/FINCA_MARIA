@@ -319,7 +319,7 @@ export function FincaMariaDashboard() {
           .fincaMainMeetingTile:hover{background:#1a291d}
           @media(max-width:900px){.fincaAreaGrid{grid-template-columns:1fr!important}.fincaMainMeetingTile{min-height:130px}}
         `}</style>
-        <nav aria-label="Accès aux outils familiaux" style={{display:"flex",flexWrap:"wrap",gap:".45rem",margin:".55rem 0"}}>
+        <nav aria-label="Accès aux outils familiaux" style={{display:"flex",flexWrap:"wrap",justifyContent:"center",alignItems:"center",gap:".55rem",margin:".55rem auto"}}>
           {[
             ["📁 BAÚL", "Documents familiaux", "baul"],
             ["🗑️ Corbeille", "Retrouver un élément", "corbeille"]
