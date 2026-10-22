@@ -20,7 +20,7 @@ const MAX_BAUL_FILE = 120 * 1024 * 1024;
 const MAX_BAUL_BODY = 170 * 1024 * 1024;
 const BAUL_ROOT = path.resolve(process.env.BAUL_ROOT || "/data/baul");
 const ADMIN_ROLES = new Set(["admin-projet", "admin-secretariat"]);
-const FAMILY_ROLES = new Set(["heritier", "admin-projet", "admin-secretariat"]);
+const FAMILY_ROLES = new Set(["heritier", "admin-projet", "admin-secretariat", "conseil", "contributeur-familial"]);
 const BAUL_CATEGORIES = new Set(["factures", "cooperative", "pac", "pelaez", "terrain", "casa", "reunions", "messages", "plans", "verifier"]);
 const SHARED_KEYS = new Set([
   "finca_maria_maison_notes_v1",
@@ -843,6 +843,7 @@ async function listAudit(req, res, url) {
 const meetingRoute = createMeetingRouter({
   pool,
   requireAdmin,
+  requireFamilyUser,
   audit,
   readBody,
   json,
