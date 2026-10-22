@@ -82,3 +82,75 @@ test("restauration BAUL refusée si le fichier manque, sans écriture en base", 
   assert.equal(output[0].status, 409);
   assert.equal(queries.some(sql => sql.includes("SET deleted_at=NULL")), false);
 });
+
+test("un document fictif intact peut être restauré et journalisé", async () => {
+  const fs = await import("node:fs/promises");
+  const os = await import("node:os");
+  const path = await import("node:path");
+  const crypto = await import("node:crypto");
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "finca-trash-"));
+  const content = Buffer.from("ARCHIVE FAMILIALE FICTIVE");
+  await fs.mkdir(path.join(root, "pending"));
+  await fs.writeFile(path.join(root, "pending", "test.txt"), content);
+  let count = 0;
+  const sql = [];
+  const client = {
+    query: async (query) => {
+      sql.push(query);
+      if (query.startsWith("SELECT * FROM baul_documents")) return {
+        rowCount: 1, rows: [{ id: "test", deleted_at: new Date(), deleted_by: 2,
+          storage_path: "pending/test.txt", sha256: crypto.createHash("sha256").update(content).digest("hex"),
+          size_bytes: content.length }]
+      };
+      if (query.startsWith("UPDATE baul_documents")) { count++; return { rowCount: 1, rows: [{ id:"test",deleted_at:null }] }; }
+      return { rowCount: 0, rows: [] };
+    }, release() {}
+  };
+  const { output, json } = response();
+  let audited = false;
+  const handler = createTrashRouter({
+    pool: { connect: async () => client }, requireFamilyUser: async () => {},
+    requireAdmin: async () => actor, readBody: async () => ({}), json,
+    audit: async () => { audited = true; }, baulRoot: root
+  });
+  try {
+    await handler({ method:"POST" }, {}, new URL("http://localhost/api/trash/document/test/restore"));
+    assert.equal(output[0].status, 200);
+    assert.equal(count, 1);
+    assert.equal(audited, true);
+    assert.ok(sql.includes("COMMIT"));
+  } finally { await fs.rm(root, { recursive: true, force: true }); }
+});
+
+test("un document fictif altéré ne peut pas être restauré", async () => {
+  const fs = await import("node:fs/promises");
+  const os = await import("node:os");
+  const path = await import("node:path");
+  const crypto = await import("node:crypto");
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "finca-trash-"));
+  await fs.mkdir(path.join(root, "pending"));
+  await fs.writeFile(path.join(root, "pending", "test.txt"), "VERSION MODIFIEE");
+  const original = Buffer.from("VERSION ORIGINALE");
+  const sql = [];
+  const client = {
+    query: async (query) => {
+      sql.push(query);
+      if (query.startsWith("SELECT * FROM baul_documents")) return {
+        rowCount: 1, rows: [{ id: "test", deleted_at: new Date(), storage_path:"pending/test.txt",
+          sha256: crypto.createHash("sha256").update(original).digest("hex"), size_bytes:original.length }]
+      };
+      return { rowCount:0, rows:[] };
+    }, release() {}
+  };
+  const { output, json } = response();
+  const handler = createTrashRouter({
+    pool: { connect:async () => client }, requireFamilyUser:async () => {},
+    requireAdmin:async () => actor, readBody:async () => ({}), json,
+    audit:async () => {throw Error("Ne doit pas journaliser une restauration");}, baulRoot:root
+  });
+  try {
+    await handler({ method:"POST" }, {}, new URL("http://localhost/api/trash/document/test/restore"));
+    assert.equal(output[0].status, 409);
+    assert.equal(sql.some(q => q.startsWith("UPDATE baul_documents")),false);
+  } finally { await fs.rm(root,{recursive:true,force:true}); }
+});
