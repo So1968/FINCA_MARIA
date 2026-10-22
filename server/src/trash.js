@@ -4,11 +4,11 @@ const ITEMS = {
   meeting: { table: "meetings", label: "title" },
   document: { table: "baul_documents", label: "original_name" }
 };
-export function createTrashRouter({ pool, requireAdmin, requireUser, audit, readBody, json }) {
+export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit, readBody, json }) {
   async function run(req, res, url) {
     if (!url.pathname.startsWith("/api/trash")) return false;
-    const admin = await requireAdmin(req);
     if (url.pathname === "/api/trash" && req.method === "GET") {
+      await requireFamilyUser(req);
       const data = {};
       for (const [kind, spec] of Object.entries(ITEMS)) {
         const result = await pool.query(
@@ -22,6 +22,7 @@ export function createTrashRouter({ pool, requireAdmin, requireUser, audit, read
     }
     const match = url.pathname.match(/^\/api\/trash\/(reservation|meeting|document)\/([^/]+)\/(delete|restore|purge)$/);
     if (!match || req.method !== "POST") return json(res, 404, { error: "Route de corbeille inconnue" });
+    const admin = await requireAdmin(req);
     const [, kind, encodedId, action] = match;
     const id = decodeURIComponent(encodedId);
     if (!id || id.length > 256) return json(res, 400, { error: "Identifiant invalide" });
