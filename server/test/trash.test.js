@@ -198,3 +198,38 @@ test("mise en corbeille et audit restent dans une transaction unique", async () 
   assert.ok(queries.indexOf("BEGIN") < queries.indexOf("AUDIT"));
   assert.ok(queries.indexOf("AUDIT") < queries.indexOf("COMMIT"));
 });
+
+test("restauration BAUL bloque un lien symbolique pointant hors du stockage", async () => {
+  const fs = await import("node:fs/promises");
+  const os = await import("node:os");
+  const path = await import("node:path");
+  const crypto = await import("node:crypto");
+  const root = await fs.mkdtemp(path.join(os.tmpdir(),"finca-root-"));
+  const outside = await fs.mkdtemp(path.join(os.tmpdir(),"finca-outside-"));
+  const payload = Buffer.from("DOCUMENT FICTIF");
+  await fs.writeFile(path.join(outside,"doc.txt"),payload);
+  await fs.symlink(path.join(outside,"doc.txt"),path.join(root,"doc.txt"));
+  const { output, json } = response();
+  let updates = 0;
+  const client = { query: async (sql) => {
+    if(sql.startsWith("SELECT * FROM baul_documents")) return {rowCount:1,rows:[{
+      id:"doc", deleted_at:new Date(), storage_path:"doc.txt",
+      size_bytes:payload.length, sha256:crypto.createHash("sha256").update(payload).digest("hex")
+    }]};
+    if(sql.startsWith("UPDATE baul_documents")) updates++;
+    return {rowCount:0,rows:[]};
+  }, release() {} };
+  const handler=createTrashRouter({
+    pool:{connect:async()=>client},requireAdmin:async()=>actor,
+    requireFamilyUser:async()=>{},readBody:async()=>({}),json,baulRoot:root,
+    audit:async()=>{throw Error("Audit impossible");}
+  });
+  try {
+    await handler({method:"POST"},{},new URL("http://localhost/api/trash/document/doc/restore"));
+    assert.equal(output[0].status,409);
+    assert.equal(updates,0);
+  } finally {
+    await fs.rm(root,{recursive:true,force:true});
+    await fs.rm(outside,{recursive:true,force:true});
+  }
+});
