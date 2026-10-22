@@ -291,20 +291,23 @@ export function FincaMariaDashboard() {
           <a href={appViewUrl("reunions")} className="fincaMainMeetingTile" aria-label="Ouvrir les réunions et conseils de famille"><span className="fincaMeetingIcon" aria-hidden="true">🎙️</span><span><strong>RÉUNIONS</strong><small>Conseils de famille · comptes rendus</small></span><span aria-hidden="true">→</span></a>
         </div>
         <style>{`
-          .fincaAreaGrid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:1rem}
-          .fincaMainMeetingTile{display:flex;align-items:center;gap:1rem;min-width:0;min-height:210px;padding:1.4rem;border:1px solid #766332;border-radius:24px;background:#0c1610;color:#f5e3ad;text-decoration:none}
-          .fincaMainMeetingTile strong{display:block;font:700 clamp(1.5rem,2.5vw,2.35rem) Georgia,serif}
+          .fincaAreaGrid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:.8rem}
+          .fincaAreaGrid > *{min-width:0}
+          .fincaAreaGrid .fincaAreaChoice{min-width:0}
+          .fincaAreaGrid h2,.fincaAreaGrid strong{overflow-wrap:normal}
+          .fincaMainMeetingTile{display:flex;align-items:center;justify-content:center;gap:.65rem;min-width:0;min-height:190px;padding:1rem;border:1px solid #766332;border-radius:24px;background:#0c1610;color:#f5e3ad;text-decoration:none}
+          .fincaMainMeetingTile strong{display:block;font:700 clamp(1.2rem,1.8vw,1.8rem) Georgia,serif}
           .fincaMainMeetingTile small{display:block;margin-top:.5rem;font-size:.84rem}
-          .fincaMeetingIcon{font-size:2rem;padding:.9rem;border:1px solid #766332;border-radius:22px}
+          .fincaMeetingIcon{font-size:1.35rem;padding:.65rem;border:1px solid #766332;border-radius:22px}
           .fincaMainMeetingTile:hover{background:#1a291d}
           @media(max-width:900px){.fincaAreaGrid{grid-template-columns:1fr!important}.fincaMainMeetingTile{min-height:130px}}
         `}</style>
-        <nav aria-label="Accès aux outils familiaux" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:".8rem",margin:"1.25rem 0"}}>
+        <nav aria-label="Accès aux outils familiaux" style={{display:"flex",flexWrap:"wrap",gap:".55rem",margin:"1rem 0"}}>
           {[
             ["📁 BAÚL", "Documents familiaux", "baul"],
             ["🗑️ Corbeille", "Retrouver un élément", "corbeille"]
-          ].map(([label, subtitle, view]) => <a key={view} href={appViewUrl(view)} style={{display:"flex",flexDirection:"column",gap:".35rem",padding:"1.15rem",border:"1px solid #a68b4d",borderRadius:"16px",background:"#152019",color:"#f5e2aa",textDecoration:"none"}}>
-            <strong style={{fontSize:"1.13rem"}}>{label}</strong><span>{subtitle}</span>
+          ].map(([label, subtitle, view]) => <a key={view} href={appViewUrl(view)} style={{display:"inline-flex",alignItems:"center",gap:".5rem",padding:".55rem .8rem",border:"1px solid #766332",borderRadius:"10px",background:"#152019",color:"#f5e2aa",textDecoration:"none"}}>
+            <strong style={{fontSize:".9rem"}}>{label}</strong><span style={{fontSize:".76rem",opacity:.8}}>{subtitle}</span>
           </a>)}
         </nav>
         <div className="fincaHomePulse">
