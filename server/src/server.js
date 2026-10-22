@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { createMeetingRouter } from "./meetings.js";
+import { createTrashRouter } from "./trash.js";
 
 const { Pool } = pg;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -449,7 +450,7 @@ async function handleLogout(req, res) {
 async function bootstrap(req, res) {
   await requireUser(req);
   const [reservations, rooms, state] = await Promise.all([
-    pool.query("SELECT id, name, place, arrival::text, departure::text, note FROM reservations ORDER BY arrival, place"),
+    pool.query("SELECT id, name, place, arrival::text, departure::text, note FROM reservations WHERE deleted_at IS NULL ORDER BY arrival, place"),
     pool.query("SELECT room, ready, updated_at FROM room_ready ORDER BY room"),
     pool.query("SELECT key, value, version, updated_at FROM shared_state WHERE key = ANY($1::text[]) ORDER BY key", [[...SHARED_KEYS]])
   ]);
@@ -461,7 +462,7 @@ async function bootstrap(req, res) {
 async function familyBootstrap(req, res) {
   await requireFamilyUser(req);
   const [reservations, rooms, state] = await Promise.all([
-    pool.query("SELECT id, name, place, arrival::text, departure::text, note FROM reservations ORDER BY arrival, place"),
+    pool.query("SELECT id, name, place, arrival::text, departure::text, note FROM reservations WHERE deleted_at IS NULL ORDER BY arrival, place"),
     pool.query("SELECT room, ready, updated_at FROM room_ready ORDER BY room"),
     pool.query("SELECT key, value, version, updated_at FROM shared_state WHERE key = ANY($1::text[]) ORDER BY key", [[...FAMILY_SHARED_KEYS]])
   ]);
@@ -492,7 +493,7 @@ async function saveReservation(req, res) {
     const conflict = await client.query(
       `SELECT id, name, arrival::text, departure::text
          FROM reservations
-        WHERE place = $1 AND id <> $2 AND arrival < $4::date AND departure > $3::date
+        WHERE deleted_at IS NULL AND place = $1 AND id <> $2 AND arrival < $4::date AND departure > $3::date
         LIMIT 1
         FOR UPDATE`,
       [place, id, arrival, departure]
@@ -502,6 +503,10 @@ async function saveReservation(req, res) {
       return json(res, 409, { error: "Cette chambre est déjà réservée sur une partie de cette période", conflict: conflict.rows[0] });
     }
     const before = await client.query("SELECT * FROM reservations WHERE id = $1", [id]);
+    if (before.rowCount && before.rows[0].deleted_at) {
+      await client.query("ROLLBACK");
+      return json(res, 409, { error: "Élément dans la corbeille" });
+    }
     const saved = await client.query(
       `INSERT INTO reservations (id, name, place, arrival, departure, note, updated_by)
        VALUES ($1,$2,$3,$4,$5,$6,$7)
@@ -522,8 +527,9 @@ async function saveReservation(req, res) {
 
 async function deleteReservation(req, res, id) {
   const user = await requireUser(req);
-  const result = await pool.query("DELETE FROM reservations WHERE id = $1 RETURNING *", [id]);
-  if (result.rowCount) await audit(user, req, "reservation_delete", "reservation", id, result.rows[0], null);
+  // Compatibilité avec l'ancienne interface : ne détruit plus jamais une réservation.
+  const result = await pool.query("UPDATE reservations SET deleted_at=NOW(),deleted_by=$2 WHERE id=$1 AND deleted_at IS NULL RETURNING *", [id,user.id]);
+  if (result.rowCount) await audit(user,req,"reservation_soft_delete","reservation",id,result.rows[0],{deleted:true});
   return noContent(res);
 }
 
@@ -840,6 +846,8 @@ async function listAudit(req, res, url) {
   return json(res, 200, { events: result.rows });
 }
 
+const trashRoute = createTrashRouter({ pool, requireAdmin, requireUser, audit, readBody, json });
+
 const meetingRoute = createMeetingRouter({
   pool,
   requireAdmin,
@@ -898,6 +906,7 @@ async function route(req, res) {
   if (userMatch && req.method === "PUT") return updateUser(req, res, Number(userMatch[1]));
   if (url.pathname === "/api/admin/audit" && req.method === "GET") return listAudit(req, res, url);
 
+  if (await trashRoute(req, res, url)) return;
   if (await meetingRoute(req, res, url)) return;
 
   return json(res, 404, { error: "Route inconnue" });
