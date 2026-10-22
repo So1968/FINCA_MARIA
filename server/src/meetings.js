@@ -1033,6 +1033,18 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
       return true;
     }
 
+    // Une réunion mise en corbeille est gelée, y compris ses participants,
+    // marqueurs, enregistrements et versions de compte rendu.
+    const meetingPath = url.pathname.match(/^\/api\/meetings\/([^/]+)(?:\/|$)/);
+    if (meetingPath) {
+      const id = safeMeetingId(meetingPath[1]);
+      const visible = await pool.query("SELECT id FROM meetings WHERE id=$1 AND deleted_at IS NULL", [id]);
+      if (!visible.rowCount) {
+        json(res, 404, { error: "Réunion inexistante ou dans la corbeille" });
+        return true;
+      }
+    }
+
     let match = url.pathname.match(/^\/api\/meetings\/([^/]+)$/);
     if (match && req.method === "GET") {
       await requireAdmin(req);
