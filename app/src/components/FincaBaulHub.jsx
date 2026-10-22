@@ -53,7 +53,9 @@ export default function FincaBaulHub() {
   const [admin, setAdmin] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [progress, setProgress] = useState(null);
+  const [batchResults, setBatchResults] = useState([]);
   const [category, setCategory] = useState("auto");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -91,25 +93,36 @@ export default function FincaBaulHub() {
 
   async function importFile(event) {
     event.preventDefault();
-    if (!admin || !file || busy) return;
-    if (file.size > MAX_IMPORT) { setError("Pour cet import, le maximum conseillé est de 20 Mo par fichier."); return; }
-    const form = event.currentTarget;
-    setBusy(true); setError(""); setMessage("");
+    if (!admin || !files.length || busy) return;
+    setBusy(true); setError(""); setMessage(""); setBatchResults([]);
+    const results = [];
+    let imported = 0, duplicates = 0, failed = 0;
     try {
       if (!globalThis.crypto?.subtle) throw new Error("Le navigateur ne permet pas le contrôle SHA-256 sur cette connexion.");
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      const sha256 = toHex(await crypto.subtle.digest("SHA-256", bytes));
-      const result = await api("/api/baul/upload", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: file.name, type: file.type || "application/octet-stream",
-          size: file.size, sha256, category, contentBase64: toBase64(bytes) })
-      });
-      setMessage(result.duplicate ? "Ce document existe déjà : aucun doublon ajouté." : "Document importé dans « À classer ».");
-      setFile(null);
-      form.reset();
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setProgress({ current: i + 1, total: files.length, name: file.name });
+        try {
+          if (file.size > MAX_IMPORT) throw new Error("Fichier supérieur à 20 Mo.");
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          const sha256 = toHex(await crypto.subtle.digest("SHA-256", bytes));
+          const result = await api("/api/baul/upload", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: file.name, type: file.type || "application/octet-stream",
+              size: file.size, sha256, category, contentBase64: toBase64(bytes) })
+          });
+          if (result.duplicate) { duplicates++; results.push({ name: file.name, status: "Déjà présent" }); }
+          else { imported++; results.push({ name: file.name, status: "Importé" }); }
+        } catch (e) {
+          failed++;
+          results.push({ name: file.name, status: "Échec", detail: e.message });
+        }
+        setBatchResults([...results]);
+      }
+      setMessage(`Lot terminé : ${imported} importé(s), ${duplicates} doublon(s), ${failed} échec(s). Aucun document existant remplacé.`);
       await refresh();
     } catch (e) { setError(e.message); }
-    finally { setBusy(false); }
+    finally { setBusy(false); setProgress(null); }
   }
 
   async function confirmDocument(id, logicalName, selectedCategory) {
@@ -150,11 +163,13 @@ export default function FincaBaulHub() {
     {admin && <section>
       <h2>Ajouter un document</h2>
       <form onSubmit={importFile} className="baulTools">
-        <label>Fichier à importer (20 Mo maximum)<input type="file" onChange={e => setFile(e.target.files?.[0] || null)} required /></label>
+        <label>Choisir plusieurs fichiers (20 Mo maximum par fichier)<input type="file" multiple onChange={e => { setFiles(Array.from(e.target.files || [])); setBatchResults([]); }} required disabled={busy} /></label>
         <label>Catégorie suggérée<select value={category} onChange={e => setCategory(e.target.value)}><option value="auto">À vérifier</option>{CATEGORIES.map(([key, label]) => <option value={key} key={key}>{label}</option>)}</select></label>
-        <button type="submit" disabled={busy || !file}>{busy ? "Opération en cours…" : "Importer"}</button>
+        <button type="submit" disabled={busy || !files.length}>{busy ? "Import en cours…" : `Importer ${files.length || ""} fichier(s)`}</button>
       </form>
-      <p style={{fontSize:".82rem"}}>L'import place le fichier en attente : tu peux vérifier son nom et sa catégorie avant le classement définitif.</p>
+      <p style={{fontSize:".82rem"}}>Sélectionne plusieurs fichiers avec Ctrl ou Maj. L'import se fait un fichier à la fois, sans remplacer les doublons. Le classement reste à confirmer.</p>
+      {progress && <div role="status" className="baulInfo"><p>Fichier {progress.current} sur {progress.total} : {progress.name}</p><progress value={progress.current - 1} max={progress.total} style={{width:"100%"}} /></div>}
+      {batchResults.length > 0 && <details open className="baulInfo"><summary>Résultats de l'import ({batchResults.length})</summary><ul>{batchResults.map((item, i) => <li key={i}>{item.name} — {item.status}{item.detail ? ` : ${item.detail}` : ""}</li>)}</ul></details>
     </section>}
     {admin && <section>
       <h2>À classer {counts ? `(${counts.pending})` : ""}</h2>
