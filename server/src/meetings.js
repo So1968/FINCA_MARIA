@@ -289,7 +289,7 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
         (SELECT COUNT(*) FROM meeting_participants p WHERE p.meeting_id=m.id AND p.presence='present') AS present_count,
         (SELECT COUNT(*) FROM meeting_markers x WHERE x.meeting_id=m.id) AS marker_count,
         (SELECT MAX(version) FROM meeting_report_versions v WHERE v.meeting_id=m.id) AS validated_version
-      FROM meetings m ORDER BY meeting_date DESC, created_at DESC LIMIT 250
+      FROM meetings m WHERE m.deleted_at IS NULL ORDER BY meeting_date DESC, created_at DESC LIMIT 250
     `);
     return json(res, 200, {
       meetings: result.rows.map((row) => ({
@@ -306,7 +306,7 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
   async function decisionRegister(req, res) {
     await requireAdmin(req);
     const result = await pool.query(
-      "SELECT k.id, k.meeting_id, k.note, k.classification, k.responsible, k.due_date, m.title, m.meeting_date, m.meeting_type FROM meeting_markers k JOIN meetings m ON m.id=k.meeting_id WHERE k.marker_type='decision' OR k.classification='decision_confirmee' ORDER BY m.meeting_date DESC, k.created_at DESC LIMIT 5000"
+      "SELECT k.id, k.meeting_id, k.note, k.classification, k.responsible, k.due_date, m.title, m.meeting_date, m.meeting_type FROM meeting_markers k JOIN meetings m ON m.id=k.meeting_id WHERE m.deleted_at IS NULL AND (k.marker_type='decision' OR k.classification='decision_confirmee') ORDER BY m.meeting_date DESC, k.created_at DESC LIMIT 5000"
     );
     return json(res, 200, {
       decisions: result.rows.map((row) => ({
