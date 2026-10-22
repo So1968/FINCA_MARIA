@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 const PRESENCES_KEY = "finca_maria_maison_presences_v1";
 const READY_KEY = "finca_maria_chambres_preparation_v1";
 const NAME_KEY = "finca_maria_reservation_prenom_v1";
+const TRASH_KEY = "finca_maria_reservations_corbeille_locale_v1";
 
 const ROOMS = [
   "La Hera",
@@ -225,6 +226,7 @@ function DashboardWelcome() {
 function BookingCalendar() {
   const [bookings, setBookings] = useState(() => loadJson(PRESENCES_KEY, [], normalizeBookings));
   const [ready, setReady] = useState(() => loadJson(READY_KEY, {}, normalizeReady));
+  const [trash, setTrash] = useState(() => loadJson(TRASH_KEY, [], normalizeBookings));
   const [name, setName] = useState(() => safeGetItem(NAME_KEY, ""));
   const [note, setNote] = useState("");
   const [month, setMonth] = useState(monthKey);
@@ -235,6 +237,7 @@ function BookingCalendar() {
 
   useEffect(() => { safeSetItem(PRESENCES_KEY, JSON.stringify(bookings)); }, [bookings]);
   useEffect(() => { safeSetItem(READY_KEY, JSON.stringify(ready)); }, [ready]);
+  useEffect(() => { safeSetItem(TRASH_KEY, JSON.stringify(trash)); }, [trash]);
   useEffect(() => { safeSetItem(NAME_KEY, name); }, [name]);
 
   const { year, month: monthNumber } = parseMonth(month);
@@ -312,10 +315,22 @@ function BookingCalendar() {
 
   function removeSelectedBooking() {
     if (!selectedBooking) return;
-    if (!window.confirm(`Retirer la réservation de ${selectedBooking.name} dans ${selectedBooking.place} ?`)) return;
+    if (!window.confirm(`Mettre la réservation de ${selectedBooking.name} à la corbeille ?`)) return;
+    setTrash((current) => [{ ...selectedBooking, deletedAt: new Date().toISOString() }, ...current.filter((item) => item.id !== selectedBooking.id)]);
     setBookings((current) => current.filter((item) => item.id !== selectedBooking.id));
     setSelectedBookingId("");
-    setMessage("Réservation retirée.");
+    setMessage("Réservation déplacée dans la corbeille. Elle peut être restaurée.");
+  }
+
+  function restoreBooking(item) {
+    const conflict = bookings.some((booking) => booking.place === item.place && overlaps(item.arrival, item.departure, booking.arrival, booking.departure));
+    if (conflict) {
+      setMessage("Restauration impossible : cette chambre est déjà réservée sur cette période.");
+      return;
+    }
+    setBookings((current) => [...current, { ...item, deletedAt: undefined }]);
+    setTrash((current) => current.filter((entry) => entry.id !== item.id));
+    setMessage("Réservation restaurée.");
   }
 
   function toggleReady(room) {
@@ -376,7 +391,14 @@ function BookingCalendar() {
       {selection.start && <div className="fincaBookingActions"><span>{name.trim()} · {selection.room} · {formatDate(selection.start)}{selection.end ? ` → ${formatDate(selection.end)}` : ""}</span><button type="button" className="isPrimary" onClick={confirmBooking}>Confirmer la réservation</button><button type="button" onClick={() => setSelection({ room: "", start: "", end: "" })}>Annuler la sélection</button></div>}
       {message && <p className="fincaBookingMessage">{message}</p>}
 
-      {selectedBooking && <div className="fincaSelectedBooking"><strong>{selectedBooking.name} — {selectedBooking.place}</strong><p>{formatDate(selectedBooking.arrival)} → {formatDate(selectedBooking.departure)}</p>{selectedBooking.note && <p>{selectedBooking.note}</p>}<button type="button" onClick={removeSelectedBooking}>Retirer cette réservation</button></div>}
+      {trash.length > 0 && <details className="fincaSelectedBooking">
+        <summary>🗑️ Corbeille ({trash.length})</summary>
+        {trash.map((item) => <div key={item.id} className="fincaBookingActions">
+          <span>{item.name} — {item.place} · {formatDate(item.arrival)} → {formatDate(item.departure)}</span>
+          <button type="button" onClick={() => restoreBooking(item)}>↩ Restaurer</button>
+        </div>)}
+      </details>}
+      {selectedBooking && <div className="fincaSelectedBooking"><strong>{selectedBooking.name} — {selectedBooking.place}</strong><p>{formatDate(selectedBooking.arrival)} → {formatDate(selectedBooking.departure)}</p>{selectedBooking.note && <p>{selectedBooking.note}</p>}<button type="button" onClick={removeSelectedBooking} title="Mettre à la corbeille" aria-label={`Mettre à la corbeille la réservation de ${selectedBooking.name}`} style={{fontSize:"1.15rem", minWidth:"40px"}}>🗑️</button></div>}
     </details>
   );
 }
