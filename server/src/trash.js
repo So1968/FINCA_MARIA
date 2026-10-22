@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
+import { processTrashFileCleanup } from "./trash-file-cleanup.js";
 
 // Routes de corbeille communes. Tous les champs SQL sont issus d'une liste fermée.
 const ITEMS = {
@@ -36,6 +37,21 @@ export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit
       }
       return json(res, 200, { active: data });
     }
+    if (url.pathname === "/api/trash/cleanup" && req.method === "GET") {
+      const actor = await requireAdmin(req);
+      if (!actor.roles.includes("admin-projet")) return json(res,403,{error:"Réservé à l'administration familiale"});
+      const pending = await pool.query(
+        "SELECT id,kind,object_id,queued_at,last_error FROM trash_file_cleanup WHERE processed_at IS NULL ORDER BY queued_at LIMIT 300"
+      );
+      return json(res,200,{ pending:pending.rows });
+    }
+    if (url.pathname === "/api/trash/cleanup/retry" && req.method === "POST") {
+      const actor = await requireAdmin(req);
+      if (!actor.roles.includes("admin-projet")) return json(res,403,{error:"Réservé à l'administration familiale"});
+      const summary = await processTrashFileCleanup(pool, baulRoot);
+      await audit(actor, req, "trash_cleanup_retry", "trash", "pending", null, summary);
+      return json(res,200,{ok:true,summary});
+    }
     const match = url.pathname.match(/^\/api\/trash\/(reservation|meeting|document)\/([^/]+)\/(delete|restore|purge)$/);
     if (!match || req.method !== "POST") return json(res, 404, { error: "Route de corbeille inconnue" });
     const admin = await requireAdmin(req);
@@ -46,11 +62,11 @@ export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit
     const spec = ITEMS[kind];
     const body = await readBody(req);
     if (action === "purge") {
-      // Refuser les documents et réunions tant que leurs fichiers et dépendances
-      // n'ont pas été intégrés à la procédure de purge contrôlée.
-      if (kind !== "reservation") return json(res, 409, {
-        error: "Purge définitive bloquée : sauvegardes et fichiers associés à contrôler avant implémentation"
-      });
+      // Une purge des fichiers et enregistrements exige un contrôle explicite
+      // des sauvegardes : des copies chiffrées peuvent persister jusqu'à leur expiration.
+      if (kind !== "reservation" && body.backupReviewed !== true) {
+        return json(res, 400, { error: "Contrôle des sauvegardes obligatoire avant purge" });
+      }
       if (body.confirmation !== "VIDER DEFINITIVEMENT" || body.itemId !== id || body.kind !== kind || body.reviewed !== true) {
         return json(res, 400, { error: "Confirmation explicite de la purge requise" });
       }
@@ -107,6 +123,41 @@ export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit
           return json(res, 409, { error: "Une autre réservation occupe déjà cette période" });
         }
       }
+      if (action === "purge" && kind === "meeting" && ["recording", "transcribing"].includes(before.status)) {
+        await client.query("ROLLBACK");
+        return json(res,409,{error:"Réunion en cours d'enregistrement ou de transcription : arrêter avant purge"});
+      }
+      if (action === "purge" && kind === "document") {
+        const links = await client.query(
+          "SELECT id FROM meeting_links WHERE kind='document' AND target_ref=$1 LIMIT 1", [id]
+        );
+        if (links.rowCount) {
+          await client.query("ROLLBACK");
+          return json(res,409,{error:"Document associé à une réunion : retirer d'abord ses références"});
+        }
+        const root = path.resolve(baulRoot);
+        const absolute = path.resolve(root, String(before.storage_path || ""));
+        if (absolute === root || !absolute.startsWith(root + path.sep)) {
+          await client.query("ROLLBACK");
+          return json(res,409,{error:"Chemin du fichier invalide : purge refusée"});
+        }
+        await client.query(
+          "INSERT INTO trash_file_cleanup(kind,object_id,relative_path,file_kind) VALUES ('document',$1,$2,'file')",
+          [id, before.storage_path]
+        );
+      }
+      if (action === "purge" && kind === "meeting") {
+        // Le répertoire dédié contient l'audio final, les segments et les fichiers
+        // temporaires de cette seule réunion. Les documents liés restent intacts.
+        if (!/^[0-9a-f-]{36}$/.test(id)) {
+          await client.query("ROLLBACK");
+          return json(res,409,{error:"Identifiant réunion non conforme : purge refusée"});
+        }
+        await client.query(
+          "INSERT INTO trash_file_cleanup(kind,object_id,relative_path,file_kind) VALUES ('meeting',$1,$2,'directory')",
+          [id, path.join("meetings", id)]
+        );
+      }
       if (action === "purge") {
         await client.query(
           `INSERT INTO trash_purge_receipts(kind,object_id,deleted_by,purged_by,item_summary)
@@ -128,6 +179,10 @@ export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit
           kind,id,before,updated.rows[0],"ok",client);
       }
       await client.query("COMMIT");
+      if (action === "purge" && kind !== "reservation") {
+        const cleanup = await processTrashFileCleanup(pool, baulRoot);
+        return json(res,200,{ok:true,kind,id,action,cleanup,pendingCleanup:cleanup.failed > 0});
+      }
       return json(res,200,{ok:true,kind,id,action});
     } catch(error) {
       await client.query("ROLLBACK");
