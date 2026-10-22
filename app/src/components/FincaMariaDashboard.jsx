@@ -278,7 +278,6 @@ export function FincaMariaDashboard() {
       <div className="fincaTopBar">
         <BrandMark />
         <div className="fincaTopTools" aria-label="Outils FINCA MARIA">
-          <button type="button" onClick={() => window.location.assign(appViewUrl("reunions"))}>Réunions</button>
           <button type="button" onClick={exportFincaData}>Sauvegarder les données</button>
           <label>Restaurer<input ref={importRef} type="file" accept="application/json,.json" onChange={handleImport} /></label>
         </div>
@@ -321,8 +320,7 @@ export function FincaMariaDashboard() {
         `}</style>
         <nav aria-label="Accès aux outils familiaux" style={{display:"flex",flexWrap:"wrap",justifyContent:"center",alignItems:"center",gap:".55rem",margin:".55rem auto"}}>
           {[
-            ["📁 BAÚL", "Documents familiaux", "baul"],
-            ["🗑️ Corbeille", "Retrouver un élément", "corbeille"]
+            ["📁 BAÚL", "Documents familiaux", "baul"]
           ].map(([label, subtitle, view]) => <a key={view} href={appViewUrl(view)} style={{display:"inline-flex",alignItems:"center",gap:".5rem",padding:".55rem .8rem",border:"1px solid #766332",borderRadius:"10px",background:"#152019",color:"#f5e2aa",textDecoration:"none"}}>
             <strong style={{fontSize:".9rem"}}>{label}</strong><span style={{fontSize:".76rem",opacity:.8}}>{subtitle}</span>
           </a>)}
