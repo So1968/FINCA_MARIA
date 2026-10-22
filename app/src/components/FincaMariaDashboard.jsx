@@ -289,6 +289,15 @@ export function FincaMariaDashboard() {
           <AreaChoice area="terre" title="TERRE" subtitle="Exploitation agricole" stats={`${actionSummary.todo} action${actionSummary.todo > 1 ? "s" : ""} à compléter · année-test 2022/23`} icon="leaf" onClick={() => { setArea("terre"); setEarthTab(earthTab || "gestion"); }} />
           <AreaChoice area="maison" title="MAISON" subtitle="Maison familiale" stats="Séjours · jardin · guide vacanciers" icon="home" onClick={() => { setArea("maison"); setHouseTab(houseTab || "gerer"); }} />
         </div>
+        <nav aria-label="Accès aux outils familiaux" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:".8rem",margin:"1.25rem 0"}}>
+          {[
+            ["📁 BAÚL", "Documents familiaux", "baul"],
+            ["🎙️ Réunions", "Conseils et comptes rendus", "reunions"],
+            ["🗑️ Corbeille", "Retrouver un élément", "corbeille"]
+          ].map(([label, subtitle, view]) => <a key={view} href={appViewUrl(view)} style={{display:"flex",flexDirection:"column",gap:".35rem",padding:"1.15rem",border:"1px solid #a68b4d",borderRadius:"16px",background:"#152019",color:"#f5e2aa",textDecoration:"none"}}>
+            <strong style={{fontSize:"1.13rem"}}>{label}</strong><span>{subtitle}</span>
+          </a>)}
+        </nav>
         <div className="fincaHomePulse">
           <div className="fincaPulseCard"><strong>{actionSummary.todo}</strong><span>actions à compléter</span></div>
           <div className="fincaPulseCard"><strong>{actionSummary.progress}</strong><span>actions en cours / attente</span></div>
