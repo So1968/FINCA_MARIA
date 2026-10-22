@@ -13,6 +13,8 @@ async function request(url, options) {
 
 export default function FincaTrashHub() {
   const [items, setItems] = useState(empty);
+  const [active, setActive] = useState(empty);
+  const [pendingDelete, setPendingDelete] = useState(null);
   const [roles, setRoles] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -28,9 +30,28 @@ export default function FincaTrashHub() {
       request("/api/auth/me")
     ]);
     setItems({ ...empty, ...(trash.items || {}) });
-    setRoles(me.user?.roles || []);
+    const userRoles = me.user?.roles || [];
+    setRoles(userRoles);
+    if (userRoles.includes("admin-projet")) {
+      const manage = await request("/api/trash/manage");
+      setActive({ ...empty, ...(manage.active || {}) });
+    }
   }
   useEffect(() => { refresh().catch((e) => setError(e.message)); }, []);
+
+  async function putInTrash() {
+    if (!admin || !pendingDelete || busy) return;
+    const { kind, id } = pendingDelete;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      await request(`/api/trash/${kind}/${encodeURIComponent(id)}/delete`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: "{}"
+      });
+      setPendingDelete(null);
+      await refresh();
+      setNotice("Élément déplacé vers la corbeille et enregistré dans l'historique.");
+    } catch(e) { setError(e.message); } finally { setBusy(false); }
+  }
 
   async function restore(kind, id) {
     if (!admin || busy) return;
@@ -73,6 +94,25 @@ export default function FincaTrashHub() {
       {error && <p role="alert" className="meetingNotice">{error}</p>}
       {notice && <p role="status" className="meetingNotice">{notice}</p>}
       <button className="meetingBtn" type="button" disabled={busy} onClick={() => refresh().catch(e => setError(e.message))}>Actualiser</button>
+      {admin && <section className="meetingSection">
+        <h2>Mettre un élément dans la corbeille</h2>
+        <p className="meetingMuted">Choisis un élément actif. Il sera conservé et pourra être restauré.</p>
+        {Object.entries(TITLES).map(([kind, title]) => <details key={kind}>
+          <summary>{title} — {(active[kind] || []).length} élément(s)</summary>
+          {(active[kind] || []).map(item => <article className="meetingSection" key={item.id}>
+            <strong>{item.label}</strong>
+            <div className="meetingActions"><button className="meetingBtn danger" disabled={busy} type="button"
+              onClick={() => setPendingDelete({kind, id:item.id, label:item.label})}>Mettre dans la corbeille</button></div>
+          </article>)}
+        </details>)}
+      </section>}
+      {pendingDelete && <section className="meetingSection" aria-label="Confirmer la mise en corbeille">
+        <h2>Confirmation</h2><p>Déplacer « {pendingDelete.label} » dans la corbeille ?</p>
+        <div className="meetingActions">
+          <button className="meetingBtn" onClick={() => setPendingDelete(null)}>Annuler</button>
+          <button className="meetingBtn danger" disabled={busy} onClick={putInTrash}>Confirmer</button>
+        </div>
+      </section>}
       {Object.entries(TITLES).map(([kind, title]) => <section className="meetingSection" key={kind}>
         <h2>{title}</h2>
         {!items[kind]?.length && <p className="meetingMuted">Aucun élément supprimé.</p>}
