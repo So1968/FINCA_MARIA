@@ -98,12 +98,12 @@ function Icon({ name, size = 24 }) {
 
 function BrandMark() {
   return (
-    <div className="fincaBrand" aria-label="FINCA MARIA">
+    <a className="fincaBrand" aria-label="FINCA MARIA — Accueil" href="/" style={{textDecoration:"none"}}>
       <div className="fincaLogo" aria-hidden="true">
         <svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="31"/><path d="m20 38 16-14 16 14"/><path d="M25 35v17h22V35"/><path d="M29 52v-9h7v9"/><path d="M15 30c8-2 14-7 18-14"/><ellipse cx="18" cy="26" rx="4.8" ry="2.4" transform="rotate(-28 18 26)"/><ellipse cx="24" cy="21" rx="4.8" ry="2.4" transform="rotate(-38 24 21)"/><ellipse cx="30" cy="17" rx="4.4" ry="2.2" transform="rotate(-48 30 17)"/></svg>
       </div>
       <div><strong>FINCA MARIA</strong><span>Gestion familiale</span></div>
-    </div>
+    </a>
   );
 }
 
