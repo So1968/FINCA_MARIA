@@ -78,7 +78,15 @@ export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit
           return json(res, 409, { error: "Chemin du document invalide : restauration bloquée" });
         }
         let content;
-        try { content = await fs.readFile(physical); } catch {
+        try {
+          const realRoot = await fs.realpath(root);
+          const realFile = await fs.realpath(physical);
+          if (!realFile.startsWith(realRoot + path.sep)) {
+            await client.query("ROLLBACK");
+            return json(res, 409, { error: "Document situé hors du BAÚL : restauration bloquée" });
+          }
+          content = await fs.readFile(realFile);
+        } catch {
           await client.query("ROLLBACK");
           return json(res, 409, { error: "Fichier absent du BAÚL : restauration bloquée" });
         }
