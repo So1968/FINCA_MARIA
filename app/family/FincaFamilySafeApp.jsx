@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import GlobalNavigation from "../src/components/GlobalNavigation.jsx";
 import FincaFamilyTrash from "./FincaFamilyTrash.jsx";
 
 const ALLOWED_ROLES = new Set(["heritier", "admin-projet", "admin-secretariat", "conseil", "contributeur-familial"]);
@@ -363,6 +364,7 @@ export default function FincaFamilySafeApp() {
           ))}
         </nav>
 
+        <GlobalNavigation />
         <main className="familyContent">
           {error && (
             <div className="familyNotice" role="status">
