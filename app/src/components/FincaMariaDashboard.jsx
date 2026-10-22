@@ -278,8 +278,15 @@ export function FincaMariaDashboard() {
       <div className="fincaTopBar">
         <BrandMark />
         <div className="fincaTopTools" aria-label="Outils FINCA MARIA">
-          <button type="button" onClick={exportFincaData}>Sauvegarder les données</button>
-          <label>Restaurer<input ref={importRef} type="file" accept="application/json,.json" onChange={handleImport} /></label>
+          <details className="fincaAdminMenu" style={{position:"relative"}}>
+            <summary style={{cursor:"pointer",border:"1px solid rgba(214,169,85,.28)",borderRadius:"10px",padding:".45rem .75rem",color:"#efd99d",listStyle:"none"}}>⚙ Administration ▾</summary>
+            <div style={{position:"absolute",right:0,top:"calc(100% + 5px)",zIndex:40,minWidth:"230px",padding:".75rem",display:"flex",flexDirection:"column",gap:".5rem",border:"1px solid #927b44",borderRadius:"12px",background:"#101a14",boxShadow:"0 10px 30px #0008"}}>
+              <a href={appViewUrl("corbeille")} style={{color:"#efd99d",padding:".5rem",textDecoration:"none"}}>🗑️ Corbeille générale</a>
+              <button type="button" onClick={exportFincaData}>Sauvegarder les données</button>
+              <label>Restaurer<input ref={importRef} type="file" accept="application/json,.json" onChange={handleImport} /></label>
+              <small style={{color:"#cdb98d"}}>Synchronisation : bouton ☁ en bas de page</small>
+            </div>
+          </details>
         </div>
       </div>
 
