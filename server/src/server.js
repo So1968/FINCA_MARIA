@@ -232,8 +232,8 @@ async function baulStatus() {
     pool.query(`SELECT COUNT(*)::int AS total,
                        COUNT(*) FILTER (WHERE status='pending')::int AS pending,
                        COUNT(*) FILTER (WHERE status='validated')::int AS validated
-                  FROM baul_documents`),
-    pool.query(`SELECT * FROM baul_documents WHERE status='pending' ORDER BY received_at DESC LIMIT 250`)
+                  FROM baul_documents WHERE deleted_at IS NULL`),
+    pool.query(`SELECT * FROM baul_documents WHERE deleted_at IS NULL AND status='pending' ORDER BY received_at DESC LIMIT 250`)
   ]);
   const counts = countsResult.rows[0] || { total: 0, pending: 0, validated: 0 };
   return {
@@ -687,6 +687,7 @@ async function handleBaulConfirm(req, res) {
   const current = await pool.query("SELECT * FROM baul_documents WHERE id=$1", [id]);
   if (!current.rowCount) return json(res, 404, { ok: false, error: "Document BAÚL introuvable" });
   const before = current.rows[0];
+  if (before.deleted_at) return json(res, 409, { ok: false, error: "Document en corbeille" });
   if (before.status === "validated") return json(res, 200, { ok: true, document: documentView(before), status: await baulStatus() });
 
   const source = baulAbsolute(before.storage_path);
@@ -716,6 +717,7 @@ async function handleBaulPreview(req, res, url) {
   const result = await pool.query("SELECT * FROM baul_documents WHERE id=$1", [id]);
   if (!result.rowCount) return json(res, 404, { error: "Document BAÚL introuvable" });
   const row = result.rows[0];
+  if (row.deleted_at) return json(res, 404, { error: "Document en corbeille" });
   const absolutePath = baulAbsolute(row.storage_path);
   let stat;
   try { stat = await fs.stat(absolutePath); } catch { return json(res, 404, { error: "Fichier BAÚL introuvable" }); }
