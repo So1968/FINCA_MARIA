@@ -289,7 +289,7 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
         (SELECT COUNT(*) FROM meeting_participants p WHERE p.meeting_id=m.id AND p.presence='present') AS present_count,
         (SELECT COUNT(*) FROM meeting_markers x WHERE x.meeting_id=m.id) AS marker_count,
         (SELECT MAX(version) FROM meeting_report_versions v WHERE v.meeting_id=m.id) AS validated_version
-      FROM meetings m ORDER BY meeting_date DESC, created_at DESC LIMIT 250
+      FROM meetings m WHERE m.deleted_at IS NULL ORDER BY meeting_date DESC, created_at DESC LIMIT 250
     `);
     return json(res, 200, {
       meetings: result.rows.map((row) => ({
@@ -306,7 +306,7 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
   async function decisionRegister(req, res) {
     await requireAdmin(req);
     const result = await pool.query(
-      "SELECT k.id, k.meeting_id, k.note, k.classification, k.responsible, k.due_date, m.title, m.meeting_date, m.meeting_type FROM meeting_markers k JOIN meetings m ON m.id=k.meeting_id WHERE k.marker_type='decision' OR k.classification='decision_confirmee' ORDER BY m.meeting_date DESC, k.created_at DESC LIMIT 5000"
+      "SELECT k.id, k.meeting_id, k.note, k.classification, k.responsible, k.due_date, m.title, m.meeting_date, m.meeting_type FROM meeting_markers k JOIN meetings m ON m.id=k.meeting_id WHERE m.deleted_at IS NULL AND (k.marker_type='decision' OR k.classification='decision_confirmee') ORDER BY m.meeting_date DESC, k.created_at DESC LIMIT 5000"
     );
     return json(res, 200, {
       decisions: result.rows.map((row) => ({
@@ -1016,6 +1016,27 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
       await listDocuments(req, res);
       return true;
     }
+    if (url.pathname === "/api/meetings/trash" && req.method === "GET") {
+      await requireAdmin(req);
+      const result = await pool.query(`SELECT m.id,m.title,m.meeting_date,m.deleted_at,m.deleted_by,u.display_name AS deleted_by_name FROM meetings m LEFT JOIN users u ON u.id=m.deleted_by WHERE m.deleted_at IS NOT NULL ORDER BY m.deleted_at DESC LIMIT 500`);
+      json(res, 200, { meetings: result.rows });
+      return true;
+    }
+    const restore = url.pathname.match(/^\\/api\\/meetings\\/([^/]+)\\/restore$/);
+    if (restore && req.method === "POST") {
+      const actor = await requireAdmin(req);
+      const id = safeMeetingId(restore[1]);
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        const before = await client.query("SELECT * FROM meetings WHERE id=$1 AND deleted_at IS NOT NULL FOR UPDATE", [id]);
+        if (!before.rowCount) { await client.query("ROLLBACK"); json(res, 404, {error:"Réunion supprimée introuvable"}); return true; }
+        const updated = await client.query("UPDATE meetings SET deleted_at=NULL,deleted_by=NULL,updated_by=$2,updated_at=NOW() WHERE id=$1 RETURNING *", [id,actor.id]);
+        await audit(actor,req,"meeting_restore","meeting",id,before.rows[0],updated.rows[0],"ok",client);
+        await client.query("COMMIT");
+        json(res,200,{meeting:meetingSummary(updated.rows[0])}); return true;
+      } catch(error) {await client.query("ROLLBACK");throw error;} finally {client.release();}
+    }
     if (url.pathname === "/api/meetings/decision-register" && req.method === "GET") {
       await decisionRegister(req, res);
       return true;
@@ -1036,8 +1057,24 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
     let match = url.pathname.match(/^\/api\/meetings\/([^/]+)$/);
     if (match && req.method === "GET") {
       await requireAdmin(req);
+      const visible = await pool.query("SELECT id FROM meetings WHERE id=$1 AND deleted_at IS NULL",[safeMeetingId(match[1])]);
+      if (!visible.rowCount) {json(res,404,{error:"Réunion introuvable"});return true;}
       json(res, 200, { meeting: await fullMeeting(match[1]) });
       return true;
+    }
+    if (match && req.method === "DELETE") {
+      const actor = await requireAdmin(req);
+      const id = safeMeetingId(match[1]);
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        const before = await client.query("SELECT * FROM meetings WHERE id=$1 AND deleted_at IS NULL FOR UPDATE",[id]);
+        if (!before.rowCount) {await client.query("ROLLBACK");json(res,404,{error:"Réunion active introuvable"});return true;}
+        const updated = await client.query("UPDATE meetings SET deleted_at=NOW(),deleted_by=$2,updated_at=NOW() WHERE id=$1 RETURNING *",[id,actor.id]);
+        await audit(actor,req,"meeting_soft_delete","meeting",id,before.rows[0],updated.rows[0],"ok",client);
+        await client.query("COMMIT");
+        json(res,200,{ok:true});return true;
+      } catch(error) {await client.query("ROLLBACK");throw error;} finally {client.release();}
     }
     if (match && req.method === "PUT") {
       await updateMeeting(req, res, match[1]);
