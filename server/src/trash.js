@@ -88,5 +88,9 @@ export function createTrashRouter({ pool, requireAdmin, requireUser, audit, read
       throw error;
     } finally {client.release();}
   }
-  return run;
+  return async (req, res, url) => {
+    if (!url.pathname.startsWith("/api/trash")) return false;
+    await run(req, res, url);
+    return true;
+  };
 }
