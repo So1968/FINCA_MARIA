@@ -955,7 +955,7 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
     await requireAdmin(req);
     const result = await pool.query(
       `SELECT id,logical_name,original_name,category,validated_at,size_bytes
-       FROM baul_documents WHERE status='validated' ORDER BY validated_at DESC NULLS LAST,received_at DESC LIMIT 150`
+       FROM baul_documents WHERE deleted_at IS NULL AND status='validated' ORDER BY validated_at DESC NULLS LAST,received_at DESC LIMIT 150`
     );
     return json(res, 200, {
       documents: result.rows.map((row) => ({
@@ -976,7 +976,7 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
     if (!documentId) return json(res, 400, { error: "Document obligatoire" });
     const [marker, document] = await Promise.all([
       pool.query("SELECT id FROM meeting_markers WHERE id=$1 AND meeting_id=$2", [markerId, safeId]),
-      pool.query("SELECT id FROM baul_documents WHERE id=$1 AND status='validated'", [documentId])
+      pool.query("SELECT id FROM baul_documents WHERE id=$1 AND status='validated' AND deleted_at IS NULL", [documentId])
     ]);
     if (!marker.rowCount) return json(res, 404, { error: "Marqueur introuvable" });
     if (!document.rowCount) return json(res, 404, { error: "Document BAÚL validé introuvable" });
