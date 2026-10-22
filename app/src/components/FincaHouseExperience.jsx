@@ -95,6 +95,12 @@ export function FincaHouseExperience() {
   const [message, setMessage] = useState("");
   const [mobileRoom, setMobileRoom] = useState(ROOMS[0].name);
   const [showAll, setShowAll] = useState(false);
+  const [openSection, setOpenSection] = useState(null);
+  function toggleSection(id) {
+    const next = openSection === id ? null : id;
+    setOpenSection(next);
+    if (next) requestAnimationFrame(() => document.getElementById(next)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
   const [legacyVersion, setLegacyVersion] = useState(0);
   const nameRef = useRef(null);
 
@@ -279,16 +285,16 @@ export function FincaHouseExperience() {
       </header>
 
       <nav className="fincaJourney" aria-label="Parcours du séjour">
-        <button type="button" onClick={() => scrollToId("arrivee-reservation")}><b>1 · J’arrive</b><span>Prénom, dates et chambre</span></button>
-        <button type="button" onClick={() => scrollToId("preparer-chambres")}><b>2 · Je prépare</b><span>Chambres, lits et linge</span></button>
-        <button type="button" onClick={() => scrollToId("vivre-maison")}><b>3 · Je suis à la maison</b><span>Maison, jardin et sorties</span></button>
-        <button type="button" onClick={() => scrollToId("depart-maison")}><b>4 · Je repars</b><span>Ménage, fermeture et transmission</span></button>
+        <button type="button" onClick={() => toggleSection("arrivee-reservation")} aria-expanded={openSection === "arrivee-reservation"}><b>1 · J’arrive</b><span>Prénom, dates et chambre</span></button>
+        <button type="button" onClick={() => toggleSection("preparer-chambres")} aria-expanded={openSection === "preparer-chambres"}><b>2 · Je prépare</b><span>Chambres, lits et linge</span></button>
+        <button type="button" onClick={() => toggleSection("vivre-maison")} aria-expanded={openSection === "vivre-maison"}><b>3 · Je suis à la maison</b><span>Maison, jardin et sorties</span></button>
+        <button type="button" onClick={() => toggleSection("depart-maison")} aria-expanded={openSection === "depart-maison"}><b>4 · Je repars</b><span>Ménage, fermeture et transmission</span></button>
       </nav>
 
-      <section id="arrivee-reservation" className="fincaStaySection">
+      <section id="arrivee-reservation" className="fincaStaySection" style={{display:openSection === "arrivee-reservation" ? undefined : "none"}}>
         <div className="fincaStaySectionHead">
           <div><h2>Je choisis ma chambre</h2><p>Comme une réservation d’hôtel : les jours occupés affichent le prénom de la personne. Le rouge n’est jamais utilisé pour une réservation ; il signifie uniquement « chambre prête » dans le plan de préparation.</p></div>
-        </div>
+        <button type="button" className="fincaStayButton" onClick={() => setOpenSection(null)}>✕ Fermer</button></div>
         <div className="fincaArrivalIdentity">
           <label><span>Qui vient ?</span><input ref={nameRef} value={name} onChange={(event) => setName(event.target.value)} placeholder="Prénom" autoComplete="name" /></label>
           <button type="button" className="fincaStayButton" onClick={() => setSelection({ room: "", start: "", end: "" })}>Effacer ma sélection</button>
@@ -335,9 +341,10 @@ export function FincaHouseExperience() {
         )}
       </section>
 
-      <section id="preparer-chambres" className="fincaStaySection">
+      <section id="preparer-chambres" className="fincaStaySection" style={{display:openSection === "preparer-chambres" ? undefined : "none"}}>
         <div className="fincaStaySectionHead">
           <div><h2>Je prépare les chambres</h2><p>{readyCount}/{ROOMS.length} chambres marquées prêtes. Une chambre ne devient rouge que lorsque quelqu’un la marque explicitement « prête ».</p></div>
+          <button type="button" className="fincaStayButton" onClick={() => setOpenSection(null)}>✕ Fermer</button>
           <button type="button" onClick={resetPreparation}>Préparer un nouveau séjour</button>
         </div>
         <p className="fincaRoomPlanNote">Plan schématique — disposition issue du règlement ancien et des repères familiaux ; les éléments non confirmés restent indiqués comme tels.</p>
@@ -374,8 +381,8 @@ export function FincaHouseExperience() {
         </div>
       </section>
 
-      <section id="vivre-maison" className="fincaStaySection">
-        <div className="fincaStaySectionHead"><div><h2>Je suis à la maison</h2><p>Les choses utiles pendant le séjour, sans passer par une arborescence administrative.</p></div></div>
+      <section id="vivre-maison" className="fincaStaySection" style={{display:openSection === "vivre-maison" ? undefined : "none"}}>
+        <div className="fincaStaySectionHead"><div><h2>Je suis à la maison</h2><p>Les choses utiles pendant le séjour, sans passer par une arborescence administrative.</p></div><button type="button" className="fincaStayButton" onClick={() => setOpenSection(null)}>✕ Fermer</button></div>
         <div className="fincaLifeGrid">
           <article className="fincaLifeCard"><h3>La maison</h3><p>Eau, électricité, clés, ménage, inventaire et petites réparations.</p><button type="button" className="fincaStayButton" onClick={() => revealLegacy("fonctionnement")}>Ouvrir la maison pratique</button></article>
           <article className="fincaLifeCard"><h3>Le jardin</h3><p>Laurier, cerisier, citronnier et suivi des interventions dans le patio.</p><button type="button" className="fincaStayButton" onClick={() => revealLegacy("patio-jardin")}>Ouvrir le jardin</button></article>
@@ -383,8 +390,8 @@ export function FincaHouseExperience() {
         </div>
       </section>
 
-      <section id="depart-maison" className="fincaStaySection">
-        <div className="fincaStaySectionHead"><div><h2>Je prépare le départ</h2><p>Un dernier passage simple avant de fermer la maison.</p></div></div>
+      <section id="depart-maison" className="fincaStaySection" style={{display:openSection === "depart-maison" ? undefined : "none"}}>
+        <div className="fincaStaySectionHead"><div><h2>Je prépare le départ</h2><p>Un dernier passage simple avant de fermer la maison.</p></div><button type="button" className="fincaStayButton" onClick={() => setOpenSection(null)}>✕ Fermer</button></div>
         <div className="fincaDepartureList"><span>Linge utilisé</span><span>Ménage des espaces occupés</span><span>Déchets sortis</span><span>Eau, fenêtres et accès</span><span>Clés rangées</span><span>Incident ou réparation signalé</span></div>
         <button type="button" className="fincaStayButton" onClick={() => revealLegacy("menage")}>Ouvrir les consignes détaillées</button>
       </section>
