@@ -718,7 +718,7 @@ async function handleBaulConfirm(req, res) {
 }
 
 async function handleBaulPreview(req, res, url) {
-  await requireAdmin(req);
+  await requireFamilyUser(req);
   const id = String(url.searchParams.get("id") || "");
   const result = await pool.query("SELECT * FROM baul_documents WHERE id=$1", [id]);
   if (!result.rowCount) return json(res, 404, { error: "Document BAÚL introuvable" });
@@ -866,6 +866,7 @@ const trashRoute = createTrashRouter({ pool, requireAdmin, requireFamilyUser, au
 const meetingRoute = createMeetingRouter({
   pool,
   requireAdmin,
+  requireFamilyUser,
   audit,
   readBody,
   json,
