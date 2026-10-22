@@ -813,6 +813,7 @@ async function updateUser(req, res, userId) {
     }
     const before = beforeResult.rows[0];
     const beforeRoles = await rolesForUser(userId, client);
+    await client.query("SELECT pg_advisory_xact_lock(7231942)");
     const email = body.email === undefined ? before.email : normalizeEmail(body.email);
     const name = body.name === undefined && body.displayName === undefined ? before.display_name : String(body.name || body.displayName || "").trim();
     const active = body.active === undefined ? before.active : Boolean(body.active);
@@ -833,6 +834,16 @@ async function updateUser(req, res, userId) {
       const passwordHash = await hashPassword(body.password);
       await client.query("UPDATE users SET password_hash=$1, updated_at=NOW() WHERE id=$2", [passwordHash, userId]);
       await client.query("DELETE FROM sessions WHERE user_id=$1 AND token_hash <> $2", [userId, actor.tokenHash]);
+    }
+    if (beforeRoles.includes("admin-projet") && (!active || !roles.includes("admin-projet"))) {
+      const others = await client.query(
+        `SELECT COUNT(DISTINCT u.id)::int AS count FROM users u
+         JOIN user_roles ur ON ur.user_id=u.id AND ur.role_id='admin-projet'
+         WHERE u.active=TRUE AND u.id <> $1`, [userId]
+      );
+      if (Number(others.rows[0].count) === 0) {
+        throw Object.assign(new Error("Impossible de retirer ou désactiver le dernier administrateur actif"), {status:400});
+      }
     }
     if (!active) await client.query("DELETE FROM sessions WHERE user_id=$1", [userId]);
     const afterResult = await client.query("SELECT id, email, display_name, active, updated_at FROM users WHERE id=$1", [userId]);
