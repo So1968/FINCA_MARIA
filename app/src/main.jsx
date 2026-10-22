@@ -68,8 +68,8 @@ function DeferredFincaEnhancements() {
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AppErrorBoundary>
-      <RootApp />
       <GlobalNavigation />
+      <RootApp />
       <DeferredFincaEnhancements />
     </AppErrorBoundary>
   </React.StrictMode>
