@@ -24,6 +24,7 @@ export default function FincaTrashHub() {
   const [reviewed, setReviewed] = useState(false);
   const [backupReviewed, setBackupReviewed] = useState(false);
   const [pendingFiles, setPendingFiles] = useState([]);
+  const [purgeHistory, setPurgeHistory] = useState([]);
   const admin = roles.includes("admin-projet");
 
   async function refresh() {
@@ -32,6 +33,8 @@ export default function FincaTrashHub() {
       request("/api/auth/me")
     ]);
     setItems({ ...empty, ...(trash.items || {}) });
+    const history = await request("/api/trash/history");
+    setPurgeHistory(history.receipts || []);
     const userRoles = me.user?.roles || [];
     setRoles(userRoles);
     if (userRoles.includes("admin-projet")) {
@@ -75,14 +78,14 @@ export default function FincaTrashHub() {
     const { kind, id } = candidate;
     setBusy(true); setError(""); setNotice("");
     try {
-      await request(`/api/trash/${kind}/${encodeURIComponent(id)}/purge`, {
+      const result = await request(`/api/trash/${kind}/${encodeURIComponent(id)}/purge`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ kind, itemId: id, confirmation, reviewed, backupReviewed })
       });
       setCandidate(null); setConfirmation(""); setReviewed(false); setBackupReviewed(false);
       await refresh();
-      setNotice("Suppression définitive effectuée et inscrite au journal.");
+      setNotice(result.pendingCleanup ? "Purge enregistrée. Un fichier est encore en attente d’effacement ; consulte les opérations en attente." : "Suppression définitive effectuée et inscrite au journal.");
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   }
@@ -138,6 +141,15 @@ export default function FincaTrashHub() {
           </div>}
         </article>)}
       </section>)}
+      <section className="meetingSection">
+        <h2>Historique des suppressions définitives</h2>
+        <p className="meetingMuted">Les opérations restent identifiables même après vidage de la corbeille.</p>
+        {!purgeHistory.length && <p className="meetingMuted">Aucune suppression définitive enregistrée.</p>}
+        {purgeHistory.map((row, index) => <article key={row.kind + row.object_id + index} className="meetingSection">
+          <strong>{TITLES[row.kind] || row.kind} — {row.item_summary}</strong>
+          <p className="meetingMuted">Effacé le {new Date(row.purged_at).toLocaleString("fr-FR")} par {row.purged_by_name}; initialement supprimé par {row.deleted_by_name}.</p>
+        </article>)}
+      </section>
       {candidate && <section className="meetingSection" aria-label="Confirmation de suppression définitive">
         <h2>Contrôle administrateur</h2>
         <p>Vous demandez la destruction définitive de <strong>{candidate.label}</strong>. Cette opération ne pourra pas être annulée depuis la corbeille.</p>
