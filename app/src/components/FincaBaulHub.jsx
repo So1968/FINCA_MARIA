@@ -4,6 +4,8 @@ export default function FincaBaulHub() {
   const [documents, setDocuments] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
+  const filtered = documents.filter(doc => `${doc.name || ""} ${doc.category || ""}`.toLocaleLowerCase("fr").includes(query.toLocaleLowerCase("fr").trim()));
   useEffect(() => {
     let active = true;
     fetch("/api/meetings/documents", { credentials: "same-origin" })
@@ -21,8 +23,9 @@ export default function FincaBaulHub() {
     <p>Documents enregistrés dans le coffre familial. Consultation uniquement sur cette page ; aucun document ne sera supprimé.</p>
     {loading && <p>Chargement des documents…</p>}
     {error && <p role="alert">{error}</p>}
+    {!loading && !error && documents.length > 0 && <label style={{display:"block",margin:"1rem 0"}}>Rechercher un document <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Nom ou catégorie…" style={{display:"block",marginTop:".4rem",width:"min(100%,520px)",padding:".7rem",border:"1px solid #8a7540",borderRadius:"10px",background:"#0c1610",color:"#fff"}} /></label>}
     {!loading && !error && (documents.length
-      ? <ul style={{listStyle:"none",padding:0}}>{documents.map(doc=><li key={doc.id} style={{margin:".6rem 0",padding:"1rem",border:"1px solid #8a7540",borderRadius:"12px"}}><strong>{doc.name || "Document sans titre"}</strong>{doc.category && <span> · {doc.category}</span>}</li>)}</ul>
+      ? (filtered.length ? <ul style={{listStyle:"none",padding:0}}>{filtered.map(doc=><li key={doc.id} style={{margin:".6rem 0",padding:"1rem",border:"1px solid #8a7540",borderRadius:"12px"}}><strong>{doc.name || "Document sans titre"}</strong>{doc.category && <span> · {doc.category}</span>}</li>)}</ul> : <p>Aucun document ne correspond à la recherche.</p>)
       : <p>Aucun document disponible dans le registre consulté.</p>)}
     <p style={{fontSize:".9rem"}}>La consultation et l’importation des fichiers dans le coffre seront complétées dans une prochaine étape. Cette page n’invente pas de documents ni de téléchargements.</p>
   </main>;
