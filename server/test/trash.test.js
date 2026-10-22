@@ -233,3 +233,30 @@ test("restauration BAUL bloque un lien symbolique pointant hors du stockage", as
     await fs.rm(outside,{recursive:true,force:true});
   }
 });
+
+test("purge d'un document lié à une réunion refusée sans revue des références", async () => {
+  const { output, json } = response();
+  let changed=false;
+  const client={
+    query:async sql => {
+      if(sql.startsWith("SELECT * FROM baul_documents")) return {rowCount:1,rows:[{
+        id:"doc",original_name:"document fictif",deleted_at:new Date(),deleted_by:2,
+        storage_path:"pending/doc.txt"
+      }]};
+      if(sql.startsWith("SELECT id,meeting_id FROM meeting_links")) return {rowCount:1,rows:[{id:"lien",meeting_id:"meeting"}]};
+      if(sql.startsWith("DELETE") || sql.startsWith("INSERT")) changed=true;
+      return {rowCount:0,rows:[]};
+    },
+    release(){}
+  };
+  const handler=createTrashRouter({
+    pool:{connect:async()=>client},requireAdmin:async()=>actor,
+    requireFamilyUser:async()=>{},
+    readBody:async()=>({confirmation:"VIDER DEFINITIVEMENT",kind:"document",itemId:"doc",reviewed:true,backupReviewed:true}),
+    json,baulRoot:"/tmp/baul",
+    audit:async()=>{changed=true;}
+  });
+  await handler({method:"POST"},{},new URL("http://localhost/api/trash/document/doc/purge"));
+  assert.equal(output[0].status,409);
+  assert.equal(changed,false);
+});
