@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
+import FincaFamilyTrash from "./FincaFamilyTrash.jsx";
 
-const ALLOWED_ROLES = new Set(["heritier", "admin-projet", "admin-secretariat"]);
+const ALLOWED_ROLES = new Set(["heritier", "admin-projet", "admin-secretariat", "conseil", "contributeur-familial"]);
 
 const FAMILY_SECTIONS = [
   {
@@ -354,6 +355,7 @@ export default function FincaFamilySafeApp() {
           <button type="button" className={active === "accueil" ? "isActive" : ""} onClick={() => setActive("accueil")}>Accueil</button>
           <button type="button" className={active === "reservations" ? "isActive" : ""} onClick={() => setActive("reservations")}>Séjours</button>
           <button type="button" className={active === "chambres" ? "isActive" : ""} onClick={() => setActive("chambres")}>Chambres</button>
+          <button type="button" className={active === "corbeille" ? "isActive" : ""} onClick={() => setActive("corbeille")}>Corbeille et historique</button>
           {FAMILY_SECTIONS.map((item) => (
             <button type="button" key={item.id} className={active === item.id ? "isActive" : ""} onClick={() => setActive(item.id)}>
               {item.label}
@@ -394,6 +396,8 @@ export default function FincaFamilySafeApp() {
               </section>
             </>
           )}
+
+          {active === "corbeille" && <FincaFamilyTrash />}
 
           {active === "reservations" && (
             <section className="familyPage">
