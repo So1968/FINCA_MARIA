@@ -12,6 +12,7 @@ const Export = lazyView(() => import("./components/CortijoExportableView.jsx"), 
 const Trees = lazyView(() => import("./components/FincaTreeCountPanel.jsx"), "FincaTreeCountPanel");
 const Meetings = lazy(() => import("./components/FincaMeetingsHub.jsx"));
 const Trash = lazy(() => import("./components/FincaTrashHub.jsx"));
+const Baul = lazy(() => import("./components/FincaBaulHub.jsx"));
 export const NAVIGATION_EVENT = "finca:navigation";
 const currentView = () => new URLSearchParams(window.location.search).get("view") || "";
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
   let page = <Dashboard />;
   if (view === "reunions") page = <Meetings />;
   else if (view === "corbeille") page = <Trash />;
+  else if (view === "baul") page = <Baul />;
   else if (view === "cortijo-memoire") page = <Dossiers />;
   else if (view === "cortijo-famille") page = <Family />;
   else if (view === "cortijo-maison") page = <House />;
