@@ -347,6 +347,15 @@ async function requireAdmin(req) {
   return user;
 }
 
+// La secrétaire peut assurer certaines tâches familiales, mais ne doit jamais gérer les comptes.
+async function requireAccountAdmin(req) {
+  const user = await requireUser(req);
+  if (!user.roles.includes("admin-projet")) {
+    throw Object.assign(new Error("Gestion des comptes réservée à l'administrateur familial"), { status: 403 });
+  }
+  return user;
+}
+
 function isFamilyUser(user) {
   return user.roles.some((role) => FAMILY_ROLES.has(role));
 }
@@ -736,7 +745,7 @@ async function handleBaulExport(req, res) {
 }
 
 async function listUsers(req, res) {
-  await requireAdmin(req);
+  await requireAccountAdmin(req);
   const result = await pool.query(
     `SELECT u.id, u.email, u.display_name, u.active, u.created_at, u.updated_at,
             COALESCE(array_agg(ur.role_id ORDER BY ur.role_id) FILTER (WHERE ur.role_id IS NOT NULL), '{}') AS roles
@@ -749,7 +758,7 @@ async function listUsers(req, res) {
 }
 
 async function createUser(req, res) {
-  const actor = await requireAdmin(req);
+  const actor = await requireAccountAdmin(req);
   const body = await readBody(req);
   const email = normalizeEmail(body.email);
   const name = String(body.name || body.displayName || "").trim();
@@ -780,7 +789,7 @@ async function createUser(req, res) {
 }
 
 async function updateUser(req, res, userId) {
-  const actor = await requireAdmin(req);
+  const actor = await requireAccountAdmin(req);
   const body = await readBody(req);
   const client = await pool.connect();
   try {
