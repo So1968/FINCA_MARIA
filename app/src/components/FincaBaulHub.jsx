@@ -8,6 +8,7 @@ const CATEGORIES = [
 ];
 const CATEGORY_LABELS = Object.fromEntries(CATEGORIES);
 const MAX_IMPORT = 20 * 1024 * 1024;
+const MAX_BATCH = 50;
 
 async function api(url, options) {
   const response = await fetch(url, { credentials: "same-origin", ...options });
@@ -56,6 +57,7 @@ export default function FincaBaulHub() {
   const [files, setFiles] = useState([]);
   const [progress, setProgress] = useState(null);
   const [batchResults, setBatchResults] = useState([]);
+  const [folderMode, setFolderMode] = useState(false);
   const [category, setCategory] = useState("auto");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -94,6 +96,7 @@ export default function FincaBaulHub() {
   async function importFile(event) {
     event.preventDefault();
     if (!admin || !files.length || busy) return;
+    if (files.length > MAX_BATCH) { setError("Maximum 50 fichiers par lot. Sélectionne un dossier plus petit."); return; }
     setBusy(true); setError(""); setMessage(""); setBatchResults([]);
     const results = [];
     let imported = 0, duplicates = 0, failed = 0;
@@ -106,9 +109,11 @@ export default function FincaBaulHub() {
           if (file.size > MAX_IMPORT) throw new Error("Fichier supérieur à 20 Mo.");
           const bytes = new Uint8Array(await file.arrayBuffer());
           const sha256 = toHex(await crypto.subtle.digest("SHA-256", bytes));
+          const relativePath = folderMode && file.webkitRelativePath ? file.webkitRelativePath : file.name;
+          const safeDisplayName = folderMode ? relativePath.split("/").filter(Boolean).join(" - ").slice(-180) : file.name;
           const result = await api("/api/baul/upload", {
             method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name: file.name, type: file.type || "application/octet-stream",
+            body: JSON.stringify({ name: safeDisplayName, type: file.type || "application/octet-stream",
               size: file.size, sha256, category, contentBase64: toBase64(bytes) })
           });
           if (result.duplicate) { duplicates++; results.push({ name: file.name, status: "Déjà présent" }); }
@@ -163,7 +168,10 @@ export default function FincaBaulHub() {
     {admin && <section>
       <h2>Ajouter un document</h2>
       <form onSubmit={importFile} className="baulTools">
-        <label>Choisir plusieurs fichiers (20 Mo maximum par fichier)<input type="file" multiple onChange={e => { setFiles(Array.from(e.target.files || [])); setBatchResults([]); }} required disabled={busy} /></label>
+        <label>Mode de sélection<select value={folderMode ? "folder" : "files"} disabled={busy} onChange={e => { setFolderMode(e.target.value === "folder"); setFiles([]); setBatchResults([]); }}><option value="files">Plusieurs fichiers</option><option value="folder">Un dossier complet (50 fichiers maximum)</option></select></label>
+        {folderMode
+          ? <label>Dossier à importer<input key="folder" type="file" multiple webkitdirectory="" directory="" onChange={e => { setFiles(Array.from(e.target.files || [])); setBatchResults([]); }} required disabled={busy}/></label>
+          : <label>Fichiers à importer<input key="files" type="file" multiple onChange={e => { setFiles(Array.from(e.target.files || [])); setBatchResults([]); }} required disabled={busy}/></label>}
         <label>Catégorie suggérée<select value={category} onChange={e => setCategory(e.target.value)}><option value="auto">À vérifier</option>{CATEGORIES.map(([key, label]) => <option value={key} key={key}>{label}</option>)}</select></label>
         <button type="submit" disabled={busy || !files.length}>{busy ? "Import en cours…" : `Importer ${files.length || ""} fichier(s)`}</button>
       </form>
