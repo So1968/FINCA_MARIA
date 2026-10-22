@@ -1,0 +1,26 @@
+name: Vérification corbeille
+on:
+  pull_request:
+    paths:
+      - "server/**"
+      - "app/**"
+      - ".github/workflows/verifier-corbeille.yml"
+  workflow_dispatch:
+jobs:
+  verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Tests API de la corbeille
+        working-directory: server
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          node --test test/trash.test.js test/trash-file-cleanup.test.js
+      - name: Construction interface
+        working-directory: app
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build

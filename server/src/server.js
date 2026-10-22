@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { createMeetingRouter } from "./meetings.js";
+import { createTrashRouter } from "./trash.js";
 
 const { Pool } = pg;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -20,7 +21,8 @@ const MAX_BAUL_FILE = 120 * 1024 * 1024;
 const MAX_BAUL_BODY = 170 * 1024 * 1024;
 const BAUL_ROOT = path.resolve(process.env.BAUL_ROOT || "/data/baul");
 const ADMIN_ROLES = new Set(["admin-projet", "admin-secretariat"]);
-const FAMILY_ROLES = new Set(["heritier", "admin-projet", "admin-secretariat"]);
+const ACCOUNT_ADMIN_ROLES = new Set(["admin-projet"]);
+const FAMILY_ROLES = new Set(["heritier", "admin-projet", "admin-secretariat", "conseil", "contributeur-familial"]);
 const BAUL_CATEGORIES = new Set(["factures", "cooperative", "pac", "pelaez", "terrain", "casa", "reunions", "messages", "plans", "verifier"]);
 const SHARED_KEYS = new Set([
   "finca_maria_maison_notes_v1",
@@ -229,10 +231,10 @@ function documentView(row) {
 async function baulStatus() {
   const [countsResult, pendingResult] = await Promise.all([
     pool.query(`SELECT COUNT(*)::int AS total,
-                       COUNT(*) FILTER (WHERE status='pending')::int AS pending,
-                       COUNT(*) FILTER (WHERE status='validated')::int AS validated
-                  FROM baul_documents`),
-    pool.query(`SELECT * FROM baul_documents WHERE status='pending' ORDER BY received_at DESC LIMIT 250`)
+                       COUNT(*) FILTER (WHERE deleted_at IS NULL AND status='pending')::int AS pending,
+                       COUNT(*) FILTER (WHERE deleted_at IS NULL AND status='validated')::int AS validated
+                  FROM baul_documents WHERE deleted_at IS NULL`),
+    pool.query(`SELECT * FROM baul_documents WHERE deleted_at IS NULL AND status='pending' ORDER BY received_at DESC LIMIT 250`)
   ]);
   const counts = countsResult.rows[0] || { total: 0, pending: 0, validated: 0 };
   return {
@@ -346,6 +348,11 @@ async function requireAdmin(req) {
   if (!isAdmin(user)) throw Object.assign(new Error("Accès administrateur requis"), { status: 403 });
   return user;
 }
+async function requireAccountAdmin(req) {
+  const user = await requireUser(req);
+  if (!user.roles.some(role => ACCOUNT_ADMIN_ROLES.has(role))) throw Object.assign(new Error("Administration des utilisateurs interdite"), { status: 403 });
+  return user;
+}
 
 function isFamilyUser(user) {
   return user.roles.some((role) => FAMILY_ROLES.has(role));
@@ -449,7 +456,7 @@ async function handleLogout(req, res) {
 async function bootstrap(req, res) {
   await requireUser(req);
   const [reservations, rooms, state] = await Promise.all([
-    pool.query("SELECT id, name, place, arrival::text, departure::text, note FROM reservations ORDER BY arrival, place"),
+    pool.query("SELECT id, name, place, arrival::text, departure::text, note FROM reservations WHERE deleted_at IS NULL ORDER BY arrival, place"),
     pool.query("SELECT room, ready, updated_at FROM room_ready ORDER BY room"),
     pool.query("SELECT key, value, version, updated_at FROM shared_state WHERE key = ANY($1::text[]) ORDER BY key", [[...SHARED_KEYS]])
   ]);
@@ -461,7 +468,7 @@ async function bootstrap(req, res) {
 async function familyBootstrap(req, res) {
   await requireFamilyUser(req);
   const [reservations, rooms, state] = await Promise.all([
-    pool.query("SELECT id, name, place, arrival::text, departure::text, note FROM reservations ORDER BY arrival, place"),
+    pool.query("SELECT id, name, place, arrival::text, departure::text, note FROM reservations WHERE deleted_at IS NULL ORDER BY arrival, place"),
     pool.query("SELECT room, ready, updated_at FROM room_ready ORDER BY room"),
     pool.query("SELECT key, value, version, updated_at FROM shared_state WHERE key = ANY($1::text[]) ORDER BY key", [[...FAMILY_SHARED_KEYS]])
   ]);
@@ -492,7 +499,7 @@ async function saveReservation(req, res) {
     const conflict = await client.query(
       `SELECT id, name, arrival::text, departure::text
          FROM reservations
-        WHERE place = $1 AND id <> $2 AND arrival < $4::date AND departure > $3::date
+        WHERE deleted_at IS NULL AND place = $1 AND id <> $2 AND arrival < $4::date AND departure > $3::date
         LIMIT 1
         FOR UPDATE`,
       [place, id, arrival, departure]
@@ -502,6 +509,10 @@ async function saveReservation(req, res) {
       return json(res, 409, { error: "Cette chambre est déjà réservée sur une partie de cette période", conflict: conflict.rows[0] });
     }
     const before = await client.query("SELECT * FROM reservations WHERE id = $1", [id]);
+    if (before.rowCount && before.rows[0].deleted_at) {
+      await client.query("ROLLBACK");
+      return json(res, 409, { error: "Élément dans la corbeille" });
+    }
     const saved = await client.query(
       `INSERT INTO reservations (id, name, place, arrival, departure, note, updated_by)
        VALUES ($1,$2,$3,$4,$5,$6,$7)
@@ -521,10 +532,18 @@ async function saveReservation(req, res) {
 }
 
 async function deleteReservation(req, res, id) {
-  const user = await requireUser(req);
-  const result = await pool.query("DELETE FROM reservations WHERE id = $1 RETURNING *", [id]);
-  if (result.rowCount) await audit(user, req, "reservation_delete", "reservation", id, result.rows[0], null);
-  return noContent(res);
+  const user = await requireAdmin(req);
+  // Compatibilité avec l'ancienne interface : ne détruit plus jamais une réservation.
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const before = await client.query("SELECT * FROM reservations WHERE id=$1 AND deleted_at IS NULL FOR UPDATE", [id]);
+    if (!before.rowCount) { await client.query("ROLLBACK"); return json(res,404,{error:"Réservation active introuvable"}); }
+    const result = await client.query("UPDATE reservations SET deleted_at=NOW(),deleted_by=$2 WHERE id=$1 RETURNING *", [id,user.id]);
+    await audit(user,req,"reservation_soft_delete","reservation",id,before.rows[0],result.rows[0],"ok",client);
+    await client.query("COMMIT");
+    return noContent(res);
+  } catch (error) { await client.query("ROLLBACK"); throw error; } finally { client.release(); }
 }
 
 async function saveRoomReady(req, res, room) {
@@ -674,6 +693,7 @@ async function handleBaulConfirm(req, res) {
   const current = await pool.query("SELECT * FROM baul_documents WHERE id=$1", [id]);
   if (!current.rowCount) return json(res, 404, { ok: false, error: "Document BAÚL introuvable" });
   const before = current.rows[0];
+  if (before.deleted_at) return json(res, 409, { ok: false, error: "Document en corbeille" });
   if (before.status === "validated") return json(res, 200, { ok: true, document: documentView(before), status: await baulStatus() });
 
   const source = baulAbsolute(before.storage_path);
@@ -698,11 +718,12 @@ async function handleBaulConfirm(req, res) {
 }
 
 async function handleBaulPreview(req, res, url) {
-  await requireAdmin(req);
+  await requireFamilyUser(req);
   const id = String(url.searchParams.get("id") || "");
   const result = await pool.query("SELECT * FROM baul_documents WHERE id=$1", [id]);
   if (!result.rowCount) return json(res, 404, { error: "Document BAÚL introuvable" });
   const row = result.rows[0];
+  if (row.deleted_at) return json(res, 404, { error: "Document en corbeille" });
   const absolutePath = baulAbsolute(row.storage_path);
   let stat;
   try { stat = await fs.stat(absolutePath); } catch { return json(res, 404, { error: "Fichier BAÚL introuvable" }); }
@@ -736,7 +757,7 @@ async function handleBaulExport(req, res) {
 }
 
 async function listUsers(req, res) {
-  await requireAdmin(req);
+  await requireAccountAdmin(req);
   const result = await pool.query(
     `SELECT u.id, u.email, u.display_name, u.active, u.created_at, u.updated_at,
             COALESCE(array_agg(ur.role_id ORDER BY ur.role_id) FILTER (WHERE ur.role_id IS NOT NULL), '{}') AS roles
@@ -749,7 +770,7 @@ async function listUsers(req, res) {
 }
 
 async function createUser(req, res) {
-  const actor = await requireAdmin(req);
+  const actor = await requireAccountAdmin(req);
   const body = await readBody(req);
   const email = normalizeEmail(body.email);
   const name = String(body.name || body.displayName || "").trim();
@@ -780,7 +801,7 @@ async function createUser(req, res) {
 }
 
 async function updateUser(req, res, userId) {
-  const actor = await requireAdmin(req);
+  const actor = await requireAccountAdmin(req);
   const body = await readBody(req);
   const client = await pool.connect();
   try {
@@ -792,6 +813,7 @@ async function updateUser(req, res, userId) {
     }
     const before = beforeResult.rows[0];
     const beforeRoles = await rolesForUser(userId, client);
+    await client.query("SELECT pg_advisory_xact_lock(7231942)");
     const email = body.email === undefined ? before.email : normalizeEmail(body.email);
     const name = body.name === undefined && body.displayName === undefined ? before.display_name : String(body.name || body.displayName || "").trim();
     const active = body.active === undefined ? before.active : Boolean(body.active);
@@ -812,6 +834,16 @@ async function updateUser(req, res, userId) {
       const passwordHash = await hashPassword(body.password);
       await client.query("UPDATE users SET password_hash=$1, updated_at=NOW() WHERE id=$2", [passwordHash, userId]);
       await client.query("DELETE FROM sessions WHERE user_id=$1 AND token_hash <> $2", [userId, actor.tokenHash]);
+    }
+    if (beforeRoles.includes("admin-projet") && (!active || !roles.includes("admin-projet"))) {
+      const others = await client.query(
+        `SELECT COUNT(DISTINCT u.id)::int AS count FROM users u
+         JOIN user_roles ur ON ur.user_id=u.id AND ur.role_id='admin-projet'
+         WHERE u.active=TRUE AND u.id <> $1`, [userId]
+      );
+      if (Number(others.rows[0].count) === 0) {
+        throw Object.assign(new Error("Impossible de retirer ou désactiver le dernier administrateur actif"), {status:400});
+      }
     }
     if (!active) await client.query("DELETE FROM sessions WHERE user_id=$1", [userId]);
     const afterResult = await client.query("SELECT id, email, display_name, active, updated_at FROM users WHERE id=$1", [userId]);
@@ -840,9 +872,12 @@ async function listAudit(req, res, url) {
   return json(res, 200, { events: result.rows });
 }
 
+const trashRoute = createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit, readBody, json, baulRoot: BAUL_ROOT });
+
 const meetingRoute = createMeetingRouter({
   pool,
   requireAdmin,
+  requireFamilyUser,
   audit,
   readBody,
   json,
@@ -898,6 +933,7 @@ async function route(req, res) {
   if (userMatch && req.method === "PUT") return updateUser(req, res, Number(userMatch[1]));
   if (url.pathname === "/api/admin/audit" && req.method === "GET") return listAudit(req, res, url);
 
+  if (await trashRoute(req, res, url)) return;
   if (await meetingRoute(req, res, url)) return;
 
   return json(res, 404, { error: "Route inconnue" });

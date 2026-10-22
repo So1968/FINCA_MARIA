@@ -705,7 +705,7 @@ export default function FincaMeetingsHub() {
           <h1>Réunions et conseils de famille</h1>
           <span className="meetingMuted">Préparer · accompagner · transcrire · valider · retrouver</span>
         </div>
-        <a className="meetingBack" href="/">← FINCA MARIA</a>
+        <div className="meetingActions"><a className="meetingBack" href="?view=corbeille">Corbeille générale</a><a className="meetingBack" href="/">← FINCA MARIA</a></div>
       </header>
 
       <div className="meetingLayout">

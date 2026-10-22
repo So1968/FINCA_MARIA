@@ -225,7 +225,7 @@ function formatTranscriptText(transcript) {
   return (transcript?.segments || []).map((segment) => `[${clock(segment.start)}] ${segment.speaker} — ${segment.text}`).join("\n\n");
 }
 
-export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json, baulRoot }) {
+export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, audit, readBody, json, baulRoot }) {
   const meetingsRoot = path.resolve(baulRoot, "meetings");
 
   function absoluteMeetingPath(relativePath) {
@@ -283,13 +283,13 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
   }
 
   async function listMeetings(req, res) {
-    await requireAdmin(req);
+    await requireFamilyUser(req);
     const result = await pool.query(`
       SELECT m.*,
         (SELECT COUNT(*) FROM meeting_participants p WHERE p.meeting_id=m.id AND p.presence='present') AS present_count,
         (SELECT COUNT(*) FROM meeting_markers x WHERE x.meeting_id=m.id) AS marker_count,
         (SELECT MAX(version) FROM meeting_report_versions v WHERE v.meeting_id=m.id) AS validated_version
-      FROM meetings m ORDER BY meeting_date DESC, created_at DESC LIMIT 250
+      FROM meetings m WHERE m.deleted_at IS NULL ORDER BY meeting_date DESC, created_at DESC LIMIT 250
     `);
     return json(res, 200, {
       meetings: result.rows.map((row) => ({
@@ -304,9 +304,9 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
 
 
   async function decisionRegister(req, res) {
-    await requireAdmin(req);
+    await requireFamilyUser(req);
     const result = await pool.query(
-      "SELECT k.id, k.meeting_id, k.note, k.classification, k.responsible, k.due_date, m.title, m.meeting_date, m.meeting_type FROM meeting_markers k JOIN meetings m ON m.id=k.meeting_id WHERE k.marker_type='decision' OR k.classification='decision_confirmee' ORDER BY m.meeting_date DESC, k.created_at DESC LIMIT 5000"
+      "SELECT k.id, k.meeting_id, k.note, k.classification, k.responsible, k.due_date, m.title, m.meeting_date, m.meeting_type FROM meeting_markers k JOIN meetings m ON m.id=k.meeting_id WHERE m.deleted_at IS NULL AND (k.marker_type='decision' OR k.classification='decision_confirmee') ORDER BY m.meeting_date DESC, k.created_at DESC LIMIT 5000"
     );
     return json(res, 200, {
       decisions: result.rows.map((row) => ({
@@ -682,7 +682,7 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
   }
 
   async function streamAudio(req, res, id) {
-    await requireAdmin(req);
+    await requireFamilyUser(req);
     const safeId = safeMeetingId(id);
     const result = await pool.query("SELECT audio_storage_path,audio_mime_type,audio_original_name FROM meetings WHERE id=$1", [safeId]);
     if (!result.rowCount || !result.rows[0].audio_storage_path) return json(res, 404, { error: "Audio introuvable" });
@@ -952,10 +952,10 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
   }
 
   async function listDocuments(req, res) {
-    await requireAdmin(req);
+    await requireFamilyUser(req);
     const result = await pool.query(
       `SELECT id,logical_name,original_name,category,validated_at,size_bytes
-       FROM baul_documents WHERE status='validated' ORDER BY validated_at DESC NULLS LAST,received_at DESC LIMIT 150`
+       FROM baul_documents WHERE deleted_at IS NULL AND status='validated' ORDER BY validated_at DESC NULLS LAST,received_at DESC LIMIT 150`
     );
     return json(res, 200, {
       documents: result.rows.map((row) => ({
@@ -976,7 +976,7 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
     if (!documentId) return json(res, 400, { error: "Document obligatoire" });
     const [marker, document] = await Promise.all([
       pool.query("SELECT id FROM meeting_markers WHERE id=$1 AND meeting_id=$2", [markerId, safeId]),
-      pool.query("SELECT id FROM baul_documents WHERE id=$1 AND status='validated'", [documentId])
+      pool.query("SELECT id FROM baul_documents WHERE id=$1 AND status='validated' AND deleted_at IS NULL", [documentId])
     ]);
     if (!marker.rowCount) return json(res, 404, { error: "Marqueur introuvable" });
     if (!document.rowCount) return json(res, 404, { error: "Document BAÚL validé introuvable" });
@@ -1033,9 +1033,21 @@ export function createMeetingRouter({ pool, requireAdmin, audit, readBody, json,
       return true;
     }
 
+    // Une réunion mise en corbeille est gelée, y compris ses participants,
+    // marqueurs, enregistrements et versions de compte rendu.
+    const meetingPath = url.pathname.match(/^\/api\/meetings\/([^/]+)(?:\/|$)/);
+    if (meetingPath) {
+      const id = safeMeetingId(meetingPath[1]);
+      const visible = await pool.query("SELECT id FROM meetings WHERE id=$1 AND deleted_at IS NULL", [id]);
+      if (!visible.rowCount) {
+        json(res, 404, { error: "Réunion inexistante ou dans la corbeille" });
+        return true;
+      }
+    }
+
     let match = url.pathname.match(/^\/api\/meetings\/([^/]+)$/);
     if (match && req.method === "GET") {
-      await requireAdmin(req);
+      await requireFamilyUser(req);
       json(res, 200, { meeting: await fullMeeting(match[1]) });
       return true;
     }
