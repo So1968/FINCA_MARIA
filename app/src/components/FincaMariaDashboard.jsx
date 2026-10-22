@@ -288,11 +288,20 @@ export function FincaMariaDashboard() {
         <div className="fincaAreaGrid">
           <AreaChoice area="terre" title="TERRE" subtitle="Exploitation agricole" stats={`${actionSummary.todo} action${actionSummary.todo > 1 ? "s" : ""} à compléter · année-test 2022/23`} icon="leaf" onClick={() => { setArea("terre"); setEarthTab(earthTab || "gestion"); }} />
           <AreaChoice area="maison" title="MAISON" subtitle="Maison familiale" stats="Séjours · jardin · guide vacanciers" icon="home" onClick={() => { setArea("maison"); setHouseTab(houseTab || "gerer"); }} />
+          <a href={appViewUrl("reunions")} className="fincaMainMeetingTile" aria-label="Ouvrir les réunions et conseils de famille"><span className="fincaMeetingIcon" aria-hidden="true">🎙️</span><span><strong>RÉUNIONS</strong><small>Conseils de famille · comptes rendus</small></span><span aria-hidden="true">→</span></a>
         </div>
+        <style>{`
+          .fincaAreaGrid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:1rem}
+          .fincaMainMeetingTile{display:flex;align-items:center;gap:1rem;min-width:0;min-height:210px;padding:1.4rem;border:1px solid #766332;border-radius:24px;background:#0c1610;color:#f5e3ad;text-decoration:none}
+          .fincaMainMeetingTile strong{display:block;font:700 clamp(1.5rem,2.5vw,2.35rem) Georgia,serif}
+          .fincaMainMeetingTile small{display:block;margin-top:.5rem;font-size:.84rem}
+          .fincaMeetingIcon{font-size:2rem;padding:.9rem;border:1px solid #766332;border-radius:22px}
+          .fincaMainMeetingTile:hover{background:#1a291d}
+          @media(max-width:900px){.fincaAreaGrid{grid-template-columns:1fr!important}.fincaMainMeetingTile{min-height:130px}}
+        `}</style>
         <nav aria-label="Accès aux outils familiaux" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:".8rem",margin:"1.25rem 0"}}>
           {[
             ["📁 BAÚL", "Documents familiaux", "baul"],
-            ["🎙️ Réunions", "Conseils et comptes rendus", "reunions"],
             ["🗑️ Corbeille", "Retrouver un élément", "corbeille"]
           ].map(([label, subtitle, view]) => <a key={view} href={appViewUrl(view)} style={{display:"flex",flexDirection:"column",gap:".35rem",padding:"1.15rem",border:"1px solid #a68b4d",borderRadius:"16px",background:"#152019",color:"#f5e2aa",textDecoration:"none"}}>
             <strong style={{fontSize:"1.13rem"}}>{label}</strong><span>{subtitle}</span>
