@@ -37,6 +37,19 @@ export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit
       }
       return json(res, 200, { active: data });
     }
+    if (url.pathname === "/api/trash/history" && req.method === "GET") {
+      await requireFamilyUser(req);
+      const receipts = await pool.query(
+        `SELECT p.kind,p.object_id,p.item_summary,p.purged_at,
+                COALESCE(a.display_name, 'Compte historique') AS purged_by_name,
+                COALESCE(d.display_name, 'Compte historique') AS deleted_by_name
+           FROM trash_purge_receipts p
+           LEFT JOIN users a ON a.id=p.purged_by
+           LEFT JOIN users d ON d.id=p.deleted_by
+          ORDER BY p.purged_at DESC LIMIT 500`
+      );
+      return json(res,200,{receipts:receipts.rows});
+    }
     if (url.pathname === "/api/trash/cleanup" && req.method === "GET") {
       const actor = await requireAdmin(req);
       if (!actor.roles.includes("admin-projet")) return json(res,403,{error:"Réservé à l'administration familiale"});
@@ -180,7 +193,11 @@ export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit
       }
       await client.query("COMMIT");
       if (action === "purge" && kind !== "reservation") {
-        const cleanup = await processTrashFileCleanup(pool, baulRoot);
+        // PostgreSQL est déjà validé : un échec ultérieur du disque ne doit
+        // pas tenter de revenir en arrière ni cacher que la purge a eu lieu.
+        let cleanup;
+        try { cleanup = await processTrashFileCleanup(pool, baulRoot); }
+        catch { cleanup = { processed:0, failed:1 }; }
         return json(res,200,{ok:true,kind,id,action,cleanup,pendingCleanup:cleanup.failed > 0});
       }
       return json(res,200,{ok:true,kind,id,action});
