@@ -541,6 +541,15 @@ grep -q '"pendingCleanup":false' "$TMP_DIR/trash-meeting-purged" || fail "purge 
 curl -fsS -H "Cookie: $COOKIE" "$BASE_URL/api/trash/history" > "$TMP_DIR/trash-history"
 grep -q "$MEETING_ID" "$TMP_DIR/trash-history" || fail "purge de la réunion absente de l'historique"
 grep -q "$DOCUMENT_ID" "$TMP_DIR/trash-history" || fail "purge document absente de l'historique"
+curl -fsS -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{}' "$BASE_URL/api/trash/reservation/$TRASH_RESERVATION_ID/delete" >/dev/null
+purge_res_code="$(curl -sS -o "$TMP_DIR/trash-reservation-purged" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data "{\"kind\":\"reservation\",\"itemId\":\"$TRASH_RESERVATION_ID\",\"reviewed\":true,\"confirmation\":\"VIDER DEFINITIVEMENT\"}" \
+  "$BASE_URL/api/trash/reservation/$TRASH_RESERVATION_ID/purge" || true)"
+[ "$purge_res_code" = "200" ] || fail "purge réservation = $purge_res_code"
+curl -fsS -H "Cookie: $COOKIE" "$BASE_URL/api/trash/history" > "$TMP_DIR/trash-history-after-res"
+grep -q "$TRASH_RESERVATION_ID" "$TMP_DIR/trash-history-after-res" || fail "purge réservation absente de l'historique"
 pass "purges définitives avec historique consultable"
 
 logout_code="$(curl -sS -o /dev/null -w '%{http_code}' \
