@@ -93,6 +93,7 @@ export default function FincaBaulHub() {
     event.preventDefault();
     if (!admin || !file || busy) return;
     if (file.size > MAX_IMPORT) { setError("Pour cet import, le maximum conseillé est de 20 Mo par fichier."); return; }
+    const form = event.currentTarget;
     setBusy(true); setError(""); setMessage("");
     try {
       if (!globalThis.crypto?.subtle) throw new Error("Le navigateur ne permet pas le contrôle SHA-256 sur cette connexion.");
@@ -105,7 +106,7 @@ export default function FincaBaulHub() {
       });
       setMessage(result.duplicate ? "Ce document existe déjà : aucun doublon ajouté." : "Document importé dans « À classer ».");
       setFile(null);
-      event.currentTarget.reset();
+      form.reset();
       await refresh();
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
