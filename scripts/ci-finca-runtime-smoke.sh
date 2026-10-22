@@ -357,9 +357,13 @@ SECOND_COOKIE="$(sed -n 's/^[Ss]et-[Cc]ookie: \(finca_session=[^;]*\).*/\1/p' "$
 [ -n "$SECOND_COOKIE" ] || fail "cookie second administrateur absent"
 for endpoint in / /api/bootstrap /api/admin/users /api/admin/audit /api/baul/status; do
   code="$(curl -sS -o /dev/null -w '%{http_code}' -H "Cookie: $SECOND_COOKIE" "$BASE_URL$endpoint")"
-  [ "$code" = "200" ] || fail "second administrateur : $endpoint = $code"
+  if [ "$endpoint" = "/api/admin/users" ]; then
+    [ "$code" = "403" ] || fail "la secrétaire accède aux comptes utilisateurs ($code)"
+  else
+    [ "$code" = "200" ] || fail "secrétariat : $endpoint = $code"
+  fi
 done
-pass "accès complet du second rôle administrateur"
+pass "accès secrétariat sans gestion des comptes"
 
 for key in finca_maria_questions_v44_20260913 finca_maria_anomalies_v44_20260913 finca_maria_family_checks_v42_20260818 cortijo_terrain_mission_2026_08 cortijo_terrain_olive_markers_v2_30; do
   code="$(curl -sS -o /dev/null -w '%{http_code}' -X PUT \
