@@ -17,7 +17,8 @@ export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit
       const data = {};
       for (const [kind, spec] of Object.entries(ITEMS)) {
         const result = await pool.query(
-          `SELECT t.id,t.${spec.label} AS label,t.deleted_at,t.deleted_by,u.display_name AS deleted_by_name
+          `SELECT t.id,t.${spec.label} AS label,t.deleted_at,t.deleted_by,u.display_name AS deleted_by_name,
+                  ${kind === 'document' ? `(SELECT COUNT(*)::int FROM meeting_links l WHERE l.kind='document' AND l.target_ref=t.id) AS linked_count` : `0::int AS linked_count`}
              FROM ${spec.table} t LEFT JOIN users u ON u.id=t.deleted_by
             WHERE t.deleted_at IS NOT NULL ORDER BY t.deleted_at DESC LIMIT 500`
         );
@@ -142,11 +143,17 @@ export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit
       }
       if (action === "purge" && kind === "document") {
         const links = await client.query(
-          "SELECT id FROM meeting_links WHERE kind='document' AND target_ref=$1 LIMIT 1", [id]
+          "SELECT id,meeting_id FROM meeting_links WHERE kind='document' AND target_ref=$1 FOR UPDATE", [id]
         );
-        if (links.rowCount) {
+        if (links.rowCount && body.linkedReferencesReviewed !== true) {
           await client.query("ROLLBACK");
-          return json(res,409,{error:"Document associé à une réunion : retirer d'abord ses références"});
+          return json(res,409,{error:"Ce document est lié à des réunions : confirmer la suppression des références avant la purge",linkedCount:links.rowCount});
+        }
+        if (links.rowCount) {
+          await client.query("DELETE FROM meeting_links WHERE kind='document' AND target_ref=$1", [id]);
+          await audit(admin,req,"trash_document_links_detached","document",id,
+            { meetingIds:links.rows.map(link=>link.meeting_id) },
+            { linksRemoved:links.rowCount },"ok",client);
         }
         const root = path.resolve(baulRoot);
         const absolute = path.resolve(root, String(before.storage_path || ""));
