@@ -10,7 +10,7 @@
 - Les opérations sensibles sont attribuées à un utilisateur identifié et journalisées.
 - La suppression ordinaire est logique, réversible, jamais silencieuse ; restauration attribuée et journalisée.
 - Les sauvegardes chiffrées et **testées en restauration** sont distinctes de la corbeille.
-- Ne pas stocker les noms/adresses des cohéritiers dans Git : prévoir un import privé lors du déploiement. Une entrée au nom incomplet reste à confirmer.
+- Ne pas stocker les noms/adresses des cohéritiers dans Git : prévoir un import privé lors du déploiement. Les 14 identités ont été confirmées dans le registre familial privé ; aucun nom ou e-mail personnel n'est conservé dans ce dépôt.
 
 ## Matrice des autorisations cible
 
