@@ -463,6 +463,84 @@ compose exec -T finca-backup sh -ec '
 grep -q "$FILE_HASH" "$TMP_DIR/restored-baul" || fail "document BAÚL non retrouvé après restauration"
 pass "sauvegarde chiffrée et restauration isolée PostgreSQL + BAÚL"
 
+# Test complet de corbeille dans une base et un BAÚL isolés de CI.
+TRASH_RESERVATION_ID="ci-reservation-trash-001"
+reserve_code="$(curl -sS -o "$TMP_DIR/trash-reservation-new" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data "{\"id\":\"$TRASH_RESERVATION_ID\",\"name\":\"Réservation fictive CI\",\"place\":\"Chambre fictive CI\",\"arrival\":\"2028-04-01\",\"departure\":\"2028-04-03\"}" \
+  "$BASE_URL/api/reservations" || true)"
+[ "$reserve_code" = "200" ] || fail "création réservation test = $reserve_code"
+trash_reserve_code="$(curl -sS -o "$TMP_DIR/trash-reservation-deleted" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{}' "$BASE_URL/api/trash/reservation/$TRASH_RESERVATION_ID/delete" || true)"
+[ "$trash_reserve_code" = "200" ] || fail "mise corbeille réservation = $trash_reserve_code"
+curl -fsS -H "Cookie: $COOKIE" "$BASE_URL/api/trash" > "$TMP_DIR/trash-list"
+grep -q "$TRASH_RESERVATION_ID" "$TMP_DIR/trash-list" || fail "réservation absente de la corbeille"
+restore_reserve_code="$(curl -sS -o "$TMP_DIR/trash-reservation-restored" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{}' "$BASE_URL/api/trash/reservation/$TRASH_RESERVATION_ID/restore" || true)"
+[ "$restore_reserve_code" = "200" ] || fail "restauration réservation = $restore_reserve_code"
+pass "réservation supprimée, visible et restaurée"
+
+trash_document_code="$(curl -sS -o "$TMP_DIR/trash-document-deleted" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{}' "$BASE_URL/api/trash/document/$DOCUMENT_ID/delete" || true)"
+[ "$trash_document_code" = "200" ] || fail "mise en corbeille document = $trash_document_code"
+hidden_document_code="$(curl -sS -o /dev/null -w '%{http_code}' \
+  -H "Cookie: $COOKIE" "$BASE_URL/api/baul/preview?id=$DOCUMENT_ID" || true)"
+[ "$hidden_document_code" = "404" ] || fail "document supprimé encore visible = $hidden_document_code"
+restore_document_code="$(curl -sS -o "$TMP_DIR/trash-document-restored" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{}' "$BASE_URL/api/trash/document/$DOCUMENT_ID/restore" || true)"
+[ "$restore_document_code" = "200" ] || fail "restauration document = $restore_document_code"
+curl -fsS -H "Cookie: $COOKIE" "$BASE_URL/api/baul/preview?id=$DOCUMENT_ID" > "$TMP_DIR/trash-doc-restored-file"
+cmp "$TMP_DIR/baul-test.txt" "$TMP_DIR/trash-doc-restored-file" || fail "octets document restauré différents"
+pass "document BAÚL supprimé, invisible, restauré intact"
+
+trash_meeting_code="$(curl -sS -o "$TMP_DIR/trash-meeting-deleted" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{}' "$BASE_URL/api/trash/meeting/$MEETING_ID/delete" || true)"
+[ "$trash_meeting_code" = "200" ] || fail "mise en corbeille réunion = $trash_meeting_code"
+hidden_meeting_code="$(curl -sS -o /dev/null -w '%{http_code}' \
+  -H "Cookie: $COOKIE" "$BASE_URL/api/meetings/$MEETING_ID" || true)"
+[ "$hidden_meeting_code" = "404" ] || fail "réunion supprimée encore consultable = $hidden_meeting_code"
+restore_meeting_code="$(curl -sS -o "$TMP_DIR/trash-meeting-restored" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{}' "$BASE_URL/api/trash/meeting/$MEETING_ID/restore" || true)"
+[ "$restore_meeting_code" = "200" ] || fail "restauration réunion = $restore_meeting_code"
+curl -fsS -H "Cookie: $COOKIE" "$BASE_URL/api/meetings/$MEETING_ID" > "$TMP_DIR/trash-meeting-after-restore"
+grep -q '"validatedVersions"' "$TMP_DIR/trash-meeting-after-restore" || fail "versions réunion perdues"
+pass "réunion supprimée puis restaurée avec versions"
+
+# Une purge de document ne peut pas être lancée sans contrôle des sauvegardes.
+curl -fsS -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{}' "$BASE_URL/api/trash/document/$DOCUMENT_ID/delete" >/dev/null
+deny_purge_code="$(curl -sS -o /dev/null -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data "{\"kind\":\"document\",\"itemId\":\"$DOCUMENT_ID\",\"reviewed\":true,\"confirmation\":\"VIDER DEFINITIVEMENT\"}" \
+  "$BASE_URL/api/trash/document/$DOCUMENT_ID/purge" || true)"
+[ "$deny_purge_code" = "400" ] || fail "purge sans contrôle sauvegarde autorisée = $deny_purge_code"
+purge_document_code="$(curl -sS -o "$TMP_DIR/trash-doc-purged" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data "{\"kind\":\"document\",\"itemId\":\"$DOCUMENT_ID\",\"reviewed\":true,\"backupReviewed\":true,\"confirmation\":\"VIDER DEFINITIVEMENT\"}" \
+  "$BASE_URL/api/trash/document/$DOCUMENT_ID/purge" || true)"
+[ "$purge_document_code" = "200" ] || fail "purge physique document = $purge_document_code"
+grep -q '"pendingCleanup":false' "$TMP_DIR/trash-doc-purged" || fail "purge document encore en attente"
+pass "suppression physique du document après confirmation administrateur"
+
+curl -fsS -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{}' "$BASE_URL/api/trash/meeting/$MEETING_ID/delete" >/dev/null
+purge_meeting_code="$(curl -sS -o "$TMP_DIR/trash-meeting-purged" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data "{\"kind\":\"meeting\",\"itemId\":\"$MEETING_ID\",\"reviewed\":true,\"backupReviewed\":true,\"confirmation\":\"VIDER DEFINITIVEMENT\"}" \
+  "$BASE_URL/api/trash/meeting/$MEETING_ID/purge" || true)"
+[ "$purge_meeting_code" = "200" ] || fail "purge physique réunion = $purge_meeting_code"
+grep -q '"pendingCleanup":false' "$TMP_DIR/trash-meeting-purged" || fail "purge réunion encore en attente"
+curl -fsS -H "Cookie: $COOKIE" "$BASE_URL/api/trash/history" > "$TMP_DIR/trash-history"
+grep -q "$MEETING_ID" "$TMP_DIR/trash-history" || fail "purge de la réunion absente de l'historique"
+grep -q "$DOCUMENT_ID" "$TMP_DIR/trash-history" || fail "purge document absente de l'historique"
+pass "purges définitives avec historique consultable"
+
 logout_code="$(curl -sS -o /dev/null -w '%{http_code}' \
   -H "Cookie: $COOKIE" \
   -H "Origin: $APP_ORIGIN" \
