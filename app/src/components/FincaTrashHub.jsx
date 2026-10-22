@@ -22,6 +22,8 @@ export default function FincaTrashHub() {
   const [candidate, setCandidate] = useState(null);
   const [confirmation, setConfirmation] = useState("");
   const [reviewed, setReviewed] = useState(false);
+  const [backupReviewed, setBackupReviewed] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState([]);
   const admin = roles.includes("admin-projet");
 
   async function refresh() {
@@ -35,6 +37,8 @@ export default function FincaTrashHub() {
     if (userRoles.includes("admin-projet")) {
       const manage = await request("/api/trash/manage");
       setActive({ ...empty, ...(manage.active || {}) });
+      const cleanup = await request("/api/trash/cleanup");
+      setPendingFiles(cleanup.pending || []);
     }
   }
   useEffect(() => { refresh().catch((e) => setError(e.message)); }, []);
@@ -67,16 +71,16 @@ export default function FincaTrashHub() {
   }
 
   async function purge() {
-    if (!admin || busy || !candidate || confirmation !== "VIDER DEFINITIVEMENT" || !reviewed) return;
+    if (!admin || busy || !candidate || confirmation !== "VIDER DEFINITIVEMENT" || !reviewed || (candidate.kind !== "reservation" && !backupReviewed)) return;
     const { kind, id } = candidate;
     setBusy(true); setError(""); setNotice("");
     try {
       await request(`/api/trash/${kind}/${encodeURIComponent(id)}/purge`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind, itemId: id, confirmation, reviewed })
+        body: JSON.stringify({ kind, itemId: id, confirmation, reviewed, backupReviewed })
       });
-      setCandidate(null); setConfirmation(""); setReviewed(false);
+      setCandidate(null); setConfirmation(""); setReviewed(false); setBackupReviewed(false);
       await refresh();
       setNotice("Suppression définitive effectuée et inscrite au journal.");
     } catch (e) { setError(e.message); }
@@ -94,6 +98,15 @@ export default function FincaTrashHub() {
       {error && <p role="alert" className="meetingNotice">{error}</p>}
       {notice && <p role="status" className="meetingNotice">{notice}</p>}
       <button className="meetingBtn" type="button" disabled={busy} onClick={() => refresh().catch(e => setError(e.message))}>Actualiser</button>
+      {admin && pendingFiles.length > 0 && <section className="meetingSection" role="status">
+        <h2>Fichiers en attente d'effacement physique</h2>
+        <p>{pendingFiles.length} opération(s) en attente. La suppression définitive des fichiers n'est pas encore terminée.</p>
+        <button type="button" className="meetingBtn" disabled={busy} onClick={async () => {
+          setBusy(true);
+          try { await request("/api/trash/cleanup/retry", {method:"POST",headers:{"Content-Type":"application/json"},body:"{}"}); await refresh(); }
+          catch(e) { setError(e.message); } finally { setBusy(false); }
+        }}>Réessayer l'effacement</button>
+      </section>}
       {admin && <section className="meetingSection">
         <h2>Mettre un élément dans la corbeille</h2>
         <p className="meetingMuted">Choisis un élément actif. Il sera conservé et pourra être restauré.</p>
@@ -121,7 +134,7 @@ export default function FincaTrashHub() {
           <p className="meetingMuted">Supprimé le {item.deleted_at ? new Date(item.deleted_at).toLocaleString("fr-FR") : "date inconnue"} par {item.deleted_by_name || "Compte non identifié"}</p>
           {admin && <div className="meetingActions">
             <button type="button" className="meetingBtn" disabled={busy} onClick={() => restore(kind, item.id)}>Restaurer</button>
-            {kind === "reservation" ? <button type="button" className="meetingBtn danger" disabled={busy} onClick={() => { setCandidate({ kind, id: item.id, label: item.label }); setConfirmation(""); setReviewed(false); }}>Supprimer définitivement</button> : <span className="meetingMuted">Suppression définitive verrouillée : contrôle des fichiers et sauvegardes requis.</span>}
+            <button type="button" className="meetingBtn danger" disabled={busy} onClick={() => { setCandidate({ kind, id: item.id, label: item.label }); setConfirmation(""); setReviewed(false); setBackupReviewed(false); }}>Supprimer définitivement</button>
           </div>}
         </article>)}
       </section>)}
@@ -132,9 +145,10 @@ export default function FincaTrashHub() {
           <input value={confirmation} onChange={e => setConfirmation(e.target.value)} autoComplete="off"/>
         </label>
         <label><input type="checkbox" checked={reviewed} onChange={e => setReviewed(e.target.checked)} /> J’ai contrôlé cet élément et confirmé que sa destruction est nécessaire.</label>
+        {candidate.kind !== "reservation" && <label><input type="checkbox" checked={backupReviewed} onChange={e => setBackupReviewed(e.target.checked)} /> J’ai vérifié la sauvegarde et compris que les copies chiffrées peuvent subsister jusqu’à expiration.</label>}
         <div className="meetingActions">
           <button className="meetingBtn" onClick={() => { setCandidate(null); setConfirmation(""); setReviewed(false); }}>Annuler</button>
-          <button className="meetingBtn danger" disabled={busy || !reviewed || confirmation !== "VIDER DEFINITIVEMENT"} onClick={purge}>Confirmer la suppression définitive</button>
+          <button className="meetingBtn danger" disabled={busy || !reviewed || (candidate.kind !== "reservation" && !backupReviewed) || confirmation !== "VIDER DEFINITIVEMENT"} onClick={purge}>Confirmer la suppression définitive</button>
         </div>
       </section>}
     </div>
