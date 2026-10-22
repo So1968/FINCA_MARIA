@@ -23,6 +23,7 @@ export default function FincaTrashHub() {
   const [confirmation, setConfirmation] = useState("");
   const [reviewed, setReviewed] = useState(false);
   const [backupReviewed, setBackupReviewed] = useState(false);
+  const [linksReviewed, setLinksReviewed] = useState(false);
   const [pendingFiles, setPendingFiles] = useState([]);
   const [purgeHistory, setPurgeHistory] = useState([]);
   const admin = roles.includes("admin-projet");
@@ -74,16 +75,16 @@ export default function FincaTrashHub() {
   }
 
   async function purge() {
-    if (!admin || busy || !candidate || confirmation !== "VIDER DEFINITIVEMENT" || !reviewed || (candidate.kind !== "reservation" && !backupReviewed)) return;
+    if (!admin || busy || !candidate || confirmation !== "VIDER DEFINITIVEMENT" || !reviewed || (candidate.kind !== "reservation" && !backupReviewed) || (candidate.kind === "document" && candidate.linkedCount > 0 && !linksReviewed)) return;
     const { kind, id } = candidate;
     setBusy(true); setError(""); setNotice("");
     try {
       const result = await request(`/api/trash/${kind}/${encodeURIComponent(id)}/purge`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind, itemId: id, confirmation, reviewed, backupReviewed })
+        body: JSON.stringify({ kind, itemId: id, confirmation, reviewed, backupReviewed, linkedReferencesReviewed: linksReviewed })
       });
-      setCandidate(null); setConfirmation(""); setReviewed(false); setBackupReviewed(false);
+      setCandidate(null); setConfirmation(""); setReviewed(false); setBackupReviewed(false); setLinksReviewed(false);
       await refresh();
       setNotice(result.pendingCleanup ? "Purge enregistrée. Un fichier est encore en attente d’effacement ; consulte les opérations en attente." : "Suppression définitive effectuée et inscrite au journal.");
     } catch (e) { setError(e.message); }
@@ -137,7 +138,7 @@ export default function FincaTrashHub() {
           <p className="meetingMuted">Supprimé le {item.deleted_at ? new Date(item.deleted_at).toLocaleString("fr-FR") : "date inconnue"} par {item.deleted_by_name || "Compte non identifié"}</p>
           {admin && <div className="meetingActions">
             <button type="button" className="meetingBtn" disabled={busy} onClick={() => restore(kind, item.id)}>Restaurer</button>
-            <button type="button" className="meetingBtn danger" disabled={busy} onClick={() => { setCandidate({ kind, id: item.id, label: item.label }); setConfirmation(""); setReviewed(false); setBackupReviewed(false); }}>Supprimer définitivement</button>
+            <button type="button" className="meetingBtn danger" disabled={busy} onClick={() => { setCandidate({ kind, id: item.id, label: item.label, linkedCount: Number(item.linked_count || 0) }); setConfirmation(""); setReviewed(false); setBackupReviewed(false); setLinksReviewed(false); }}>Supprimer définitivement</button>
           </div>}
         </article>)}
       </section>)}
@@ -158,9 +159,10 @@ export default function FincaTrashHub() {
         </label>
         <label><input type="checkbox" checked={reviewed} onChange={e => setReviewed(e.target.checked)} /> J’ai contrôlé cet élément et confirmé que sa destruction est nécessaire.</label>
         {candidate.kind !== "reservation" && <label><input type="checkbox" checked={backupReviewed} onChange={e => setBackupReviewed(e.target.checked)} /> J’ai vérifié la sauvegarde et compris que les copies chiffrées peuvent subsister jusqu’à expiration.</label>}
+        {candidate.kind === "document" && candidate.linkedCount > 0 && <label><input type="checkbox" checked={linksReviewed} onChange={e => setLinksReviewed(e.target.checked)} /> J’ai contrôlé les {candidate.linkedCount} référence(s) de ce document dans les réunions ; leurs liens seront retirés et l’opération sera tracée.</label>}
         <div className="meetingActions">
           <button className="meetingBtn" onClick={() => { setCandidate(null); setConfirmation(""); setReviewed(false); }}>Annuler</button>
-          <button className="meetingBtn danger" disabled={busy || !reviewed || (candidate.kind !== "reservation" && !backupReviewed) || confirmation !== "VIDER DEFINITIVEMENT"} onClick={purge}>Confirmer la suppression définitive</button>
+          <button className="meetingBtn danger" disabled={busy || !reviewed || (candidate.kind !== "reservation" && !backupReviewed) || (candidate.kind === "document" && candidate.linkedCount > 0 && !linksReviewed) || confirmation !== "VIDER DEFINITIVEMENT"} onClick={purge}>Confirmer la suppression définitive</button>
         </div>
       </section>}
     </div>
