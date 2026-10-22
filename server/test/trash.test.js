@@ -167,3 +167,34 @@ test("une purge sans contrôle administrateur coché est refusée", async () => 
   await handler({ method: "POST" }, {}, new URL("http://localhost/api/trash/reservation/res1/purge"));
   assert.equal(output[0].status, 400);
 });
+
+test("un membre du conseil ne peut pas lister les éléments actifs destinés à la suppression", async () => {
+  const { output, json } = response();
+  const handler = createTrashRouter({
+    pool: { query: async () => { throw Error("Aucune consultation SQL"); } },
+    requireAdmin: async () => ({ id:2, roles:["admin-secretariat"] }),
+    requireFamilyUser: async () => {}, readBody: async () => ({}), json, audit: async () => {}, baulRoot:"/tmp/baul"
+  });
+  await handler({ method:"GET" }, {}, new URL("http://localhost/api/trash/manage"));
+  assert.equal(output[0].status, 403);
+});
+
+test("mise en corbeille et audit restent dans une transaction unique", async () => {
+  const { output, json } = response();
+  const queries=[];
+  const client = {query:async(sql)=>{
+    queries.push(sql);
+    if (sql.startsWith("SELECT * FROM meetings")) return {rowCount:1,rows:[{id:"m1",title:"Réunion fictive",deleted_at:null}]};
+    if (sql.startsWith("UPDATE meetings")) return {rowCount:1,rows:[{id:"m1",title:"Réunion fictive",deleted_at:new Date()}]};
+    return {rowCount:0,rows:[]};
+  },release(){}};
+  const handler=createTrashRouter({
+    pool:{connect:async()=>client},requireAdmin:async()=>actor,requireFamilyUser:async()=>{},
+    readBody:async()=>({}),json,
+    audit:async()=>{queries.push("AUDIT");},baulRoot:"/tmp/baul"
+  });
+  await handler({method:"POST"},{},new URL("http://localhost/api/trash/meeting/m1/delete"));
+  assert.equal(output[0].status,200);
+  assert.ok(queries.indexOf("BEGIN") < queries.indexOf("AUDIT"));
+  assert.ok(queries.indexOf("AUDIT") < queries.indexOf("COMMIT"));
+});
