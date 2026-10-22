@@ -18,7 +18,7 @@ test("la consultation des corbeilles est accessible à la famille sans donner dr
     requireAdmin: async () => { adminCalls++; throw new Error("Interdit"); },
     readBody: async () => ({}), json, audit: async () => {}, baulRoot: "/tmp/baul"
   });
-  assert.equal(await handler({}, {}, new URL("http://localhost/api/trash")), true);
+  assert.equal(await handler({ method: "GET" }, {}, new URL("http://localhost/api/trash")), true);
   assert.equal(output[0].status, 200);
   assert.equal(readCalls, 1);
   assert.equal(adminCalls, 0);
