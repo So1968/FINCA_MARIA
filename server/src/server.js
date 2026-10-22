@@ -21,6 +21,7 @@ const MAX_BAUL_FILE = 120 * 1024 * 1024;
 const MAX_BAUL_BODY = 170 * 1024 * 1024;
 const BAUL_ROOT = path.resolve(process.env.BAUL_ROOT || "/data/baul");
 const ADMIN_ROLES = new Set(["admin-projet", "admin-secretariat"]);
+const ACCOUNT_ADMIN_ROLES = new Set(["admin-projet"]);
 const FAMILY_ROLES = new Set(["heritier", "admin-projet", "admin-secretariat", "conseil", "contributeur-familial"]);
 const BAUL_CATEGORIES = new Set(["factures", "cooperative", "pac", "pelaez", "terrain", "casa", "reunions", "messages", "plans", "verifier"]);
 const SHARED_KEYS = new Set([
@@ -345,6 +346,11 @@ function isAdmin(user) {
 async function requireAdmin(req) {
   const user = await requireUser(req);
   if (!isAdmin(user)) throw Object.assign(new Error("Accès administrateur requis"), { status: 403 });
+  return user;
+}
+async function requireAccountAdmin(req) {
+  const user = await requireUser(req);
+  if (!user.roles.some(role => ACCOUNT_ADMIN_ROLES.has(role))) throw Object.assign(new Error("Administration des utilisateurs interdite"), { status: 403 });
   return user;
 }
 
@@ -751,7 +757,7 @@ async function handleBaulExport(req, res) {
 }
 
 async function listUsers(req, res) {
-  await requireAdmin(req);
+  await requireAccountAdmin(req);
   const result = await pool.query(
     `SELECT u.id, u.email, u.display_name, u.active, u.created_at, u.updated_at,
             COALESCE(array_agg(ur.role_id ORDER BY ur.role_id) FILTER (WHERE ur.role_id IS NOT NULL), '{}') AS roles
@@ -764,7 +770,7 @@ async function listUsers(req, res) {
 }
 
 async function createUser(req, res) {
-  const actor = await requireAdmin(req);
+  const actor = await requireAccountAdmin(req);
   const body = await readBody(req);
   const email = normalizeEmail(body.email);
   const name = String(body.name || body.displayName || "").trim();
@@ -795,7 +801,7 @@ async function createUser(req, res) {
 }
 
 async function updateUser(req, res, userId) {
-  const actor = await requireAdmin(req);
+  const actor = await requireAccountAdmin(req);
   const body = await readBody(req);
   const client = await pool.connect();
   try {
