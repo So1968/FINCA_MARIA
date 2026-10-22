@@ -283,7 +283,7 @@ nonadmin_bootstrap_code="$(curl -sS -o /dev/null -w '%{http_code}' -H "Cookie: $
 pass "bootstrap administrateur bloqué pour le rôle héritier"
 
 meeting_nonadmin_code="$(curl -sS -o /dev/null -w '%{http_code}' -H "Cookie: $NONADMIN_COOKIE" "$BASE_URL/api/meetings/$MEETING_ID" || true)"
-[ "$meeting_nonadmin_code" = "403" ] || fail "un héritier cité ou connecté accède aux enregistrements de réunion ($meeting_nonadmin_code)"
+[ "$meeting_nonadmin_code" = "200" ] || fail "un cohéritier ne peut pas consulter la réunion ($meeting_nonadmin_code)"
 pass "enregistrements de réunion réservés aux droits administrateur"
 
 family_page_code="$(curl -sS -o "$TMP_DIR/family-page" -w '%{http_code}' -H "Cookie: $NONADMIN_COOKIE" "$BASE_URL/family/" || true)"
@@ -427,7 +427,9 @@ pass "anti-doublon BAÚL"
 DOCUMENT_ID="$(node --input-type=module -e 'import fs from "node:fs"; console.log(JSON.parse(fs.readFileSync(process.argv[1], "utf8")).document.id)' "$TMP_DIR/upload")"
 preview_code="$(curl -sS -o "$TMP_DIR/preview" -D "$TMP_DIR/preview-headers" -w '%{http_code}' \
   -H "Cookie: $SECOND_COOKIE" "$BASE_URL/api/baul/preview?id=$DOCUMENT_ID")"
-[ "$preview_code" = "200" ] || fail "prévisualisation par le second administrateur = $preview_code"
+[ "$preview_code" = "200" ] || fail "prévisualisation par le secrétariat = $preview_code"
+heir_preview_code="$(curl -sS -o /dev/null -w '%{http_code}' -H "Cookie: $NONADMIN_COOKIE" "$BASE_URL/api/baul/preview?id=$DOCUMENT_ID" || true)"
+[ "$heir_preview_code" = "200" ] || fail "cohéritier exclu de la consultation du document ($heir_preview_code)"
 cmp "$TMP_DIR/baul-test.txt" "$TMP_DIR/preview" || fail "contenu prévisualisé incorrect"
 grep -qi '^X-Frame-Options: SAMEORIGIN' "$TMP_DIR/preview-headers" || fail "aperçu BAÚL bloqué dans FINCA MARIA"
 grep -qi "^Content-Security-Policy: .*script-src 'none'" "$TMP_DIR/preview-headers" || fail "scripts des documents non bloqués"
