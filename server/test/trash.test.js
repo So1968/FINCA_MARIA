@@ -36,7 +36,7 @@ test("un rôle non administrateur ne peut restaurer ou purger", async () => {
   assert.equal(output[0].status, 403);
 });
 
-test("la purge d'un document reste bloquée même pour un administrateur", async () => {
+test("la purge d’un document sans contrôle des sauvegardes est refusée", async () => {
   const { output, json } = response();
   const handler = createTrashRouter({
     pool: { query: async () => { throw Error("Aucun accès à la base attendu"); } },
@@ -45,7 +45,7 @@ test("la purge d'un document reste bloquée même pour un administrateur", async
     readBody: async () => ({}), json, audit: async () => {}, baulRoot: "/tmp/baul"
   });
   await handler({ method: "POST" }, {}, new URL("http://localhost/api/trash/document/doc1/purge"));
-  assert.equal(output[0].status, 409);
+  assert.equal(output[0].status, 400);
 });
 
 test("la purge d'une réservation exige une confirmation correspondant à l'identifiant", async () => {
