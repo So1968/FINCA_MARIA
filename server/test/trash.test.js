@@ -154,3 +154,16 @@ test("un document fictif altéré ne peut pas être restauré", async () => {
     assert.equal(sql.some(q => q.startsWith("UPDATE baul_documents")),false);
   } finally { await fs.rm(root,{recursive:true,force:true}); }
 });
+
+test("une purge sans contrôle administrateur coché est refusée", async () => {
+  const { output, json } = response();
+  const handler = createTrashRouter({
+    pool: { query: async () => { throw Error("La base ne doit pas être appelée"); } },
+    requireFamilyUser: async () => {},
+    requireAdmin: async () => actor,
+    readBody: async () => ({ confirmation: "VIDER DEFINITIVEMENT", itemId: "res1", kind: "reservation", reviewed: false }),
+    json, audit: async () => {}, baulRoot: "/tmp/baul"
+  });
+  await handler({ method: "POST" }, {}, new URL("http://localhost/api/trash/reservation/res1/purge"));
+  assert.equal(output[0].status, 400);
+});
