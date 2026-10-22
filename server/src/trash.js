@@ -1,10 +1,14 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import crypto from "node:crypto";
+
 // Routes de corbeille communes. Tous les champs SQL sont issus d'une liste fermée.
 const ITEMS = {
   reservation: { table: "reservations", label: "name" },
   meeting: { table: "meetings", label: "title" },
   document: { table: "baul_documents", label: "original_name" }
 };
-export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit, readBody, json }) {
+export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit, readBody, json, baulRoot }) {
   async function run(req, res, url) {
     if (!url.pathname.startsWith("/api/trash")) return false;
     if (url.pathname === "/api/trash" && req.method === "GET") {
@@ -51,6 +55,26 @@ export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit
       if (action === "delete" && before.deleted_at || action !== "delete" && !before.deleted_at) {
         await client.query("ROLLBACK");
         return json(res, 409, { error: "État incompatible avec cette opération" });
+      }
+      if (action === "restore" && kind === "document") {
+        // Ne jamais restaurer une fiche dont le fichier physique est absent
+        // ou différent de celui dont l'empreinte est enregistrée.
+        const root = path.resolve(baulRoot);
+        const physical = path.resolve(root, String(before.storage_path || ""));
+        if (physical === root || !physical.startsWith(root + path.sep)) {
+          await client.query("ROLLBACK");
+          return json(res, 409, { error: "Chemin du document invalide : restauration bloquée" });
+        }
+        let content;
+        try { content = await fs.readFile(physical); } catch {
+          await client.query("ROLLBACK");
+          return json(res, 409, { error: "Fichier absent du BAÚL : restauration bloquée" });
+        }
+        const digest = crypto.createHash("sha256").update(content).digest("hex");
+        if (digest !== before.sha256 || content.length !== Number(before.size_bytes)) {
+          await client.query("ROLLBACK");
+          return json(res, 409, { error: "Intégrité du fichier incorrecte : restauration bloquée" });
+        }
       }
       if (action === "restore" && kind === "reservation") {
         const conflict = await client.query(
