@@ -855,7 +855,7 @@ async function listAudit(req, res, url) {
   return json(res, 200, { events: result.rows });
 }
 
-const trashRoute = createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit, readBody, json });
+const trashRoute = createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit, readBody, json, baulRoot: BAUL_ROOT });
 
 const meetingRoute = createMeetingRouter({
   pool,
