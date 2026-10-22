@@ -1,32 +1,171 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+const CATEGORIES = [
+  ["factures", "Factures"], ["cooperative", "Coopérative"], ["pac", "PAC"],
+  ["pelaez", "Peláez / Fiscalité"], ["terrain", "Terrain"], ["casa", "Maison"],
+  ["reunions", "Réunions"], ["messages", "Messages"], ["plans", "Plans"],
+  ["verifier", "À vérifier"]
+];
+const CATEGORY_LABELS = Object.fromEntries(CATEGORIES);
+const MAX_IMPORT = 20 * 1024 * 1024;
+
+async function api(url, options) {
+  const response = await fetch(url, { credentials: "same-origin", ...options });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || "Opération impossible.");
+  return result;
+}
+function toHex(buffer) {
+  return [...new Uint8Array(buffer)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
+function toBase64(bytes) {
+  let result = "";
+  for (let index = 0; index < bytes.length; index += 8192) {
+    result += String.fromCharCode(...bytes.subarray(index, index + 8192));
+  }
+  return btoa(result);
+}
+function formatSize(value) {
+  const number = Number(value) || 0;
+  return number >= 1048576 ? `${(number / 1048576).toFixed(1)} Mo` : `${Math.max(0, Math.round(number / 1024))} Ko`;
+}
+function DocumentRow({ document, admin, onConfirm, pending }) {
+  const [category, setCategory] = useState(document.suggestedCategory || document.category || "verifier");
+  const [logicalName, setLogicalName] = useState(document.logicalName || document.originalName || document.name || "");
+  const id = document.id;
+  const label = document.logicalName || document.name || document.originalName || "Document";
+  return <li className="baulDoc" key={id}>
+    <div className="baulDocHead">
+      <span><strong>{label}</strong><small>{CATEGORY_LABELS[document.category] || document.category || (pending ? "À classer" : "Document")} · {formatSize(document.size)}</small></span>
+      <a href={`/api/baul/preview?id=${encodeURIComponent(id)}`} target="_blank" rel="noopener noreferrer" aria-label={`Ouvrir ${label}`}>Ouvrir ↗</a>
+    </div>
+    {pending && admin && <div className="baulClassify">
+      <label>Nom du document<input value={logicalName} onChange={e => setLogicalName(e.target.value)} maxLength={180}/></label>
+      <label>Classement<select value={category} onChange={e => setCategory(e.target.value)}>{CATEGORIES.map(([key, value]) => <option value={key} key={key}>{value}</option>)}</select></label>
+      <button type="button" onClick={() => onConfirm(id, logicalName, category)} disabled={!logicalName.trim()}>Classer</button>
+    </div>}
+  </li>;
+}
 export default function FincaBaulHub() {
   const [documents, setDocuments] = useState([]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [pending, setPending] = useState([]);
+  const [counts, setCounts] = useState(null);
+  const [admin, setAdmin] = useState(false);
   const [query, setQuery] = useState("");
-  const filtered = documents.filter(doc => `${doc.name || ""} ${doc.category || ""}`.toLocaleLowerCase("fr").includes(query.toLocaleLowerCase("fr").trim()));
+  const [filter, setFilter] = useState("all");
+  const [file, setFile] = useState(null);
+  const [category, setCategory] = useState("auto");
+  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  async function refresh() {
+    const [list, me] = await Promise.all([
+      api("/api/meetings/documents"),
+      api("/api/auth/me")
+    ]);
+    const roles = me.user?.roles || [];
+    const isAdmin = roles.includes("admin-projet") || roles.includes("admin-secretariat");
+    setAdmin(isAdmin);
+    setDocuments(Array.isArray(list.documents) ? list.documents : []);
+    if (isAdmin) {
+      const state = await api("/api/baul/status");
+      setPending(Array.isArray(state.pending) ? state.pending : []);
+      setCounts(state.counts || null);
+    } else {
+      setPending([]);
+      setCounts(null);
+    }
+  }
   useEffect(() => {
     let active = true;
-    fetch("/api/meetings/documents", { credentials: "same-origin" })
-      .then(async response => {
-        if (!response.ok) throw new Error("Impossible de charger les documents du BAÚL.");
-        return response.json();
-      })
-      .then(data => { if (active) setDocuments(Array.isArray(data.documents) ? data.documents : []); })
-      .catch(err => { if (active) setError(err.message); })
-      .finally(() => { if (active) setLoading(false); });
+    refresh().catch(e => { if (active) setError(e.message); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
-  return <main className="cortijoDashboard fincaMariaShell" style={{ padding: "5rem 1.25rem 2rem", maxWidth: "1100px", margin: "auto", color: "#e8d4a0" }}>
-    <h1>BAÚL — Documents familiaux</h1>
-    <p>Documents enregistrés dans le coffre familial. Consultation uniquement sur cette page ; aucun document ne sera supprimé.</p>
-    {loading && <p>Chargement des documents…</p>}
-    {error && <p role="alert">{error}</p>}
-    {!loading && !error && documents.length > 0 && <label style={{display:"block",margin:"1rem 0"}}>Rechercher un document <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Nom ou catégorie…" style={{display:"block",marginTop:".4rem",width:"min(100%,520px)",padding:".7rem",border:"1px solid #8a7540",borderRadius:"10px",background:"#0c1610",color:"#fff"}} /></label>}
-    {!loading && !error && (documents.length
-      ? (filtered.length ? <ul style={{listStyle:"none",padding:0}}>{filtered.map(doc=><li key={doc.id} style={{margin:".6rem 0",padding:"1rem",border:"1px solid #8a7540",borderRadius:"12px"}}><strong>{doc.name || "Document sans titre"}</strong>{doc.category && <span> · {doc.category}</span>}</li>)}</ul> : <p>Aucun document ne correspond à la recherche.</p>)
-      : <p>Aucun document disponible dans le registre consulté.</p>)}
-    <p style={{fontSize:".9rem"}}>La consultation et l’importation des fichiers dans le coffre seront complétées dans une prochaine étape. Cette page n’invente pas de documents ni de téléchargements.</p>
+
+  const visible = useMemo(() => documents.filter(doc => {
+    const text = `${doc.name || ""} ${doc.logicalName || ""} ${doc.originalName || ""} ${doc.category || ""}`.toLocaleLowerCase("fr");
+    return text.includes(query.toLocaleLowerCase("fr").trim()) && (filter === "all" || doc.category === filter);
+  }), [documents, query, filter]);
+
+  async function importFile(event) {
+    event.preventDefault();
+    if (!admin || !file || busy) return;
+    if (file.size > MAX_IMPORT) { setError("Pour cet import, le maximum conseillé est de 20 Mo par fichier."); return; }
+    setBusy(true); setError(""); setMessage("");
+    try {
+      if (!globalThis.crypto?.subtle) throw new Error("Le navigateur ne permet pas le contrôle SHA-256 sur cette connexion.");
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const sha256 = toHex(await crypto.subtle.digest("SHA-256", bytes));
+      const result = await api("/api/baul/upload", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: file.name, type: file.type || "application/octet-stream",
+          size: file.size, sha256, category, contentBase64: toBase64(bytes) })
+      });
+      setMessage(result.duplicate ? "Ce document existe déjà : aucun doublon ajouté." : "Document importé dans « À classer ».");
+      setFile(null);
+      event.currentTarget.reset();
+      await refresh();
+    } catch (e) { setError(e.message); }
+    finally { setBusy(false); }
+  }
+
+  async function confirmDocument(id, logicalName, selectedCategory) {
+    if (!admin || busy) return;
+    setBusy(true); setError(""); setMessage("");
+    try {
+      await api("/api/baul/confirm", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, logicalName: logicalName.trim(), category: selectedCategory }) });
+      setMessage("Document classé dans le BAÚL.");
+      await refresh();
+    } catch (e) { setError(e.message); }
+    finally { setBusy(false); }
+  }
+
+  return <main className="cortijoDashboard fincaMariaShell baulHub">
+    <style>{`
+      .baulHub{max-width:1080px;margin:0 auto;padding:1.5rem;color:#f1dfac}
+      .baulHub h1{font:700 2rem Georgia,serif;margin:.5rem 0}.baulHub p{line-height:1.45}
+      .baulHub .baulTools{display:flex;gap:.65rem;align-items:end;flex-wrap:wrap;margin:1rem 0}
+      .baulHub label{display:flex;flex-direction:column;gap:.3rem;font-size:.87rem}
+      .baulHub input,.baulHub select{min-height:39px;border:1px solid #8a7540;border-radius:9px;background:#101912;color:#fff1ca;padding:.5rem}
+      .baulHub button,.baulHub .baulDocHead a{border:1px solid #8a7540;border-radius:9px;background:#263a29;color:#fff0bc;min-height:39px;padding:.5rem .8rem;cursor:pointer;text-decoration:none}
+      .baulHub button:disabled{opacity:.5;cursor:not-allowed}
+      .baulHub section{margin-top:1.35rem}.baulHub ul{list-style:none;padding:0}
+      .baulDoc{border:1px solid #77683d;border-radius:12px;padding:.8rem;margin:.65rem 0;background:#111c14}
+      .baulDocHead{display:flex;justify-content:space-between;align-items:center;gap:.7rem}
+      .baulDocHead small{display:block;margin-top:.3rem;color:#c6b88d}
+      .baulClassify{display:flex;align-items:end;flex-wrap:wrap;gap:.6rem;margin-top:.85rem}
+      .baulClassify label:first-child{flex:1;min-width:180px}
+      .baulHub .baulInfo{background:#15231a;border:1px solid #5a754d;border-radius:12px;padding:.8rem;margin:.6rem 0}
+      @media(max-width:650px){.baulDocHead{align-items:start}.baulHub{padding:.75rem}.baulTools label{width:100%}}
+    `}</style>
+    <h1>BAÚL <small style={{fontSize:".55em"}}>Documents familiaux</small></h1>
+    <p>Retrouver les documents de la finca, les consulter et les classer. Les fichiers restent dans le coffre privé.</p>
+    {loading && <p role="status">Chargement…</p>}
+    {error && <p role="alert" className="baulInfo">{error}</p>}
+    {message && <p role="status" className="baulInfo">{message}</p>}
+    {admin && <section>
+      <h2>Ajouter un document</h2>
+      <form onSubmit={importFile} className="baulTools">
+        <label>Fichier à importer (20 Mo maximum)<input type="file" onChange={e => setFile(e.target.files?.[0] || null)} required /></label>
+        <label>Catégorie suggérée<select value={category} onChange={e => setCategory(e.target.value)}><option value="auto">À vérifier</option>{CATEGORIES.map(([key, label]) => <option value={key} key={key}>{label}</option>)}</select></label>
+        <button type="submit" disabled={busy || !file}>{busy ? "Opération en cours…" : "Importer"}</button>
+      </form>
+      <p style={{fontSize:".82rem"}}>L'import place le fichier en attente : tu peux vérifier son nom et sa catégorie avant le classement définitif.</p>
+    </section>}
+    {admin && <section>
+      <h2>À classer {counts ? `(${counts.pending})` : ""}</h2>
+      {pending.length ? <ul>{pending.map(doc => <DocumentRow document={doc} key={doc.id} pending admin={admin} onConfirm={confirmDocument} />)}</ul> : <p>Aucun document en attente.</p>}
+    </section>}
+    <section>
+      <h2>Documents classés</h2>
+      <div className="baulTools">
+        <label>Rechercher<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Nom du fichier…"/></label>
+        <label>Catégorie<select value={filter} onChange={e => setFilter(e.target.value)}><option value="all">Toutes les catégories</option>{CATEGORIES.map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
+      </div>
+      {!loading && (visible.length ? <ul>{visible.map(doc => <DocumentRow document={doc} key={doc.id} admin={admin} />)}</ul> : <p>Aucun document ne correspond à la recherche.</p>)}
+    </section>
   </main>;
 }
