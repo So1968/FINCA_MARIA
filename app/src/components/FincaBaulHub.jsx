@@ -227,10 +227,10 @@ export default function FincaBaulHub() {
         <button type="button" disabled={busy} onClick={classifySelected}>Classer la sélection</button>
         {bulkProgress && <span role="status">Classement {bulkProgress.current}/{bulkProgress.total}</span>}
       </div>}
-      {pendingVisible.length ? <ul>{pendingVisible.map(doc => <li key={doc.id} style={{listStyle:"none",display:"flex",gap:".6rem",alignItems:"start"}}>
+      {pendingVisible.length ? <ul>{pendingVisible.map(doc => <div key={doc.id} style={{display:"flex",gap:".6rem",alignItems:"start"}}>
         <input type="checkbox" aria-label={`Sélectionner ${doc.originalName}`} checked={selected.includes(doc.id)} disabled={busy} onChange={e => setSelected(current => e.target.checked ? [...new Set([...current, doc.id])] : current.filter(id => id !== doc.id))} style={{marginTop:"1.2rem"}} />
         <div style={{flex:1,minWidth:0}}><DocumentRow document={doc} pending admin={admin} onConfirm={confirmDocument} /></div>
-      </li>)}</ul> : <p>{pending.length ? "Aucun document ne correspond à la recherche." : "Aucun document en attente."}</p>}
+      </div>)}</ul> : <p>{pending.length ? "Aucun document ne correspond à la recherche." : "Aucun document en attente."}</p>}
     </section>}
     <section>
       <h2>Documents classés</h2>
