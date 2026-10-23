@@ -5,7 +5,7 @@ const ui = fs.readFileSync(new URL("../src/components/FincaBaulHub.jsx", import.
 const server = fs.readFileSync(new URL("../../server/src/server.js", import.meta.url), "utf8");
 assert.ok(ui.includes('type="file" multiple'), "La sélection multiple doit rester possible.");
 assert.ok(ui.includes('webkitdirectory=""'), "La sélection de dossier doit rester possible.");
-assert.ok(ui.includes('MAX_BATCH = 50'), "Un lot ne doit pas être sans limite.");
+assert.ok(!ui.includes("MAX_BATCH = 50"), "La sélection de dossiers ne doit pas être plafonnée à 50 fichiers.");
 assert.ok(ui.includes('crypto.subtle.digest("SHA-256"'), "L'empreinte des fichiers doit être vérifiée.");
 assert.ok(ui.includes('result.duplicate'), "Les doublons doivent être signalés.");
 assert.ok(ui.includes('setFailedFiles(retry)'), "Les échecs doivent pouvoir être repris.");
