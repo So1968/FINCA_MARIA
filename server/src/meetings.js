@@ -955,7 +955,7 @@ export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, aud
     await requireFamilyUser(req);
     const result = await pool.query(
       `SELECT id,logical_name,original_name,category,validated_at,size_bytes
-       FROM baul_documents WHERE deleted_at IS NULL AND status='validated' ORDER BY validated_at DESC NULLS LAST,received_at DESC LIMIT 150`
+       FROM baul_documents WHERE deleted_at IS NULL AND status='validated' ORDER BY validated_at DESC NULLS LAST,received_at DESC LIMIT 5000`
     );
     return json(res, 200, {
       documents: result.rows.map((row) => ({
