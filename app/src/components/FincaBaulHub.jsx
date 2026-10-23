@@ -53,6 +53,10 @@ export default function FincaBaulHub() {
   const [admin, setAdmin] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
+  const [pendingQuery, setPendingQuery] = useState("");
+  const [selected, setSelected] = useState([]);
+  const [bulkCategory, setBulkCategory] = useState("verifier");
+  const [bulkProgress, setBulkProgress] = useState(null);
   const [files, setFiles] = useState([]);
   const [progress, setProgress] = useState(null);
   const [batchResults, setBatchResults] = useState([]);
@@ -88,6 +92,7 @@ export default function FincaBaulHub() {
     return () => { active = false; };
   }, []);
 
+  const pendingVisible = useMemo(() => pending.filter(doc => `${doc.logicalName || ""} ${doc.originalName || ""} ${doc.category || ""}`.toLocaleLowerCase("fr").includes(pendingQuery.toLocaleLowerCase("fr").trim())), [pending, pendingQuery]);
   const visible = useMemo(() => documents.filter(doc => {
     const text = `${doc.name || ""} ${doc.logicalName || ""} ${doc.originalName || ""} ${doc.category || ""}`.toLocaleLowerCase("fr");
     return text.includes(query.toLocaleLowerCase("fr").trim()) && (filter === "all" || doc.category === filter);
@@ -144,6 +149,34 @@ export default function FincaBaulHub() {
     finally { setBusy(false); }
   }
 
+  async function classifySelected() {
+    if (!admin || busy || !selected.length) return;
+    const work = pending.filter(doc => selected.includes(doc.id));
+    if (!work.length) return;
+    setBusy(true); setError(""); setMessage("");
+    let success = 0;
+    const failures = [];
+    try {
+      for (let index = 0; index < work.length; index++) {
+        const doc = work[index];
+        setBulkProgress({ current: index + 1, total: work.length });
+        try {
+          await api("/api/baul/confirm", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: doc.id, logicalName: doc.logicalName || doc.originalName, category: bulkCategory })
+          });
+          success++;
+        } catch (error) {
+          failures.push(`${doc.originalName} : ${error.message}`);
+        }
+      }
+      setSelected(failures.length ? work.filter(doc => failures.some(item => item.startsWith(`${doc.originalName} :`))).map(doc => doc.id) : []);
+      setMessage(`Classement terminé : ${success} document(s) classé(s), ${failures.length} échec(s).`);
+      if (failures.length) setError(failures.slice(0, 5).join(" ; "));
+      await refresh();
+    } finally { setBulkProgress(null); setBusy(false); }
+  }
+
   return <main className="cortijoDashboard fincaMariaShell baulHub">
     <style>{`
       .baulHub{max-width:1080px;margin:0 auto;padding:1.5rem;color:#f1dfac}
@@ -183,7 +216,21 @@ export default function FincaBaulHub() {
     </section>}
     {admin && <section>
       <h2>À classer {counts ? `(${counts.pending})` : ""}</h2>
-      {pending.length ? <ul>{pending.map(doc => <DocumentRow document={doc} key={doc.id} pending admin={admin} onConfirm={confirmDocument} />)}</ul> : <p>Aucun document en attente.</p>}
+      <div className="baulTools">
+        <label>Rechercher parmi les documents à classer<input type="search" value={pendingQuery} onChange={e => setPendingQuery(e.target.value)} placeholder="Nom, dossier…" /></label>
+        <button type="button" disabled={busy || !pendingVisible.length} onClick={() => setSelected(pendingVisible.map(doc => doc.id))}>Tout sélectionner (résultats)</button>
+        <button type="button" disabled={busy || !selected.length} onClick={() => setSelected([])}>Désélectionner</button>
+      </div>
+      {selected.length > 0 && <div className="baulInfo baulTools">
+        <strong>{selected.length} sélectionné(s)</strong>
+        <label>Catégorie commune<select value={bulkCategory} disabled={busy} onChange={e => setBulkCategory(e.target.value)}>{CATEGORIES.map(([key, label]) => <option value={key} key={key}>{label}</option>)}</select></label>
+        <button type="button" disabled={busy} onClick={classifySelected}>Classer la sélection</button>
+        {bulkProgress && <span role="status">Classement {bulkProgress.current}/{bulkProgress.total}</span>}
+      </div>}
+      {pendingVisible.length ? <ul>{pendingVisible.map(doc => <li key={doc.id} style={{listStyle:"none",display:"flex",gap:".6rem",alignItems:"start"}}>
+        <input type="checkbox" aria-label={`Sélectionner ${doc.originalName}`} checked={selected.includes(doc.id)} disabled={busy} onChange={e => setSelected(current => e.target.checked ? [...new Set([...current, doc.id])] : current.filter(id => id !== doc.id))} style={{marginTop:"1.2rem"}} />
+        <div style={{flex:1,minWidth:0}}><DocumentRow document={doc} pending admin={admin} onConfirm={confirmDocument} /></div>
+      </li>)}</ul> : <p>{pending.length ? "Aucun document ne correspond à la recherche." : "Aucun document en attente."}</p>}
     </section>}
     <section>
       <h2>Documents classés</h2>
