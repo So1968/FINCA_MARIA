@@ -12,4 +12,8 @@ assert.ok(ui.includes('setFailedFiles(retry)'), "Les échecs doivent pouvoir êt
 assert.ok(ui.includes('api("/api/baul/confirm"'), "Le classement doit nécessiter confirmation.");
 assert.ok(server.includes('if (row.status !== "validated") await requireAdmin(req)'), "Les documents non validés ne doivent pas être consultables par la famille.");
 assert.ok(server.includes('if (row.deleted_at) return json(res, 404'), "Les documents en corbeille doivent être masqués.");
+assert.ok(ui.includes('classifySelected()'), "Le classement groupé doit rester accessible.");
+assert.ok(ui.includes('pendingVisible'), "La recherche dans les fichiers en attente doit rester accessible.");
+assert.ok(ui.includes('Tout sélectionner (résultats)'), "La sélection des résultats filtrés doit rester accessible.");
+assert.ok(server.includes("LIMIT 5000"), "Le serveur doit afficher plus que 250 documents en attente.");
 console.log("BAÚL : contrôles statiques des parcours et des droits OK");
