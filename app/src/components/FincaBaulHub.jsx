@@ -124,6 +124,17 @@ export default function FincaBaulHub() {
           const sha256 = toHex(await crypto.subtle.digest("SHA-256", bytes));
           const relativePath = folderMode && file.webkitRelativePath ? file.webkitRelativePath : file.name;
           const safeDisplayName = folderMode ? relativePath.split("/").filter(Boolean).join(" - ").slice(-180) : file.name;
+          // Vérifie le coffre avant de transmettre le contenu lourd.
+          const preflight = await api("/api/baul/check", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ files: [{ sha256 }] })
+          });
+          if (preflight.duplicates?.length) {
+            duplicates++;
+            results.push({ name: file.name, status: "Déjà présent (ignoré)" });
+            setBatchResults([...results]);
+            continue;
+          }
           const result = await api("/api/baul/upload", {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name: safeDisplayName, type: file.type || "application/octet-stream",
