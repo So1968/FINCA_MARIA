@@ -16,4 +16,7 @@ assert.ok(ui.includes('classifySelected()'), "Le classement groupé doit rester 
 assert.ok(ui.includes('pendingVisible'), "La recherche dans les fichiers en attente doit rester accessible.");
 assert.ok(ui.includes('Tout sélectionner (résultats)'), "La sélection des résultats filtrés doit rester accessible.");
 assert.ok(server.includes("LIMIT 5000"), "Le serveur doit afficher plus que 250 documents en attente.");
+assert.ok(ui.includes("PAGE_SIZE = 40"), "Les longues listes doivent être paginées.");
+assert.ok(ui.includes("pendingSlice.map"), "La file de classement doit être paginée.");
+assert.ok(ui.includes("documentSlice.map"), "Les documents classés doivent être paginés.");
 console.log("BAÚL : contrôles statiques des parcours et des droits OK");
