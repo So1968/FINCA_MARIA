@@ -8,6 +8,7 @@ const CATEGORIES = [
 ];
 const CATEGORY_LABELS = Object.fromEntries(CATEGORIES);
 const MAX_IMPORT = 20 * 1024 * 1024;
+const PAGE_SIZE = 40;
 
 async function api(url, options) {
   const response = await fetch(url, { credentials: "same-origin", ...options });
@@ -54,6 +55,8 @@ export default function FincaBaulHub() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [pendingQuery, setPendingQuery] = useState("");
+  const [pendingPage, setPendingPage] = useState(0);
+  const [documentPage, setDocumentPage] = useState(0);
   const [selected, setSelected] = useState([]);
   const [bulkCategory, setBulkCategory] = useState("verifier");
   const [bulkProgress, setBulkProgress] = useState(null);
@@ -97,6 +100,11 @@ export default function FincaBaulHub() {
     const text = `${doc.name || ""} ${doc.logicalName || ""} ${doc.originalName || ""} ${doc.category || ""}`.toLocaleLowerCase("fr");
     return text.includes(query.toLocaleLowerCase("fr").trim()) && (filter === "all" || doc.category === filter);
   }), [documents, query, filter]);
+
+  const pendingPages = Math.max(1, Math.ceil(pendingVisible.length / PAGE_SIZE));
+  const documentPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const pendingSlice = pendingVisible.slice(Math.min(pendingPage, pendingPages - 1) * PAGE_SIZE, (Math.min(pendingPage, pendingPages - 1) + 1) * PAGE_SIZE);
+  const documentSlice = visible.slice(Math.min(documentPage, documentPages - 1) * PAGE_SIZE, (Math.min(documentPage, documentPages - 1) + 1) * PAGE_SIZE);
 
   async function importFile(event) {
     event.preventDefault();
@@ -217,7 +225,7 @@ export default function FincaBaulHub() {
     {admin && <section>
       <h2>À classer {counts ? `(${counts.pending})` : ""}</h2>
       <div className="baulTools">
-        <label>Rechercher parmi les documents à classer<input type="search" value={pendingQuery} onChange={e => setPendingQuery(e.target.value)} placeholder="Nom, dossier…" /></label>
+        <label>Rechercher parmi les documents à classer<input type="search" value={pendingQuery} onChange={e => { setPendingQuery(e.target.value); setPendingPage(0); }} placeholder="Nom, dossier…" /></label>
         <button type="button" disabled={busy || !pendingVisible.length} onClick={() => setSelected(pendingVisible.map(doc => doc.id))}>Tout sélectionner (résultats)</button>
         <button type="button" disabled={busy || !selected.length} onClick={() => setSelected([])}>Désélectionner</button>
       </div>
@@ -227,18 +235,20 @@ export default function FincaBaulHub() {
         <button type="button" disabled={busy} onClick={classifySelected}>Classer la sélection</button>
         {bulkProgress && <span role="status">Classement {bulkProgress.current}/{bulkProgress.total}</span>}
       </div>}
-      {pendingVisible.length ? <ul>{pendingVisible.map(doc => <div key={doc.id} style={{display:"flex",gap:".6rem",alignItems:"start"}}>
+      {pendingVisible.length ? <ul>{pendingSlice.map(doc => <div key={doc.id} style={{display:"flex",gap:".6rem",alignItems:"start"}}>
         <input type="checkbox" aria-label={`Sélectionner ${doc.originalName}`} checked={selected.includes(doc.id)} disabled={busy} onChange={e => setSelected(current => e.target.checked ? [...new Set([...current, doc.id])] : current.filter(id => id !== doc.id))} style={{marginTop:"1.2rem"}} />
         <div style={{flex:1,minWidth:0}}><DocumentRow document={doc} pending admin={admin} onConfirm={confirmDocument} /></div>
       </div>)}</ul> : <p>{pending.length ? "Aucun document ne correspond à la recherche." : "Aucun document en attente."}</p>}
+      {pendingPages > 1 && <div className="baulTools"><button type="button" disabled={pendingPage === 0} onClick={() => setPendingPage(p => Math.max(0, p - 1))}>← Précédent</button><span>Page {Math.min(pendingPage, pendingPages - 1) + 1} sur {pendingPages} · {pendingVisible.length} fichiers</span><button type="button" disabled={pendingPage >= pendingPages - 1} onClick={() => setPendingPage(p => Math.min(pendingPages - 1, p + 1))}>Suivant →</button></div>}
     </section>}
     <section>
       <h2>Documents classés</h2>
       <div className="baulTools">
-        <label>Rechercher<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Nom du fichier…"/></label>
-        <label>Catégorie<select value={filter} onChange={e => setFilter(e.target.value)}><option value="all">Toutes les catégories</option>{CATEGORIES.map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
+        <label>Rechercher<input type="search" value={query} onChange={e => { setQuery(e.target.value); setDocumentPage(0); }} placeholder="Nom du fichier…"/></label>
+        <label>Catégorie<select value={filter} onChange={e => { setFilter(e.target.value); setDocumentPage(0); }}><option value="all">Toutes les catégories</option>{CATEGORIES.map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
       </div>
-      {!loading && (visible.length ? <ul>{visible.map(doc => <DocumentRow document={doc} key={doc.id} admin={admin} />)}</ul> : <p>Aucun document ne correspond à la recherche.</p>)}
+      {!loading && (visible.length ? <ul>{documentSlice.map(doc => <DocumentRow document={doc} key={doc.id} admin={admin} />)}</ul> : <p>Aucun document ne correspond à la recherche.</p>)}
+      {documentPages > 1 && <div className="baulTools"><button type="button" disabled={documentPage === 0} onClick={() => setDocumentPage(p => Math.max(0, p - 1))}>← Précédent</button><span>Page {Math.min(documentPage, documentPages - 1) + 1} sur {documentPages} · {visible.length} fichiers</span><button type="button" disabled={documentPage >= documentPages - 1} onClick={() => setDocumentPage(p => Math.min(documentPages - 1, p + 1))}>Suivant →</button></div>}
     </section>
   </main>;
 }
