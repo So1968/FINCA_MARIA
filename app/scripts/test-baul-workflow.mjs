@@ -19,4 +19,6 @@ assert.ok(server.includes("LIMIT 5000"), "Le serveur doit afficher plus que 250 
 assert.ok(ui.includes("PAGE_SIZE = 40"), "Les longues listes doivent être paginées.");
 assert.ok(ui.includes("pendingSlice.map"), "La file de classement doit être paginée.");
 assert.ok(ui.includes("documentSlice.map"), "Les documents classés doivent être paginés.");
+assert.ok(ui.includes('api("/api/baul/check"'), "L’import doit rechercher les doublons avant envoi.");
+assert.ok(ui.indexOf('api("/api/baul/check"') < ui.indexOf('api("/api/baul/upload"'), "Le contrôle des doublons doit précéder l’envoi.");
 console.log("BAÚL : contrôles statiques des parcours et des droits OK");
