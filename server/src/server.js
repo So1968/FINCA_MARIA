@@ -234,7 +234,7 @@ async function baulStatus() {
                        COUNT(*) FILTER (WHERE deleted_at IS NULL AND status='pending')::int AS pending,
                        COUNT(*) FILTER (WHERE deleted_at IS NULL AND status='validated')::int AS validated
                   FROM baul_documents WHERE deleted_at IS NULL`),
-    pool.query(`SELECT * FROM baul_documents WHERE deleted_at IS NULL AND status='pending' ORDER BY received_at DESC LIMIT 250`)
+    pool.query(`SELECT * FROM baul_documents WHERE deleted_at IS NULL AND status='pending' ORDER BY received_at DESC LIMIT 5000`)
   ]);
   const counts = countsResult.rows[0] || { total: 0, pending: 0, validated: 0 };
   return {
