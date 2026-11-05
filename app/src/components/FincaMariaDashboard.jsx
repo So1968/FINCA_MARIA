@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cortijoActionDesk } from "../data/cortijoActionDesk";
 
-const ASSIGNMENTS_STORAGE_KEY = "cortijo_action_assignments_v1";
+import { actionFilter, actionsUrl, normalizeActionStatus as normalizeStatus } from "../lib/actionAssignments.mjs";
+import { useActionAssignments } from "../lib/useActionAssignments";
 const NAV_STORAGE_KEY = "finca_maria_navigation_v2";
 const ACTION_PLAN_DATE = "18/08/2026";
 const BACKUP_VERSION = 2;
@@ -116,7 +117,7 @@ function appViewUrl(view, params = {}, hash = "") {
   url.hash = hash ? `#${String(hash).replace(/^#/, "")}` : "";
   return url.toString();
 }
-function openDossier(contactId) { window.location.assign(appViewUrl("cortijo-memoire", { contact: contactId })); }
+function openDossier(contactId, filter) { window.location.assign(actionsUrl(window.location.href, { contact: contactId, filter, dossier: true })); }
 function openHouse(hash = "") { window.location.assign(appViewUrl("cortijo-maison", {}, hash)); }
 function openVisitorGuide() { window.location.assign(appViewUrl("cortijo-maison", { mode: "vacanciers" })); }
 function safeStorageGet(key) { try { return localStorage.getItem(key); } catch { return null; } }
@@ -133,11 +134,9 @@ function fincaStorageEntries() {
   }
   return entries;
 }
-function loadAssignments() { try { const value = JSON.parse(safeStorageGet(ASSIGNMENTS_STORAGE_KEY) || "{}"); return value && typeof value === "object" && !Array.isArray(value) ? value : {}; } catch { return {}; } }
 function loadNavigation() { try { const value = JSON.parse(safeStorageGet(NAV_STORAGE_KEY) || "{}"); return value && typeof value === "object" && !Array.isArray(value) ? value : {}; } catch { return {}; } }
 function formatDate(value) { if (!value) return "À déterminer"; const [year, month, day] = String(value).split("-"); return year && month && day ? `${day}/${month}/${year}` : value; }
 function normalizeResponsible(value = "À déterminer") { if (value === "Sofia") return "Sofía"; if (value === "Isabel") return "María Isabel"; if (value === "Autre membre de la famille") return "À déterminer"; return value; }
-function normalizeStatus(value = "Action à compléter") { if (value === "Terminée") return "Action accomplie"; if (value === "Attribuée") return "En cours"; return value; }
 function suggestedContactMode(mode = "") { const value = mode.toLowerCase(); if (value.includes("whatsapp")) return "WhatsApp"; if (value.includes("mail") || value.includes("email")) return "Mail"; if (value.includes("rendez")) return "Rendez-vous"; if (value.includes("téléphone") || value.includes("telephone")) return "Téléphone"; if (value.includes("sur place") || value.includes("passage")) return "Sur place"; return "Téléphone"; }
 function stopToggle(event) { event.stopPropagation(); }
 function isFincaStorageKey(key) { return key.startsWith("finca_maria_") || key.startsWith("cortijo_"); }
@@ -203,7 +202,7 @@ function DossierAction({ action, dossierLabel, assignment, onUpdate }) {
       </summary>
       <div className="fincaActionExpanded" style={{ paddingTop: ".65rem" }}>
         <p style={{ marginTop: 0 }}><strong>But :</strong> {action.goal}</p>
-        <div className="fincaResolutionBox" style={{ marginTop: ".45rem", paddingTop: ".7rem" }}><label><span>Résolution / résultat obtenu</span><textarea rows="4" value={resolution} placeholder="Rendez-vous obtenu, réponse reçue, document récupéré…" onChange={(event) => onUpdate(action.id, { resolution: event.target.value })} /></label><small>{resolution ? "Résolution enregistrée automatiquement." : "À remplir dès que l'action avance."}</small></div>
+        <div className="fincaResolutionBox" style={{ marginTop: ".45rem", paddingTop: ".7rem" }}><label><span>Résolution / résultat obtenu</span><textarea rows="4" value={resolution} placeholder="Rendez-vous obtenu, réponse reçue, document récupéré…" onChange={(event) => onUpdate(action.id, { resolution: event.target.value })} /></label><small>{resolution ? "Résultat saisi ; consultez l’indication de sauvegarde." : "À remplir dès que l'action avance."}</small></div>
         {action.toObtain?.length > 0 && <div style={{ marginTop: ".85rem" }}><strong>À obtenir / à faire</strong><ul>{action.toObtain.map((item) => <li key={item}>{item}</li>)}</ul></div>}
         {action.expectedProof && <p><strong>Résultat attendu :</strong> {action.expectedProof}</p>}
         {(action.contactHint || action.script) && <details className="fincaReadScript" style={{ marginTop: ".75rem" }}><summary>Détails utiles</summary>{action.contactHint && <p><strong>À savoir :</strong> {action.contactHint}</p>}<ActionScript action={action} /></details>}
@@ -219,17 +218,19 @@ function SubNav({ items, active, onChange, label }) { return <nav className="fin
 
 export function FincaMariaDashboard() {
   const initialNavigation = useMemo(loadNavigation, []);
-  const [assignments, setAssignments] = useState(loadAssignments);
-  const [earthActionFilter, setEarthActionFilter] = useState("active");
+  const { assignments, updateAssignment, saveMessage, readError } = useActionAssignments();
+  const [earthActionFilter, setEarthActionFilter] = useState(() => actionFilter(new URLSearchParams(window.location.search).get("filter")));
   const [area, setArea] = useState(() => new URLSearchParams(window.location.search).get("area") === "terre" ? "terre" : "home");
   const [earthTab, setEarthTab] = useState(() => new URLSearchParams(window.location.search).get("tab") === "actions" ? "actions" : initialNavigation.earthTab || "gestion");
   const [houseTab, setHouseTab] = useState(initialNavigation.houseTab || "gerer");
   const importRef = useRef(null);
+  const [openDossiers, setOpenDossiers] = useState(() => {
+    const contact = new URLSearchParams(window.location.search).get("contact");
+    return contact ? { [contact]: true } : {};
+  });
 
-  useEffect(() => { safeStorageSet(ASSIGNMENTS_STORAGE_KEY, JSON.stringify(assignments)); }, [assignments]);
   useEffect(() => { safeStorageSet(NAV_STORAGE_KEY, JSON.stringify({ area, earthTab, houseTab })); }, [area, earthTab, houseTab]);
 
-  function updateAssignment(actionId, patch) { setAssignments((current) => ({ ...current, [actionId]: { ...(current[actionId] || {}), ...patch } })); }
   function handleImport(event) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -348,7 +349,7 @@ export function FincaMariaDashboard() {
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "gestion" ? "block" : "none" }}><summary><h3>Journal de l’exploitation</h3></summary><div className="cortijoWorkflow"><ol>{managementTimeline.map((item) => <li key={`${item.period}-${item.title}`}><strong>{item.period}</strong><span><b>{item.title}</b><br />{item.text}</span></li>)}</ol></div></details>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "analyse" ? "block" : "none" }}><summary><h3>Analyse</h3></summary><div className="cortijoList">{analysisFindings.map((item) => <article className="cortijoCard" key={item.title}><div className="cortijoCardTop"><span className="cortijoPill">{item.status}</span></div><h4>{item.title}</h4><p>{item.text}</p></article>)}</div></details>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "strategie" ? "block" : "none" }}><summary><h3>Stratégie</h3></summary><div className="cortijoWorkflow"><ol>{strategy.map((item, index) => <li key={item}><strong>{index + 1}</strong><span>{item}</span></li>)}</ol></div></details>
-        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "actions" ? "block" : "none" }}><summary><h3>Dossiers & actions</h3></summary><div className="fincaActionBuckets" aria-label="Afficher les actions"><button type="button" className={earthActionFilter === "active" ? "isActive" : ""} onClick={() => setEarthActionFilter("active")}>À faire / en cours · {actionSummary.todo + actionSummary.progress}</button><button type="button" className={earthActionFilter === "done" ? "isActive" : ""} onClick={() => setEarthActionFilter("done")}>Actions accomplies · {actionSummary.done}</button><button type="button" className={earthActionFilter === "all" ? "isActive" : ""} onClick={() => setEarthActionFilter("all")}>Toutes</button></div><div className="fincaDossierStack">{interlocutors.map((item) => { const dossierActions = filteredActionsFor(item); return <details className="fincaDossierCard" key={item.id} open={new URLSearchParams(window.location.search).get("contact") === item.id ? true : undefined}><summary className="fincaDossierSummary"><div><span className="cortijoPill">{item.label}</span><h4>{item.subtitle}</h4></div><span className="fincaDossierCount">{dossierActions.length} action{dossierActions.length > 1 ? "s" : ""}</span></summary><div className="fincaDossierBody"><div className="cortijoList fincaActionList">{dossierActions.map((action) => <DossierAction key={action.id} action={action} dossierLabel={item.label} assignment={assignments[action.id] || {}} onUpdate={updateAssignment} />)}</div><button type="button" className="fincaDossierOpen" onClick={() => openDossier(item.id)}>Ouvrir le dossier — {item.label}</button></div></details>; })}</div></details>
+        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "actions" ? "block" : "none" }}><summary><h3>Dossiers & actions</h3></summary><div className="fincaActionBuckets" aria-label="Afficher les actions"><button type="button" className={earthActionFilter === "active" ? "isActive" : ""} onClick={() => setEarthActionFilter("active")}>À faire / en cours · {actionSummary.todo + actionSummary.progress}</button><button type="button" className={earthActionFilter === "done" ? "isActive" : ""} onClick={() => setEarthActionFilter("done")}>Actions accomplies · {actionSummary.done}</button><button type="button" className={earthActionFilter === "all" ? "isActive" : ""} onClick={() => setEarthActionFilter("all")}>Toutes</button></div><p role="status" aria-live="polite">{saveMessage}</p><div className="fincaDossierStack">{interlocutors.map((item) => { const dossierActions = filteredActionsFor(item); return <details className="fincaDossierCard" key={item.id} open={Boolean(openDossiers[item.id])} onToggle={(event) => { const open = event.currentTarget.open; setOpenDossiers((current) => current[item.id] === open ? current : { ...current, [item.id]: open }); }}><summary className="fincaDossierSummary"><div><span className="cortijoPill">{item.label}</span><h4>{item.subtitle}</h4></div><span className="fincaDossierCount">{dossierActions.length} action{dossierActions.length > 1 ? "s" : ""}</span></summary><div className="fincaDossierBody"><fieldset disabled={readError} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}><div className="cortijoList fincaActionList">{dossierActions.length === 0 && <p>Aucune action dans cette rubrique pour ce dossier.</p>}{dossierActions.map((action) => <DossierAction key={action.id} action={action} dossierLabel={item.label} assignment={assignments[action.id] || {}} onUpdate={updateAssignment} />)}</div></fieldset><button type="button" className="fincaDossierOpen" onClick={() => openDossier(item.id, earthActionFilter)}>Ouvrir le dossier — {item.label}</button></div></details>; })}</div></details>
       </div>
 
       <div style={{ display: area === "maison" ? "block" : "none" }}>
