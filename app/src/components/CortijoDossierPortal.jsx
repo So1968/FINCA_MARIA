@@ -9,6 +9,7 @@ const STATUS_OPTIONS = ["Action à compléter", "En cours", "En attente", "Actio
 const CONTACT_MODE_OPTIONS = ["Téléphone", "WhatsApp", "Mail", "Sur place", "Rendez-vous"];
 const CONTACT_WITH_OPTIONS = ["San Juan", "ASAJA", "Peláez", "Agriculteur / Vitines", "Autre interlocuteur"];
 const ACTION_FILTERS = [
+  { id: "active", label: "À faire / en cours" },
   { id: "todo", label: "À compléter" },
   { id: "progress", label: "En cours" },
   { id: "done", label: "Accomplies" },
@@ -111,7 +112,7 @@ export function CortijoDossierPortal() {
   const hasRequestedContact = CORTIJO_DOSSIERS.some((item) => item.id === requestedContact);
   const initialContact = hasRequestedContact ? requestedContact : "san-juan";
   const [activeContact, setActiveContact] = useState(initialContact);
-  const [actionFilter, setActionFilter] = useState("todo");
+  const [actionFilter, setActionFilter] = useState("active");
   const [assignments, setAssignments] = useState(loadAssignments);
   const [saveMessage, setSaveMessage] = useState("");
 
@@ -127,10 +128,10 @@ export function CortijoDossierPortal() {
 
   const activeDossier = CORTIJO_DOSSIERS.find((item) => item.id === activeContact) || CORTIJO_DOSSIERS[0];
   const activeActions = actionsFor(activeDossier);
-  const counts = useMemo(() => { const result = { todo: 0, progress: 0, done: 0, all: activeActions.length }; activeActions.forEach((action) => { const status = assignments[action.id]?.status || "Action à compléter"; result[actionBucket(status)] += 1; }); return result; }, [activeActions, assignments]);
-  const visibleActions = useMemo(() => { if (actionFilter === "all") return activeActions; return activeActions.filter((action) => { const status = assignments[action.id]?.status || "Action à compléter"; return actionBucket(status) === actionFilter; }); }, [activeActions, assignments, actionFilter]);
+  const counts = useMemo(() => { const result = { active: 0, todo: 0, progress: 0, done: 0, all: activeActions.length }; activeActions.forEach((action) => { const status = assignments[action.id]?.status || "Action à compléter"; result[actionBucket(status)] += 1; if (actionBucket(status) !== "done") result.active += 1; }); return result; }, [activeActions, assignments]);
+  const visibleActions = useMemo(() => { if (actionFilter === "all") return activeActions; return activeActions.filter((action) => { const status = assignments[action.id]?.status || "Action à compléter"; const bucket = actionBucket(status); return actionFilter === "active" ? bucket !== "done" : bucket === actionFilter; }); }, [activeActions, assignments, actionFilter]);
 
-  function selectContact(id) { setActiveContact(id); setActionFilter("todo"); window.history.replaceState(null, "", `/?view=cortijo-memoire&contact=${id}`); window.requestAnimationFrame(() => document.getElementById("finca-action-board")?.scrollIntoView({ block: "start" })); }
+  function selectContact(id) { setActiveContact(id); setActionFilter("active"); window.history.replaceState(null, "", `/?view=cortijo-memoire&contact=${id}`); window.requestAnimationFrame(() => document.getElementById("finca-action-board")?.scrollIntoView({ block: "start" })); }
   function updateAssignment(actionId, patch) { setAssignments((current) => ({ ...current, [actionId]: { ...(current[actionId] || {}), ...patch } })); }
 
   return (
@@ -147,7 +148,7 @@ export function CortijoDossierPortal() {
       <section id="finca-action-board" className="cortijoView fincaActionBoard" aria-label={`Actions ${activeDossier.label}`}>
         <div className="cortijoPanelTitle fincaActionBoardTitle"><span>A</span><div><h3>Actions — {activeDossier.label}</h3><p>Statut, échéance, attribution, mode et interlocuteur : tout se change ici, sans sous-menu.</p></div></div>
         <div className="fincaActionBuckets" aria-label="Filtrer les actions par état">{ACTION_FILTERS.map((filter) => <button type="button" key={filter.id} className={actionFilter === filter.id ? "isActive" : ""} onClick={() => setActionFilter(filter.id)}><span>{filter.label}</span><strong>{counts[filter.id]}</strong></button>)}</div>
-        <div className="cortijoList fincaActionList">{visibleActions.length === 0 && <article className="cortijoCard fincaEmptyActionState"><p>Aucune action dans cette rubrique.</p></article>}{visibleActions.map((action) => <DossierAction key={action.id} action={action} dossierLabel={activeDossier.label} assignment={assignments[action.id] || {}} onUpdate={updateAssignment} />)}</div>
+        <div className="cortijoList fincaActionList">{visibleActions.length === 0 && <article className="cortijoCard fincaEmptyActionState"><p>{actionFilter === "done" ? "Aucune action accomplie pour ce dossier." : "Aucune action dans cette rubrique."}</p></article>}{visibleActions.map((action) => <DossierAction key={action.id} action={action} dossierLabel={activeDossier.label} assignment={assignments[action.id] || {}} onUpdate={updateAssignment} />)}</div>
       </section>
 
       <details className="cortijoView fincaDocumentsDrawer">
