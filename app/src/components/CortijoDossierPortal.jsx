@@ -113,8 +113,16 @@ export function CortijoDossierPortal() {
   const [activeContact, setActiveContact] = useState(initialContact);
   const [actionFilter, setActionFilter] = useState("todo");
   const [assignments, setAssignments] = useState(loadAssignments);
+  const [saveMessage, setSaveMessage] = useState("");
 
-  useEffect(() => { localStorage.setItem(ASSIGNMENTS_STORAGE_KEY, JSON.stringify(assignments)); }, [assignments]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(ASSIGNMENTS_STORAGE_KEY, JSON.stringify(assignments));
+      setSaveMessage("Modifications enregistrées automatiquement sur cet appareil.");
+    } catch {
+      setSaveMessage("Attention : impossible d’enregistrer les modifications. Vérifiez le stockage du navigateur.");
+    }
+  }, [assignments]);
   useEffect(() => { if (!hasRequestedContact) return; const frame = window.requestAnimationFrame(() => document.getElementById("finca-action-board")?.scrollIntoView({ block: "start" })); return () => window.cancelAnimationFrame(frame); }, [hasRequestedContact]);
 
   const activeDossier = CORTIJO_DOSSIERS.find((item) => item.id === activeContact) || CORTIJO_DOSSIERS[0];
@@ -128,6 +136,11 @@ export function CortijoDossierPortal() {
   return (
     <main className="cortijoExportApp fincaActionWorkspace">
       <section className="cortijoExportHero"><div><span className="cortijoExportEyebrow">FINCA MARIA</span><h1>DOSSIERS & ACTIONS</h1><p>Une action se pilote directement sur sa petite carte. On n'ouvre que pour le but, la résolution et les détails utiles.</p></div></section>
+
+      <nav className="cortijoView" aria-label="Retour au suivi des actions">
+        <a className="fincaDossierReturn" href={`/?area=terre&tab=actions&contact=${encodeURIComponent(activeDossier.id)}`}>← Retour à Terre · Actions — {activeDossier.label}</a>
+        <p role="status" aria-live="polite" style={{ margin: ".4rem 0 0", fontSize: ".86rem" }}>{saveMessage}</p>
+      </nav>
 
       <section className="cortijoView" aria-label="Choisir un dossier"><div className="cortijoActionGrid">{CORTIJO_DOSSIERS.map((item, index) => <button type="button" key={item.id} className={activeContact === item.id ? "isActive" : ""} onClick={() => selectContact(item.id)}><span>{String(index + 1).padStart(2, "0")}</span><strong>{item.label}</strong><p>{item.subtitle}</p></button>)}</div></section>
 
@@ -151,7 +164,7 @@ export function CortijoDossierPortal() {
         </div>
       </details>
 
-      <section className="cortijoExportRule"><div><strong>Retour</strong><p>Revenir à la situation générale de l'exploitation.</p></div><a href="/">FINCA MARIA</a></section>
+      <section className="cortijoExportRule"><div><strong>Retour</strong><p>Revenir au suivi des actions du dossier ouvert.</p></div><a href={`/?area=terre&tab=actions&contact=${encodeURIComponent(activeDossier.id)}`}>← Terre · Actions — {activeDossier.label}</a></section>
     </main>
   );
 }
