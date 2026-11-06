@@ -42,15 +42,12 @@ export function useActionAssignments() {
     };
   }, []);
 
-  function updateAssignment(actionId, patch) {
-    // Re-read just before editing to preserve changes already saved by another tab.
-    const loaded = load();
+  function savePending(loaded) {
     if (loaded.error) {
       setState((current) => ({ ...current, error: true }));
       setSaveMessage(READ_ERROR);
       return;
     }
-    pending.current = mergeAssignmentChanges(pending.current, { [actionId]: patch });
     const assignments = mergeAssignmentChanges(loaded.assignments, pending.current);
     let saved = false;
     try { saved = writeAssignments(window.localStorage, assignments); } catch { /* Stockage indisponible. */ }
@@ -59,5 +56,19 @@ export function useActionAssignments() {
     setSaveMessage(saved ? "Modifications enregistrées sur cet appareil uniquement." : SAVE_ERROR);
   }
 
-  return { assignments: state.assignments, updateAssignment, saveMessage, readError: state.error };
+  function updateAssignment(actionId, patch) {
+    // Re-read just before editing to preserve changes already saved by another tab.
+    const loaded = load();
+    if (!loaded.error) pending.current = mergeAssignmentChanges(pending.current, { [actionId]: patch });
+    savePending(loaded);
+  }
+
+  function retrySave() {
+    if (Object.keys(pending.current).length > 0) savePending(load());
+  }
+
+  return {
+    assignments: state.assignments, updateAssignment, saveMessage, readError: state.error,
+    canRetrySave: Object.keys(pending.current).length > 0, retrySave
+  };
 }

@@ -56,7 +56,8 @@ en cours / attente, accomplies et toutes. Le filtre reste dans le lien lors
 d’une actualisation ou d’un aller-retour dans un dossier. Les modifications
 enregistrées sont répercutées dans les autres onglets du même navigateur.
 Les saisies non enregistrées restent visibles si une mise à jour arrive
-d’un autre onglet ; une nouvelle modification réessaie leur sauvegarde.
+d’un autre onglet. Le bouton « Réessayer la sauvegarde » permet de les enregistrer
+après rétablissement du stockage, sans modifier les champs à nouveau.
 
 Le déploiement utilise `docker-compose.coolify.yml` : voir [la fiche Coolify](COOLIFY_HANDOFF.md).
 Le transfert du code ne déplace pas automatiquement les bases de données ni les volumes du serveur existant.
