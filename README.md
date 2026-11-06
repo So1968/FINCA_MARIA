@@ -62,6 +62,15 @@ après rétablissement du stockage, sans modifier les champs à nouveau.
 Le déploiement utilise `docker-compose.coolify.yml` : voir [la fiche Coolify](COOLIFY_HANDOFF.md).
 Le transfert du code ne déplace pas automatiquement les bases de données ni les volumes du serveur existant.
 
+## Entretien des branches
+
+Après une fusion dans la branche par défaut, GitHub Actions supprime la branche
+de travail du dépôt si elle pointe toujours sur le commit fusionné. Une branche
+ayant reçu de nouveaux commits, une branche issue d’un fork ou la branche par
+défaut est conservée. Le workflow exécute uniquement le code de la branche par
+défaut, sans charger celui d’une proposition externe. Le registre des anciennes
+archives est dans `docs/GIT_RANGEMENT_2026-11-06.md`.
+
 ## Confidentialité
 
 Ce dépôt complet doit être privé : le dossier documentaire contient des informations familiales.
