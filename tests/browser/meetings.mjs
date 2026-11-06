@@ -136,6 +136,12 @@ try {
   console.log("✓ Sauvegarde avant validation, double clic neutralisé, contrôles temporairement bloqués puis réactivés");
   const draftContext = await browser.newContext({ locale: "fr-FR" });
   const draftsPage = await draftContext.newPage();
+  let discardChanges = true;
+  const leaveDialogs = [];
+  draftsPage.on("dialog", (dialog) => {
+    leaveDialogs.push(dialog.message());
+    return discardChanges ? dialog.accept() : dialog.dismiss();
+  });
   draftsPage.setDefaultTimeout(10000);
   await draftsPage.clock.install();
   let currentMeeting = {
@@ -148,7 +154,7 @@ try {
     participants: [{ id: "p1", name: "Nom serveur", presence: "present", role: "", isFacilitator: true }],
     markers: [{ id: "m1", type: "question", note: "Note serveur", classification: "question_ouverte", timeSeconds: 0, responsible: "", dueDate: "" }]
   };
-  const otherMeeting = { ...currentMeeting, id: "draft-two", title: "Autre réunion", transcriptionState: "idle", participants: [], markers: [], reportDraft: { summary: "Autre synthèse", subjects: "" } };
+  let otherMeeting = { ...currentMeeting, id: "draft-two", title: "Autre réunion", transcriptionState: "idle", participants: [], markers: [], reportDraft: { summary: "Autre synthèse", subjects: "" } };
   let detailGate;
   let preparationGate;
   let rejectPreparation = false;
@@ -157,7 +163,10 @@ try {
     const pathname = new URL(request.url()).pathname;
     const json = (body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
     if (pathname === "/api/meetings") return json({ meetings: [currentMeeting, otherMeeting] });
-    if (pathname === "/api/meetings/draft-two") return json({ meeting: otherMeeting });
+    if (pathname === "/api/meetings/draft-two") {
+      if (request.method() === "PUT") otherMeeting = { ...otherMeeting, ...request.postDataJSON() };
+      return json({ meeting: otherMeeting });
+    }
     if (pathname === "/api/meetings/draft-one" && request.method() === "GET") {
       const snapshot = structuredClone(currentMeeting);
       if (detailGate) await detailGate;
@@ -279,6 +288,69 @@ try {
   assert.equal(await title.inputValue(), "Autre réunion");
   assert.equal(await draftSummary.inputValue(), "Autre synthèse");
   assert.equal(currentMeeting.title, "Ancienne réunion sauvegardée en arrière-plan");
+  discardChanges = false;
+  await draftSummary.fill("Texte non enregistré à conserver");
+  await draftsPage.locator(".meetingList button").first().click();
+  assert.equal(await title.inputValue(), "Autre réunion");
+  assert.equal(await draftSummary.inputValue(), "Texte non enregistré à conserver");
+  for (const name of ["+ Nouvelle", "Importer des comptes rendus", "Registre des décisions"]) {
+    await draftsPage.getByRole("button", { name, exact: true }).click();
+    assert.equal(await draftSummary.inputValue(), "Texte non enregistré à conserver");
+  }
+  const wouldProtectUnload = () => draftsPage.evaluate(() => {
+    const event = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(event);
+    return event.defaultPrevented;
+  });
+  assert.equal(await wouldProtectUnload(), true);
+  const reloadDialog = draftsPage.waitForEvent("dialog", (dialog) => dialog.type() === "beforeunload");
+  const reloadAttempt = draftsPage.reload().catch(() => null);
+  await reloadDialog;
+  await reloadAttempt;
+  assert.equal(await draftSummary.inputValue(), "Texte non enregistré à conserver");
+  const reportSaved = draftsPage.waitForResponse((response) => response.request().method() === "PUT" && response.url().endsWith("/api/meetings/draft-two"));
+  await draftsPage.getByRole("button", { name: "Sauvegarder le brouillon", exact: true }).click();
+  await reportSaved;
+  await draftsPage.locator(".meetingNotice.ok").filter({ hasText: "Brouillon du compte rendu sauvegardé" }).waitFor();
+  assert.equal(await wouldProtectUnload(), false);
+  const beforeCleanNavigation = leaveDialogs.length;
+  await draftsPage.locator(".meetingList button").first().click();
+  await draftsPage.waitForFunction(() => document.querySelector('.meetingGrid input')?.value === "Ancienne réunion sauvegardée en arrière-plan");
+  assert.equal(leaveDialogs.length, beforeCleanNavigation, "Une saisie enregistrée ne doit pas provoquer de confirmation");
+  console.log("✓ Annuler la sortie préserve le texte ; changer de vue et quitter la page sont protégés uniquement en présence de saisies");
+
+  await markerNote.fill("Repère modifié sans enregistrement");
+  await draftsPage.locator(".meetingList").getByRole("button", { name: /Autre réunion/ }).click();
+  assert.equal(await markerNote.inputValue(), "Repère modifié sans enregistrement");
+  await participantName.fill("Participant modifié sans enregistrement");
+  await draftsPage.getByRole("button", { name: "+ Nouvelle", exact: true }).click();
+  assert.equal(await participantName.inputValue(), "Participant modifié sans enregistrement");
+  assert.equal(await wouldProtectUnload(), true);
+  const markerGuardSave = draftsPage.waitForResponse((response) => response.url().endsWith("/markers/m1"));
+  await draftsPage.getByRole("button", { name: "Enregistrer ce repère", exact: true }).click();
+  await markerGuardSave;
+  const participantGuardSave = draftsPage.waitForResponse((response) => response.url().endsWith("/participants/p1"));
+  await draftsPage.locator(".participantList").getByRole("button", { name: "Enregistrer", exact: true }).click();
+  await participantGuardSave;
+  await draftsPage.clock.runFor(1);
+  assert.equal(await wouldProtectUnload(), false);
+  console.log("✓ Les repères et participants non enregistrés sont également détectés, puis libérés après sauvegarde");
+
+  await markerNote.fill("Texte explicitement abandonné");
+  discardChanges = true;
+  await draftsPage.locator(".meetingList").getByRole("button", { name: /Autre réunion/ }).click();
+  await draftsPage.waitForFunction(() => document.querySelector('.meetingGrid input')?.value === "Autre réunion");
+  assert.equal(await wouldProtectUnload(), false);
+  await draftsPage.getByRole("button", { name: "+ Nouvelle", exact: true }).click();
+  await title.fill("Nouvelle réunion non enregistrée");
+  discardChanges = false;
+  await draftsPage.getByRole("button", { name: "Annuler", exact: true }).click();
+  assert.equal(await title.inputValue(), "Nouvelle réunion non enregistrée");
+  discardChanges = true;
+  await draftsPage.getByRole("button", { name: "Annuler", exact: true }).click();
+  await draftsPage.waitForFunction(() => document.querySelector('.meetingGrid input')?.value === "Autre réunion");
+  assert.equal(await wouldProtectUnload(), false);
+  console.log("✓ L’abandon confirmé fonctionne et l’annulation d’une nouvelle réunion revient à la réunion précédente");
   await draftContext.close();
   console.log("✓ Enregistrement des corrections et rejet d’une ancienne réponse après changement de réunion");
 } finally {
