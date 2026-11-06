@@ -58,6 +58,10 @@ réunion réelle. `FINCA_MEETINGS_E2E_PORT` remplace son port de test 5226.
 Il vérifie aussi que l’actualisation de la transcription conserve les saisies
 non enregistrées, qu’une sauvegarde lente ne remplace pas une saisie plus récente
 et qu’une réponse tardive ne rouvre pas une réunion quittée.
+Les saisies non enregistrées déclenchent aussi une confirmation avant de changer
+de réunion ou d’abandonner le formulaire. La fermeture ou le rechargement de la
+page active l’avertissement standard du navigateur. Enregistrer les modifications
+retire cette protection ; cela ne crée pas de sauvegarde automatique des brouillons.
 
 Les deux vues Actions proposent les mêmes filtres : à faire, à compléter,
 en cours / attente, accomplies et toutes. Le filtre reste dans le lien lors
