@@ -55,6 +55,9 @@ installé ; `FINCA_E2E_PORT` remplace le port de test 5225 si nécessaire.
 une API simulée : échecs de sauvegarde et de validation, annulation de confirmation,
 conservation du texte et protection contre les doubles clics. Il ne modifie aucune
 réunion réelle. `FINCA_MEETINGS_E2E_PORT` remplace son port de test 5226.
+Il vérifie aussi que l’actualisation de la transcription conserve les saisies
+non enregistrées, qu’une sauvegarde lente ne remplace pas une saisie plus récente
+et qu’une réponse tardive ne rouvre pas une réunion quittée.
 
 Les deux vues Actions proposent les mêmes filtres : à faire, à compléter,
 en cours / attente, accomplies et toutes. Le filtre reste dans le lien lors
