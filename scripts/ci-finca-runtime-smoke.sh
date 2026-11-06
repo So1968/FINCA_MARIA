@@ -429,12 +429,23 @@ preview_code="$(curl -sS -o "$TMP_DIR/preview" -D "$TMP_DIR/preview-headers" -w 
   -H "Cookie: $SECOND_COOKIE" "$BASE_URL/api/baul/preview?id=$DOCUMENT_ID")"
 [ "$preview_code" = "200" ] || fail "prévisualisation par le secrétariat = $preview_code"
 heir_preview_code="$(curl -sS -o /dev/null -w '%{http_code}' -H "Cookie: $NONADMIN_COOKIE" "$BASE_URL/api/baul/preview?id=$DOCUMENT_ID" || true)"
-[ "$heir_preview_code" = "200" ] || fail "cohéritier exclu de la consultation du document ($heir_preview_code)"
+[ "$heir_preview_code" = "403" ] || fail "document non validé accessible au cohéritier ($heir_preview_code)"
 cmp "$TMP_DIR/baul-test.txt" "$TMP_DIR/preview" || fail "contenu prévisualisé incorrect"
 grep -qi '^X-Frame-Options: SAMEORIGIN' "$TMP_DIR/preview-headers" || fail "aperçu BAÚL bloqué dans FINCA MARIA"
 grep -qi "^Content-Security-Policy: .*script-src 'none'" "$TMP_DIR/preview-headers" || fail "scripts des documents non bloqués"
 grep -qi "^Content-Security-Policy: .*frame-ancestors 'self'" "$TMP_DIR/preview-headers" || fail "aperçu autorisé hors FINCA MARIA"
 pass "prévisualisation privée sans scripts de document"
+
+confirm_body=$(printf '{"id":"%s","category":"cooperative","logicalName":"baul-test-ci.txt"}' "$DOCUMENT_ID")
+confirm_code="$(curl -sS -o "$TMP_DIR/baul-confirm" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data "$confirm_body" "$BASE_URL/api/baul/confirm" || true)"
+[ "$confirm_code" = "200" ] || fail "validation du document BAÚL = $confirm_code"
+heir_validated_code="$(curl -sS -o "$TMP_DIR/heir-preview" -w '%{http_code}' \
+  -H "Cookie: $NONADMIN_COOKIE" "$BASE_URL/api/baul/preview?id=$DOCUMENT_ID" || true)"
+[ "$heir_validated_code" = "200" ] || fail "document validé inaccessible au cohéritier ($heir_validated_code)"
+cmp "$TMP_DIR/baul-test.txt" "$TMP_DIR/heir-preview" || fail "contenu du document validé incorrect"
+pass "document non validé réservé aux administrateurs, puis lisible par la famille après validation"
 
 # Sauvegarde chiffrée puis restauration isolée.
 compose exec -T finca-backup /usr/local/bin/backup-finca
