@@ -12,6 +12,7 @@
     "test": "npm --prefix app test && node --test tests/*.test.mjs",
     "check:family": "npm --prefix app run check:family",
     "test:actions:browser": "node tests/browser/actions.mjs",
+    "test:meetings:browser": "node tests/browser/meetings.mjs",
     "start": "bash scripts/ouvrir-cortijo-local.sh"
   }
 }

@@ -116,6 +116,8 @@ export default function FincaMeetingsHub() {
   const [historicMode, setHistoricMode] = useState(false);
   const [registerMode, setRegisterMode] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [reportOperation, setReportOperation] = useState("");
+  const reportOperationRef = useRef(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [recordingConsent, setRecordingConsent] = useState(false);
@@ -184,6 +186,7 @@ export default function FincaMeetingsHub() {
     if (!quiet) setBusy(true);
     try {
       const payload = await api(`/api/meetings/${encodeURIComponent(id)}`);
+      if (quiet && reportOperationRef.current) return;
       setMeeting(payload.meeting);
       setPreparation(prepFromMeeting(payload.meeting));
       setReportDraft(payload.meeting.reportDraft || { summary: "", subjects: "" });
@@ -600,31 +603,50 @@ export default function FincaMeetingsHub() {
     }
   }
 
+  async function persistReport() {
+    const payload = await api(`/api/meetings/${meeting.id}`, {
+      method: "PUT",
+      body: { stage: meeting.stage, reportDraft }
+    });
+    setMeeting(payload.meeting);
+  }
+
   async function saveReport() {
-    if (!meeting?.id) return;
+    if (!meeting?.id || busy || reportOperationRef.current) return;
+    reportOperationRef.current = true;
+    setReportOperation("saving");
+    setError("");
+    setNotice("");
     try {
-      const payload = await api(`/api/meetings/${meeting.id}`, {
-        method: "PUT",
-        body: { stage: meeting.stage, reportDraft }
-      });
-      setMeeting(payload.meeting);
+      await persistReport();
       setNotice("Brouillon du compte rendu sauvegardé.");
     } catch (err) {
       setError(err.message);
+    } finally {
+      reportOperationRef.current = false;
+      setReportOperation("");
     }
   }
 
   async function validateReport() {
-    if (!meeting?.id) return;
+    if (!meeting?.id || busy || reportOperationRef.current) return;
     if (!window.confirm("Valider cette version du compte rendu ? Une copie datée et identifiable sera conservée.")) return;
-    await saveReport();
+    reportOperationRef.current = true;
+    setReportOperation("saving");
+    setError("");
+    setNotice("");
     try {
+      await persistReport();
+      setReportOperation("validating");
       const payload = await api(`/api/meetings/${meeting.id}/validate`, { method: "POST", body: {} });
       setMeeting(payload.meeting);
       setNotice(`Compte rendu validé · version ${payload.version} conservée.`);
       await loadList(meeting.id);
     } catch (err) {
       setError(err.message);
+    } finally {
+      reportOperationRef.current = false;
+      setReportOperation("");
     }
   }
 
@@ -710,12 +732,12 @@ export default function FincaMeetingsHub() {
 
       <div className="meetingLayout">
         <aside className="meetingSidebar">
-          <div className="meetingSidebarHead"><strong>Réunions</strong><button type="button" className="meetingBtn primary" onClick={() => { setHistoricMode(false); setRegisterMode(false); startNew(); }}>+ Nouvelle</button></div>
-          <button className="meetingBtn" type="button" onClick={() => { setHistoricMode(true); setRegisterMode(false); setNewMode(false); }} style={{ width: "100%", marginBottom: "1rem" }}>Importer des comptes rendus</button>
-          <button className="meetingBtn" type="button" onClick={() => { setRegisterMode(true); setHistoricMode(false); setNewMode(false); }} style={{ width: "100%", marginBottom: "1rem" }}>Registre des décisions</button>
+          <div className="meetingSidebarHead"><strong>Réunions</strong><button type="button" className="meetingBtn primary" disabled={Boolean(reportOperation)} onClick={() => { setHistoricMode(false); setRegisterMode(false); startNew(); }}>+ Nouvelle</button></div>
+          <button className="meetingBtn" type="button" disabled={Boolean(reportOperation)} onClick={() => { setHistoricMode(true); setRegisterMode(false); setNewMode(false); }} style={{ width: "100%", marginBottom: "1rem" }}>Importer des comptes rendus</button>
+          <button className="meetingBtn" type="button" disabled={Boolean(reportOperation)} onClick={() => { setRegisterMode(true); setHistoricMode(false); setNewMode(false); }} style={{ width: "100%", marginBottom: "1rem" }}>Registre des décisions</button>
           <div className="meetingList">
             {meetings.map((item) => (
-              <button type="button" key={item.id} className={selectedId === item.id && !newMode ? "isActive" : ""} onClick={() => { setRegisterMode(false); setHistoricMode(false); setNewMode(false); setSelectedId(item.id); }}>
+              <button type="button" key={item.id} disabled={Boolean(reportOperation)} className={selectedId === item.id && !newMode ? "isActive" : ""} onClick={() => { setRegisterMode(false); setHistoricMode(false); setNewMode(false); setSelectedId(item.id); }}>
                 <strong>{item.title}</strong>
                 <span>{item.date} · {item.meetingType}</span>
                 <small>{item.presentCount} présent(s) · {item.markerCount} repère(s){item.validatedVersion ? ` · CR v${item.validatedVersion}` : ""}</small>
@@ -726,8 +748,9 @@ export default function FincaMeetingsHub() {
         </aside>
 
         <section className="meetingPanel">
-          {error ? <div className="meetingNotice error">{error}</div> : null}
+          {error ? <div className="meetingNotice error" role="alert">{error}</div> : null}
           {notice ? <div className="meetingNotice ok">{notice}</div> : null}
+          {reportOperation ? <p role="status">{reportOperation === "saving" ? "Enregistrement du brouillon en cours…" : "Validation du compte rendu en cours…"}</p> : null}
 
           {registerMode ? (
             <MeetingDecisionRegister onOpen={(id) => { setSelectedId(id); setRegisterMode(false); }} onClose={() => setRegisterMode(false)} />
@@ -751,7 +774,7 @@ export default function FincaMeetingsHub() {
               <section className="meetingSection">
                 <h3>1 · Préparation</h3>
                 {renderPreparationFields(false)}
-                <div className="meetingActions"><button type="button" className="meetingBtn primary" onClick={savePreparation} disabled={busy}>Enregistrer la préparation</button></div>
+                <div className="meetingActions"><button type="button" className="meetingBtn primary" onClick={savePreparation} disabled={busy || Boolean(reportOperation)}>Enregistrer la préparation</button></div>
               </section>
 
               <section className="meetingSection">
@@ -772,7 +795,7 @@ export default function FincaMeetingsHub() {
               <section className="meetingSection">
                 <h3>2 · Trame de réunion</h3>
                 <p className="meetingMuted">Le rail guide sans bloquer : tu peux passer d’un point à l’autre à tout moment.</p>
-                <div className="stageRail">{STAGES.map((stage) => <button type="button" key={stage} className={meeting.stage === stage ? "isActive" : ""} onClick={() => changeStage(stage)}>{stage}</button>)}</div>
+                <div className="stageRail">{STAGES.map((stage) => <button type="button" key={stage} className={meeting.stage === stage ? "isActive" : ""} disabled={Boolean(reportOperation)} onClick={() => changeStage(stage)}>{stage}</button>)}</div>
               </section>
 
               <section className="meetingSection">
@@ -875,10 +898,10 @@ export default function FincaMeetingsHub() {
                   <ReportGroup title="Documents évoqués" markers={groups.documents} />
                 </div>
                 <div className="reportEditor">
-                  <label className="meetingField"><span>Synthèse rédigée et modifiable</span><textarea rows="5" value={reportDraft.summary || ""} onChange={(event) => setReportDraft((current) => ({ ...current, summary: event.target.value }))} placeholder="Synthèse humaine : ne transformer aucune proposition en décision." /></label>
-                  <label className="meetingField"><span>Sujets abordés</span><textarea rows="3" value={reportDraft.subjects || ""} onChange={(event) => setReportDraft((current) => ({ ...current, subjects: event.target.value }))} placeholder="Sujets réellement abordés" /></label>
+                  <label className="meetingField"><span>Synthèse rédigée et modifiable</span><textarea rows="5" disabled={Boolean(reportOperation)} value={reportDraft.summary || ""} onChange={(event) => setReportDraft((current) => ({ ...current, summary: event.target.value }))} placeholder="Synthèse humaine : ne transformer aucune proposition en décision." /></label>
+                  <label className="meetingField"><span>Sujets abordés</span><textarea rows="3" disabled={Boolean(reportOperation)} value={reportDraft.subjects || ""} onChange={(event) => setReportDraft((current) => ({ ...current, subjects: event.target.value }))} placeholder="Sujets réellement abordés" /></label>
                 </div>
-                <div className="meetingActions"><button type="button" className="meetingBtn" onClick={saveReport}>Sauvegarder le brouillon</button><button type="button" className="meetingBtn primary" onClick={validateReport}>Valider cette version</button></div>
+                <div className="meetingActions"><button type="button" className="meetingBtn" onClick={saveReport} disabled={busy || Boolean(reportOperation)}>Sauvegarder le brouillon</button><button type="button" className="meetingBtn primary" onClick={validateReport} disabled={busy || Boolean(reportOperation)}>Valider cette version</button></div>
 
                 {meeting.validatedVersions?.map((version) => (
                   <div className="meetingVersion" key={version.id}><strong>Version {version.version}</strong> · {new Date(version.validatedAt).toLocaleString("fr-FR")}</div>

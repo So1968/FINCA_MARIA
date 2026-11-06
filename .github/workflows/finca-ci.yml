@@ -64,6 +64,9 @@ jobs:
       - name: Test Actions save and return flow in Chromium
         run: npm run test:actions:browser
 
+      - name: Test report save and validation failures in Chromium
+        run: npm run test:meetings:browser
+
       - name: Build frontend
         working-directory: app
         run: npm run check
