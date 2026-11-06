@@ -118,7 +118,7 @@ try {
   await unsaved.waitForFunction(() => document.querySelector('.fincaDossierCard input[type="date"]')?.value === "2026-12-02");
   assert.equal(await unsaved.locator('select[aria-label="Suivi"]').first().inputValue(), "En cours");
   await unsaved.evaluate(() => { Storage.prototype.setItem = window.fincaTestSetItem; });
-  await unsaved.locator('select[aria-label="Attribution"]').first().selectOption("Clemencia");
+  await unsaved.getByRole("button", { name: "Réessayer la sauvegarde" }).click();
   await savedTab.waitForFunction(() => document.querySelector('select[aria-label="Suivi"]')?.value === "En cours");
   assert.equal(await savedTab.locator('input[type="date"]').first().inputValue(), "2026-12-02");
   await recovery.close();
@@ -138,6 +138,7 @@ try {
     const quota = await browser.newContext();
     await quota.addInitScript((key) => {
       const original = Storage.prototype.setItem;
+      window.fincaTestSetItem = original;
       Storage.prototype.setItem = function (name, value) {
         if (name === key) throw new DOMException("Quota", "QuotaExceededError");
         return original.call(this, name, value);
@@ -148,9 +149,20 @@ try {
     await quotaPage.locator('select[aria-label="Suivi"]').first().selectOption("En cours");
     await quotaPage.getByRole("status").filter({ hasText: "modifications non enregistrées" }).waitFor();
     assert.equal(await quotaPage.evaluate((key) => localStorage.getItem(key), key), null);
+    const retry = quotaPage.getByRole("button", { name: "Réessayer la sauvegarde" });
+    await retry.click();
+    await quotaPage.getByRole("status").filter({ hasText: "modifications non enregistrées" }).waitFor();
+    assert.equal(await quotaPage.locator('select[aria-label="Suivi"]').first().inputValue(), "En cours");
+    await quotaPage.evaluate(() => { Storage.prototype.setItem = window.fincaTestSetItem; });
+    await retry.click();
+    await quotaPage.getByRole("status").filter({ hasText: "Modifications enregistrées" }).waitFor();
+    assert.equal(await retry.count(), 0);
+    await quotaPage.reload();
+    assert.equal(await quotaPage.locator('select[aria-label="Suivi"]').first().inputValue(), "En cours");
     await quota.close();
   }
   console.log("✓ Données illisibles préservées et sauvegarde impossible signalée dans les deux vues");
+  console.log("✓ Nouvelle tentative sans modifier les champs, échec répété puis rétablissement et persistance dans les deux vues");
 } finally {
   try { await browser?.close(); }
   finally {

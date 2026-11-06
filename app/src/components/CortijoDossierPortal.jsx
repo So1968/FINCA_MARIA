@@ -4,6 +4,7 @@ import { CORTIJO_DOSSIERS } from "../data/cortijoDossiers";
 
 import { ACTION_FILTERS, actionFilter, actionsUrl, matchesActionFilter, summarizeActions, normalizeActionStatus as normalizeStatus } from "../lib/actionAssignments.mjs";
 import { useActionAssignments } from "../lib/useActionAssignments";
+import { ActionSaveStatus } from "./ActionSaveStatus";
 const ACTION_PLAN_DATE = "18/08/2026";
 const RESPONSIBLE_OPTIONS = ["À déterminer", "Clemencia", "Ana María", "María Isabel", "María José", "Gloria", "Michèle", "José", "Sofía"];
 const STATUS_OPTIONS = ["Action à compléter", "En cours", "En attente", "Action accomplie"];
@@ -105,7 +106,7 @@ export function CortijoDossierPortal() {
   const initialContact = hasRequestedContact ? requestedContact : "san-juan";
   const [activeContact, setActiveContact] = useState(initialContact);
   const [selectedFilter, setActionFilter] = useState(() => actionFilter(params.get("filter")));
-  const { assignments, updateAssignment, saveMessage, readError } = useActionAssignments();
+  const { assignments, updateAssignment, saveMessage, readError, canRetrySave, retrySave } = useActionAssignments();
 
   useEffect(() => { if (!hasRequestedContact) return; const frame = window.requestAnimationFrame(() => document.getElementById("finca-action-board")?.scrollIntoView({ block: "start" })); return () => window.cancelAnimationFrame(frame); }, [hasRequestedContact]);
 
@@ -127,7 +128,7 @@ export function CortijoDossierPortal() {
 
       <nav className="cortijoView" aria-label="Retour au suivi des actions">
         <a className="fincaDossierReturn" href={actionsUrl(window.location.href, { contact: activeDossier.id, filter: selectedFilter })}>← Retour à Terre · Actions — {activeDossier.label}</a>
-        <p role="status" aria-live="polite" style={{ margin: ".4rem 0 0", fontSize: ".86rem" }}>{saveMessage}</p>
+        <ActionSaveStatus message={saveMessage} canRetry={canRetrySave} onRetry={retrySave} />
       </nav>
 
       <section className="cortijoView" aria-label="Choisir un dossier"><div className="cortijoActionGrid">{CORTIJO_DOSSIERS.map((item, index) => <button type="button" key={item.id} className={activeContact === item.id ? "isActive" : ""} onClick={() => selectContact(item.id)}><span>{String(index + 1).padStart(2, "0")}</span><strong>{item.label}</strong><p>{item.subtitle}</p></button>)}</div></section>
