@@ -134,6 +134,153 @@ try {
   assert.deepEqual(errors, []);
   await context.close();
   console.log("✓ Sauvegarde avant validation, double clic neutralisé, contrôles temporairement bloqués puis réactivés");
+  const draftContext = await browser.newContext({ locale: "fr-FR" });
+  const draftsPage = await draftContext.newPage();
+  draftsPage.setDefaultTimeout(10000);
+  await draftsPage.clock.install();
+  let currentMeeting = {
+    id: "draft-one", title: "Préparation serveur", date: "2026-11-06",
+    meetingType: "Conseil de famille", status: "draft", stage: "Échanges",
+    agenda: [], validatedVersions: [], linkedDocuments: [], reportDraft: { summary: "Synthèse serveur", subjects: "Travaux" },
+    transcriptionState: "running",
+    transcript: { segments: [{ sourceSpeaker: "SPEAKER_00", speakerConfidence: "non-identifie", speaker: "Intervenant 1", start: 0, text: "Bonjour" }], warnings: [] },
+    transcriptText: "Transcription initiale",
+    participants: [{ id: "p1", name: "Nom serveur", presence: "present", role: "", isFacilitator: true }],
+    markers: [{ id: "m1", type: "question", note: "Note serveur", classification: "question_ouverte", timeSeconds: 0, responsible: "", dueDate: "" }]
+  };
+  const otherMeeting = { ...currentMeeting, id: "draft-two", title: "Autre réunion", transcriptionState: "idle", participants: [], markers: [], reportDraft: { summary: "Autre synthèse", subjects: "" } };
+  let detailGate;
+  let preparationGate;
+  let rejectPreparation = false;
+  await draftsPage.route("**/api/**", async (route) => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+    const json = (body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+    if (pathname === "/api/meetings") return json({ meetings: [currentMeeting, otherMeeting] });
+    if (pathname === "/api/meetings/draft-two") return json({ meeting: otherMeeting });
+    if (pathname === "/api/meetings/draft-one" && request.method() === "GET") {
+      const snapshot = structuredClone(currentMeeting);
+      if (detailGate) await detailGate;
+      return json({ meeting: snapshot });
+    }
+    if (pathname === "/api/meetings/draft-one" && request.method() === "PUT") {
+      if (preparationGate) await preparationGate;
+      if (rejectPreparation) return json({ error: "Sauvegarde momentanément impossible" }, 503);
+      currentMeeting = { ...currentMeeting, ...request.postDataJSON() };
+      return json({ meeting: currentMeeting });
+    }
+    if (pathname.endsWith("/participants/p1")) {
+      currentMeeting = { ...currentMeeting, participants: [{ ...currentMeeting.participants[0], ...request.postDataJSON() }] };
+      return json({ meeting: currentMeeting });
+    }
+    if (pathname.endsWith("/markers/m1")) {
+      currentMeeting = { ...currentMeeting, markers: [{ ...currentMeeting.markers[0], ...request.postDataJSON() }] };
+      return json({ meeting: currentMeeting });
+    }
+    return json({ documents: [], localEngineReady: false });
+  });
+  await draftsPage.goto(route);
+  const title = draftsPage.getByLabel("Titre", { exact: true });
+  const draftSummary = draftsPage.getByLabel("Synthèse rédigée et modifiable");
+  const participantName = draftsPage.getByLabel("Nom", { exact: true });
+  const markerNote = draftsPage.getByLabel("Note", { exact: true });
+  await title.fill("Préparation en cours de rédaction");
+  await draftSummary.fill("Synthèse en cours de rédaction");
+  await participantName.fill("Nom corrigé localement");
+  await markerNote.fill("Note en cours de rédaction");
+  const speakerChoice = draftsPage.locator(".speakerFixRow select");
+  await speakerChoice.selectOption("Nom serveur");
+  currentMeeting = { ...currentMeeting, transcriptText: "Transcription reçue pendant la rédaction" };
+  const poll = draftsPage.waitForResponse((response) => response.request().method() === "GET" && response.url().endsWith("/api/meetings/draft-one"));
+  await draftsPage.clock.fastForward(2600);
+  await poll;
+  await draftsPage.locator(".transcript").filter({ hasText: "Transcription reçue pendant la rédaction" }).waitFor();
+  assert.equal(await title.inputValue(), "Préparation en cours de rédaction");
+  assert.equal(await draftSummary.inputValue(), "Synthèse en cours de rédaction");
+  assert.equal(await participantName.inputValue(), "Nom corrigé localement");
+  assert.equal(await markerNote.inputValue(), "Note en cours de rédaction");
+  assert.equal(await speakerChoice.inputValue(), "Nom serveur");
+  console.log("✓ Le résultat de transcription se met à jour sans écraser préparation, synthèse, participant ni repère en cours de saisie");
+
+  rejectPreparation = true;
+  await draftsPage.getByRole("button", { name: "Enregistrer la préparation", exact: true }).click();
+  await draftsPage.getByRole("alert").filter({ hasText: "Sauvegarde momentanément impossible" }).waitFor();
+  const failedSavePoll = draftsPage.waitForResponse((response) => response.request().method() === "GET" && response.url().endsWith("/api/meetings/draft-one"));
+  await draftsPage.clock.fastForward(2600);
+  await failedSavePoll;
+  assert.equal(await title.inputValue(), "Préparation en cours de rédaction");
+  assert.equal(await draftSummary.inputValue(), "Synthèse en cours de rédaction");
+  assert.equal(await draftsPage.getByRole("alert").innerText(), "Sauvegarde momentanément impossible");
+  rejectPreparation = false;
+  console.log("✓ Un échec de sauvegarde reste visible et le rafraîchissement suivant conserve les saisies");
+
+  let releasePreparation;
+  preparationGate = new Promise((resolve) => { releasePreparation = resolve; });
+  const preparationRequest = draftsPage.waitForRequest((request) => request.method() === "PUT" && request.url().endsWith("/api/meetings/draft-one"));
+  await draftsPage.getByRole("button", { name: "Enregistrer la préparation", exact: true }).click();
+  await preparationRequest;
+  await title.fill("Nouvelle saisie pendant la sauvegarde");
+  const preparationResponse = draftsPage.waitForResponse((response) => response.request().method() === "PUT" && response.url().endsWith("/api/meetings/draft-one"));
+  releasePreparation();
+  await preparationResponse;
+  await draftsPage.locator(".meetingNotice.ok").filter({ hasText: "Préparation enregistrée" }).waitFor();
+  assert.equal(currentMeeting.title, "Préparation en cours de rédaction");
+  assert.equal(await title.inputValue(), "Nouvelle saisie pendant la sauvegarde");
+  assert.equal(await draftSummary.inputValue(), "Synthèse en cours de rédaction");
+  const afterSavePoll = draftsPage.waitForResponse((response) => response.request().method() === "GET" && response.url().endsWith("/api/meetings/draft-one"));
+  await draftsPage.clock.fastForward(2600);
+  await afterSavePoll;
+  assert.equal(await title.inputValue(), "Nouvelle saisie pendant la sauvegarde");
+  preparationGate = undefined;
+  const secondSave = draftsPage.waitForResponse((response) => response.request().method() === "PUT" && response.url().endsWith("/api/meetings/draft-one"));
+  await draftsPage.getByRole("button", { name: "Enregistrer la préparation", exact: true }).click();
+  await secondSave;
+  assert.equal(currentMeeting.title, "Nouvelle saisie pendant la sauvegarde");
+  console.log("✓ Le retour d’une sauvegarde lente conserve les caractères saisis depuis son envoi");
+
+  const participantSave = draftsPage.waitForResponse((response) => response.url().endsWith("/participants/p1"));
+  await draftsPage.locator(".participantList").getByRole("button", { name: "Enregistrer", exact: true }).click();
+  await participantSave;
+  const markerSave = draftsPage.waitForResponse((response) => response.url().endsWith("/markers/m1"));
+  await draftsPage.getByRole("button", { name: "Enregistrer ce repère", exact: true }).click();
+  await markerSave;
+  assert.equal(currentMeeting.participants[0].name, "Nom corrigé localement");
+  assert.equal(currentMeeting.markers[0].note, "Note en cours de rédaction");
+
+  let releaseOldPoll;
+  detailGate = new Promise((resolve) => { releaseOldPoll = resolve; });
+  const oldPollRequest = draftsPage.waitForRequest((request) => request.method() === "GET" && request.url().endsWith("/api/meetings/draft-one"));
+  await draftsPage.clock.fastForward(2600);
+  await oldPollRequest;
+  await draftsPage.locator(".meetingList").getByRole("button", { name: /Autre réunion/ }).click();
+  await draftsPage.waitForFunction(() => document.querySelector('.meetingGrid input')?.value === "Autre réunion");
+  const oldPollResponse = draftsPage.waitForResponse((response) => response.request().method() === "GET" && response.url().endsWith("/api/meetings/draft-one"));
+  releaseOldPoll();
+  await oldPollResponse;
+  await draftsPage.clock.runFor(1);
+  assert.equal(await title.inputValue(), "Autre réunion");
+  assert.equal(await draftSummary.inputValue(), "Autre synthèse");
+  detailGate = undefined;
+  currentMeeting = { ...currentMeeting, transcriptionState: "idle" };
+  await draftsPage.locator(".meetingList button").first().click();
+  await draftsPage.waitForFunction(() => document.querySelector('.meetingGrid input')?.value === "Nouvelle saisie pendant la sauvegarde");
+  let releaseBackgroundSave;
+  preparationGate = new Promise((resolve) => { releaseBackgroundSave = resolve; });
+  await title.fill("Ancienne réunion sauvegardée en arrière-plan");
+  const backgroundSave = draftsPage.waitForRequest((request) => request.method() === "PUT" && request.url().endsWith("/api/meetings/draft-one"));
+  await draftsPage.getByRole("button", { name: "Enregistrer la préparation", exact: true }).click();
+  await backgroundSave;
+  await draftsPage.locator(".meetingList").getByRole("button", { name: /Autre réunion/ }).click();
+  await draftsPage.waitForFunction(() => document.querySelector('.meetingGrid input')?.value === "Autre réunion");
+  const backgroundResponse = draftsPage.waitForResponse((response) => response.request().method() === "PUT" && response.url().endsWith("/api/meetings/draft-one"));
+  releaseBackgroundSave();
+  await backgroundResponse;
+  await draftsPage.clock.runFor(1);
+  assert.equal(await title.inputValue(), "Autre réunion");
+  assert.equal(await draftSummary.inputValue(), "Autre synthèse");
+  assert.equal(currentMeeting.title, "Ancienne réunion sauvegardée en arrière-plan");
+  await draftContext.close();
+  console.log("✓ Enregistrement des corrections et rejet d’une ancienne réponse après changement de réunion");
 } finally {
   try { await browser?.close(); }
   finally {

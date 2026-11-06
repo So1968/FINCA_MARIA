@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { deletePendingChunk, listPendingChunks, savePendingChunk } from "../lib/meetingAudioStore.js";
 import "../meetings.css";
+import { useMeetingDraft } from "../lib/useMeetingDraft.js";
 import HistoricMeetingImport from "./HistoricMeetingImport.jsx";
 import MeetingDecisionRegister from "./MeetingDecisionRegister.jsx";
 
@@ -111,7 +112,8 @@ export default function FincaMeetingsHub() {
   const [meetings, setMeetings] = useState([]);
   const [selectedId, setSelectedId] = useState("");
   const [meeting, setMeeting] = useState(null);
-  const [preparation, setPreparation] = useState(emptyPreparation);
+  const preparationEditor = useMeetingDraft(emptyPreparation);
+  const { value: preparation, edit: setPreparation } = preparationEditor;
   const [newMode, setNewMode] = useState(false);
   const [historicMode, setHistoricMode] = useState(false);
   const [registerMode, setRegisterMode] = useState(false);
@@ -127,9 +129,11 @@ export default function FincaMeetingsHub() {
   const [audioStatus, setAudioStatus] = useState("");
   const [pendingChunks, setPendingChunks] = useState(0);
   const [newParticipant, setNewParticipant] = useState({ name: "", role: "", presence: "present" });
-  const [reportDraft, setReportDraft] = useState({ summary: "", subjects: "" });
+  const reportEditor = useMeetingDraft(() => ({ summary: "", subjects: "" }));
+  const { value: reportDraft, edit: setReportDraft } = reportEditor;
   const [health, setHealth] = useState(null);
-  const [speakerMapping, setSpeakerMapping] = useState({});
+  const speakerEditor = useMeetingDraft(() => ({}));
+  const { value: speakerMapping, edit: setSpeakerMapping } = speakerEditor;
   const [documents, setDocuments] = useState([]);
   const [documentSelection, setDocumentSelection] = useState({});
 
@@ -141,6 +145,9 @@ export default function FincaMeetingsHub() {
   const uploadRunningRef = useRef(false);
   const chunkSavePromisesRef = useRef([]);
   const audioRef = useRef(null);
+  const meetingLoadGeneration = useRef(0);
+  const foregroundLoad = useRef(0);
+  const activeMeetingId = useRef("");
 
   const groups = useMemo(() => reportGroups(meeting?.markers || []), [meeting?.markers]);
   const presentNames = useMemo(
@@ -156,11 +163,19 @@ export default function FincaMeetingsHub() {
     return [...map.values()];
   }, [meeting?.transcript]);
 
+  function applyMeeting(value) {
+    if (value.id !== activeMeetingId.current) return false;
+    meetingLoadGeneration.current += 1;
+    setMeeting(value);
+    return true;
+  }
+
   async function loadList(preferredId = "") {
+    const generation = meetingLoadGeneration.current;
     const payload = await api("/api/meetings");
     setMeetings(payload.meetings || []);
     const candidate = preferredId || selectedId || payload.meetings?.[0]?.id || "";
-    if (candidate) setSelectedId(candidate);
+    if (candidate && generation === meetingLoadGeneration.current) setSelectedId(candidate);
   }
 
   async function loadHealth() {
@@ -183,21 +198,23 @@ export default function FincaMeetingsHub() {
 
   async function loadMeeting(id, quiet = false) {
     if (!id) return;
-    if (!quiet) setBusy(true);
+    const generation = quiet ? meetingLoadGeneration.current : ++meetingLoadGeneration.current;
+    if (!quiet) { activeMeetingId.current = id; foregroundLoad.current = generation; setBusy(true); }
     try {
       const payload = await api(`/api/meetings/${encodeURIComponent(id)}`);
-      if (quiet && reportOperationRef.current) return;
+      if (generation !== meetingLoadGeneration.current || (quiet && reportOperationRef.current)) return;
       setMeeting(payload.meeting);
-      setPreparation(prepFromMeeting(payload.meeting));
-      setReportDraft(payload.meeting.reportDraft || { summary: "", subjects: "" });
-      setSpeakerMapping(payload.meeting.speakerOverrides || {});
+      preparationEditor.refresh(prepFromMeeting(payload.meeting), !quiet);
+      reportEditor.refresh(payload.meeting.reportDraft || { summary: "", subjects: "" }, !quiet);
+      speakerEditor.refresh(payload.meeting.speakerOverrides || {}, !quiet);
       const pending = await listPendingChunks(id).catch(() => []);
+      if (generation !== meetingLoadGeneration.current) return;
       setPendingChunks(pending.length);
-      setError("");
+      if (!quiet) setError("");
     } catch (err) {
-      if (!quiet) setError(err.message);
+      if (!quiet && generation === meetingLoadGeneration.current) setError(err.message);
     } finally {
-      if (!quiet) setBusy(false);
+      if (!quiet && generation === foregroundLoad.current) setBusy(false);
     }
   }
 
@@ -280,8 +297,11 @@ export default function FincaMeetingsHub() {
       });
       setNewMode(false);
       setSelectedId(payload.meeting.id);
-      setMeeting(payload.meeting);
-      setPreparation(prepFromMeeting(payload.meeting));
+      activeMeetingId.current = payload.meeting.id;
+      if (!applyMeeting(payload.meeting)) return;
+      preparationEditor.refresh(prepFromMeeting(payload.meeting), true);
+      reportEditor.refresh(payload.meeting.reportDraft || { summary: "", subjects: "" }, true);
+      speakerEditor.refresh(payload.meeting.speakerOverrides || {}, true);
       setNotice("Réunion préparée et sauvegardée.");
       await loadList(payload.meeting.id);
     } catch (err) {
@@ -293,25 +313,28 @@ export default function FincaMeetingsHub() {
 
   async function savePreparation() {
     if (!meeting?.id) return;
+    const preparationSaved = preparationEditor.snapshot();
+    const reportSaved = reportEditor.snapshot();
     setBusy(true);
     setError("");
     try {
       const payload = await api(`/api/meetings/${meeting.id}`, {
         method: "PUT",
         body: {
-          title: preparation.title,
-          date: preparation.date,
-          meetingType: preparation.meetingType,
-          theme: preparation.theme,
-          objective: preparation.objective,
-          agenda: preparation.agendaText,
-          previousRecap: preparation.previousRecap,
+          title: preparationSaved.value.title,
+          date: preparationSaved.value.date,
+          meetingType: preparationSaved.value.meetingType,
+          theme: preparationSaved.value.theme,
+          objective: preparationSaved.value.objective,
+          agenda: preparationSaved.value.agendaText,
+          previousRecap: preparationSaved.value.previousRecap,
           stage: meeting.stage,
-          reportDraft
+          reportDraft: reportSaved.value
         }
       });
-      setMeeting(payload.meeting);
-      setPreparation(prepFromMeeting(payload.meeting));
+      if (!applyMeeting(payload.meeting)) return;
+      preparationEditor.acknowledge(preparationSaved, prepFromMeeting(payload.meeting));
+      reportEditor.acknowledge(reportSaved, payload.meeting.reportDraft || reportSaved.value);
       setNotice("Préparation enregistrée.");
       await loadList(meeting.id);
     } catch (err) {
@@ -323,12 +346,14 @@ export default function FincaMeetingsHub() {
 
   async function changeStage(stage) {
     if (!meeting?.id) return;
+    const reportSaved = reportEditor.snapshot();
     try {
       const payload = await api(`/api/meetings/${meeting.id}`, {
         method: "PUT",
-        body: { stage, reportDraft }
+        body: { stage, reportDraft: reportSaved.value }
       });
-      setMeeting(payload.meeting);
+      if (!applyMeeting(payload.meeting)) return;
+      reportEditor.acknowledge(reportSaved, payload.meeting.reportDraft || reportSaved.value);
     } catch (err) {
       setError(err.message);
     }
@@ -341,8 +366,8 @@ export default function FincaMeetingsHub() {
         method: "POST",
         body: { ...newParticipant, addedDuring: true, sortOrder: meeting.participants.length + 1 }
       });
-      setMeeting(payload.meeting);
-      setPreparation(prepFromMeeting(payload.meeting));
+      if (!applyMeeting(payload.meeting)) return;
+      preparationEditor.refresh(prepFromMeeting(payload.meeting));
       setNewParticipant({ name: "", role: "", presence: "present" });
     } catch (err) {
       setError(err.message);
@@ -355,10 +380,12 @@ export default function FincaMeetingsHub() {
         method: "PUT",
         body: participant
       });
-      setMeeting(payload.meeting);
-      setPreparation(prepFromMeeting(payload.meeting));
+      if (!applyMeeting(payload.meeting)) return;
+      preparationEditor.refresh(prepFromMeeting(payload.meeting));
+      return payload.meeting.participants.find((item) => item.id === participant.id);
     } catch (err) {
       setError(err.message);
+      return null;
     }
   }
 
@@ -423,7 +450,7 @@ export default function FincaMeetingsHub() {
           recordingNotice: RECORDING_NOTICE
         }
       });
-      setMeeting(payload.meeting);
+      if (!applyMeeting(payload.meeting)) return false;
       setAudioStatus("Enregistrement original sauvegardé dans FINCA MARIA.");
       return true;
     } catch (err) {
@@ -529,7 +556,7 @@ export default function FincaMeetingsHub() {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Import impossible");
-      setMeeting(payload.meeting);
+      if (!applyMeeting(payload.meeting)) return;
       setAudioStatus(payload.duplicate ? "Cet audio était déjà sauvegardé." : "Audio importé et sauvegardé.");
     } catch (err) {
       setError(err.message);
@@ -548,7 +575,7 @@ export default function FincaMeetingsHub() {
         method: "POST",
         body: { type, timeSeconds: seconds }
       });
-      setMeeting(payload.meeting);
+      if (!applyMeeting(payload.meeting)) return;
     } catch (err) {
       setError(err.message);
     }
@@ -565,9 +592,11 @@ export default function FincaMeetingsHub() {
           dueDate: patch.dueDate ?? marker.dueDate
         }
       });
-      setMeeting(payload.meeting);
+      if (!applyMeeting(payload.meeting)) return;
+      return payload.meeting.markers.find((item) => item.id === marker.id);
     } catch (err) {
       setError(err.message);
+      return null;
     }
   }
 
@@ -582,7 +611,7 @@ export default function FincaMeetingsHub() {
     setError("");
     try {
       const payload = await api(`/api/meetings/${meeting.id}/transcribe`, { method: "POST", body: {} });
-      setMeeting(payload.meeting);
+      if (!applyMeeting(payload.meeting)) return;
       setNotice(payload.cached ? "Transcription existante réutilisée." : payload.alreadyRunning ? "Transcription déjà en cours." : "Transcription locale lancée.");
     } catch (err) {
       setError(err.message);
@@ -590,13 +619,14 @@ export default function FincaMeetingsHub() {
   }
 
   async function saveSpeakerNames() {
+    const saved = speakerEditor.snapshot();
     try {
       const payload = await api(`/api/meetings/${meeting.id}/speakers`, {
         method: "PUT",
-        body: { mapping: speakerMapping }
+        body: { mapping: saved.value }
       });
-      setMeeting(payload.meeting);
-      setSpeakerMapping(payload.mapping || {});
+      if (!applyMeeting(payload.meeting)) return;
+      speakerEditor.acknowledge(saved, payload.mapping || {});
       setNotice("Noms des intervenants confirmés pour cette réunion uniquement.");
     } catch (err) {
       setError(err.message);
@@ -604,11 +634,13 @@ export default function FincaMeetingsHub() {
   }
 
   async function persistReport() {
+    const saved = reportEditor.snapshot();
     const payload = await api(`/api/meetings/${meeting.id}`, {
       method: "PUT",
-      body: { stage: meeting.stage, reportDraft }
+      body: { stage: meeting.stage, reportDraft: saved.value }
     });
-    setMeeting(payload.meeting);
+    if (!applyMeeting(payload.meeting)) throw new Error("La réunion active a changé.");
+    reportEditor.acknowledge(saved, payload.meeting.reportDraft || saved.value);
   }
 
   async function saveReport() {
@@ -639,7 +671,7 @@ export default function FincaMeetingsHub() {
       await persistReport();
       setReportOperation("validating");
       const payload = await api(`/api/meetings/${meeting.id}/validate`, { method: "POST", body: {} });
-      setMeeting(payload.meeting);
+      if (!applyMeeting(payload.meeting)) return;
       setNotice(`Compte rendu validé · version ${payload.version} conservée.`);
       await loadList(meeting.id);
     } catch (err) {
@@ -657,7 +689,7 @@ export default function FincaMeetingsHub() {
         method: "POST",
         body: { confirmed: true }
       });
-      setMeeting(payload.meeting);
+      if (!applyMeeting(payload.meeting)) return;
       setNotice(payload.duplicate ? "Cette action était déjà rattachée : aucun doublon créé." : "Action confirmée créée dans FINCA MARIA.");
     } catch (err) {
       setError(err.message);
@@ -672,7 +704,7 @@ export default function FincaMeetingsHub() {
         method: "POST",
         body: { documentId }
       });
-      setMeeting(payload.meeting);
+      if (!applyMeeting(payload.meeting)) return;
       setNotice(payload.duplicate ? "Ce document était déjà lié." : "Document BAÚL rattaché à la réunion.");
     } catch (err) {
       setError(err.message);
@@ -680,10 +712,16 @@ export default function FincaMeetingsHub() {
   }
 
   function startNew() {
+    meetingLoadGeneration.current += 1;
+    foregroundLoad.current = -1;
+    activeMeetingId.current = "";
+    setBusy(false);
     setNewMode(true);
     setSelectedId("");
     setMeeting(null);
-    setPreparation(emptyPreparation());
+    preparationEditor.refresh(emptyPreparation(), true);
+    reportEditor.refresh({ summary: "", subjects: "" }, true);
+    speakerEditor.refresh({}, true);
     setNotice("");
     setError("");
     setRecordingConsent(false);
@@ -750,6 +788,7 @@ export default function FincaMeetingsHub() {
         <section className="meetingPanel">
           {error ? <div className="meetingNotice error" role="alert">{error}</div> : null}
           {notice ? <div className="meetingNotice ok">{notice}</div> : null}
+          {preparationEditor.dirty || reportEditor.dirty || speakerEditor.dirty ? <p role="status">Des modifications ne sont pas encore enregistrées. L’actualisation automatique les conserve.</p> : null}
           {reportOperation ? <p role="status">{reportOperation === "saving" ? "Enregistrement du brouillon en cours…" : "Validation du compte rendu en cours…"}</p> : null}
 
           {registerMode ? (
@@ -918,22 +957,36 @@ export default function FincaMeetingsHub() {
 }
 
 function ParticipantEditor({ participant, onSave }) {
-  const [draft, setDraft] = useState(participant);
-  useEffect(() => setDraft(participant), [participant]);
+  const editor = useMeetingDraft(participant);
+  const { value: draft, edit: setDraft, refresh } = editor;
+  useEffect(() => refresh(participant), [participant, refresh]);
+  async function save() {
+    const snapshot = editor.snapshot();
+    const saved = await onSave(snapshot.value);
+    if (saved) editor.acknowledge(snapshot, saved);
+  }
   return (
     <div className="participantRow">
       <label>Nom<input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
       <label>Présence<select value={draft.presence} onChange={(event) => setDraft({ ...draft, presence: event.target.value })}><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
       <label>Rôle<input value={draft.role} onChange={(event) => setDraft({ ...draft, role: event.target.value })} /></label>
       <label className="check"><input type="checkbox" checked={Boolean(draft.isFacilitator)} onChange={(event) => setDraft({ ...draft, isFacilitator: event.target.checked })} /> Anime</label>
-      <button type="button" className="meetingBtn" onClick={() => onSave(draft)}>Enregistrer</button>
+      <button type="button" className="meetingBtn" onClick={save}>Enregistrer</button>
+      {editor.dirty ? <small>Modifications non enregistrées</small> : null}
     </div>
   );
 }
 
 function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocumentChange, onLinkDocument, onSeek, onUpdate, onCreateAction }) {
-  const [draft, setDraft] = useState(marker);
-  useEffect(() => setDraft(marker), [marker]);
+  const editor = useMeetingDraft(marker);
+  const { value: draft, edit: setDraft, refresh } = editor;
+  useEffect(() => refresh(marker), [marker, refresh]);
+  async function save() {
+    const snapshot = editor.snapshot();
+    const { note, classification, responsible, dueDate } = snapshot.value;
+    const saved = await onUpdate({ note, classification, responsible, dueDate });
+    if (saved) editor.acknowledge(snapshot, saved);
+  }
   return (
     <article className="markerCard">
       <div className="markerHead">
@@ -947,7 +1000,8 @@ function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocu
         <label className="meetingField"><span>Échéance · seulement si précisée</span><input type="date" value={draft.dueDate || ""} onChange={(event) => setDraft({ ...draft, dueDate: event.target.value })} /></label>
       </div>
       <div className="meetingActions">
-        <button type="button" className="meetingBtn" onClick={() => onUpdate({ note: draft.note, classification: draft.classification, responsible: draft.responsible, dueDate: draft.dueDate })}>Enregistrer ce repère</button>
+        <button type="button" className="meetingBtn" onClick={save}>Enregistrer ce repère</button>
+        {editor.dirty ? <small>Modifications non enregistrées</small> : null}
         {marker.classification === "action_confirmee" && validated ? <button type="button" className="meetingBtn primary" onClick={onCreateAction}>Créer l’action FINCA</button> : null}
       </div>
       {marker.type === "document_evoque" || marker.classification === "document_evoque" ? (
