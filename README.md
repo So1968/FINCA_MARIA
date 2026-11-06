@@ -39,6 +39,18 @@ npm run check:family
 ```
 
 Les contrôles complets du serveur et des sauvegardes sont dans le workflow GitHub Actions.
+Le parcours Actions peut aussi être testé dans Chromium, après `npm run setup` :
+
+```bash
+cd app && npx playwright install chromium && cd ..
+npm run test:actions:browser
+```
+
+Ce test utilise un BAÚL temporaire et des sessions de navigateur isolées. Il contrôle
+la sauvegarde locale, les erreurs de stockage, le retour au filtre Accomplies et
+l’affichage mobile/bureau. `FINCA_CHROMIUM_PATH` permet d’utiliser un Chromium déjà
+installé ; `FINCA_E2E_PORT` remplace le port de test 5225 si nécessaire.
+
 Le déploiement utilise `docker-compose.coolify.yml` : voir [la fiche Coolify](COOLIFY_HANDOFF.md).
 Le transfert du code ne déplace pas automatiquement les bases de données ni les volumes du serveur existant.
 
