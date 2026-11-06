@@ -51,6 +51,13 @@ la sauvegarde locale, les erreurs de stockage, le retour au filtre Accomplies et
 l’affichage mobile/bureau. `FINCA_CHROMIUM_PATH` permet d’utiliser un Chromium déjà
 installé ; `FINCA_E2E_PORT` remplace le port de test 5225 si nécessaire.
 
+Les deux vues Actions proposent les mêmes filtres : à faire, à compléter,
+en cours / attente, accomplies et toutes. Le filtre reste dans le lien lors
+d’une actualisation ou d’un aller-retour dans un dossier. Les modifications
+enregistrées sont répercutées dans les autres onglets du même navigateur.
+Les saisies non enregistrées restent visibles si une mise à jour arrive
+d’un autre onglet ; une nouvelle modification réessaie leur sauvegarde.
+
 Le déploiement utilise `docker-compose.coolify.yml` : voir [la fiche Coolify](COOLIFY_HANDOFF.md).
 Le transfert du code ne déplace pas automatiquement les bases de données ni les volumes du serveur existant.
 

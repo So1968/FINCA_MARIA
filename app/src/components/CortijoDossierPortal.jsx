@@ -2,20 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { cortijoActionDesk } from "../data/cortijoActionDesk";
 import { CORTIJO_DOSSIERS } from "../data/cortijoDossiers";
 
-import { actionBucket, actionFilter, actionsUrl, normalizeActionStatus as normalizeStatus } from "../lib/actionAssignments.mjs";
+import { ACTION_FILTERS, actionFilter, actionsUrl, matchesActionFilter, summarizeActions, normalizeActionStatus as normalizeStatus } from "../lib/actionAssignments.mjs";
 import { useActionAssignments } from "../lib/useActionAssignments";
 const ACTION_PLAN_DATE = "18/08/2026";
 const RESPONSIBLE_OPTIONS = ["À déterminer", "Clemencia", "Ana María", "María Isabel", "María José", "Gloria", "Michèle", "José", "Sofía"];
 const STATUS_OPTIONS = ["Action à compléter", "En cours", "En attente", "Action accomplie"];
 const CONTACT_MODE_OPTIONS = ["Téléphone", "WhatsApp", "Mail", "Sur place", "Rendez-vous"];
 const CONTACT_WITH_OPTIONS = ["San Juan", "ASAJA", "Peláez", "Agriculteur / Vitines", "Autre interlocuteur"];
-const ACTION_FILTERS = [
-  { id: "active", label: "À faire / en cours" },
-  { id: "todo", label: "À compléter" },
-  { id: "progress", label: "En cours" },
-  { id: "done", label: "Accomplies" },
-  { id: "all", label: "Toutes" }
-];
+
 
 const ACTION_SCRIPT_FR = {
   "san-juan-historique": "Bonjour. Nous reconstituons la production de notre finca campagne par campagne. Pour 2025/26, nous avons déjà deux reçus de reparto utilisant la même base de 18 210 kg d'olives, 3 860,64 kg d'huile et un rendement de 21,20 %. Nous ne vous demandons donc pas de réétablir cette base : nous avons besoin de la liste complète des vales ou apports, avec dates et kilos, de comprendre comment s'insèrent les repères 7 943 kg, 6 541 kg et la référence 6139, et de confirmer si 18 210 kg est bien le total des apports de la campagne. Nous souhaitons aussi savoir s'il existe un troisième reparto ou une liquidation finale. Pour les campagnes 2019/20 à 2022/23, nous avons encore besoin de l'historique complet de production et de la confirmation que le relevé couvre tous les apports enregistrés.",
@@ -117,8 +111,13 @@ export function CortijoDossierPortal() {
 
   const activeDossier = CORTIJO_DOSSIERS.find((item) => item.id === activeContact) || CORTIJO_DOSSIERS[0];
   const activeActions = actionsFor(activeDossier);
-  const counts = useMemo(() => { const result = { active: 0, todo: 0, progress: 0, done: 0, all: activeActions.length }; activeActions.forEach((action) => { const status = assignments[action.id]?.status || "Action à compléter"; result[actionBucket(status)] += 1; if (actionBucket(status) !== "done") result.active += 1; }); return result; }, [activeActions, assignments]);
-  const visibleActions = useMemo(() => { if (selectedFilter === "all") return activeActions; return activeActions.filter((action) => { const status = assignments[action.id]?.status || "Action à compléter"; const bucket = actionBucket(status); return selectedFilter === "active" ? bucket !== "done" : bucket === selectedFilter; }); }, [activeActions, assignments, selectedFilter]);
+  const counts = useMemo(() => summarizeActions(activeActions, assignments), [activeActions, assignments]);
+  const visibleActions = activeActions.filter((action) => matchesActionFilter(assignments[action.id]?.status, selectedFilter));
+
+  function selectFilter(filter) {
+    setActionFilter(filter);
+    window.history.replaceState(null, "", actionsUrl(window.location.href, { contact: activeContact, filter, dossier: true }));
+  }
 
   function selectContact(id) { setActiveContact(id); setActionFilter("active"); window.history.replaceState(null, "", actionsUrl(window.location.href, { contact: id, filter: "active", dossier: true })); window.requestAnimationFrame(() => document.getElementById("finca-action-board")?.scrollIntoView({ block: "start" })); }
 
@@ -135,7 +134,7 @@ export function CortijoDossierPortal() {
 
       <section id="finca-action-board" className="cortijoView fincaActionBoard" aria-label={`Actions ${activeDossier.label}`}>
         <div className="cortijoPanelTitle fincaActionBoardTitle"><span>A</span><div><h3>Actions — {activeDossier.label}</h3><p>Statut, échéance, attribution, mode et interlocuteur : tout se change ici, sans sous-menu.</p></div></div>
-        <div className="fincaActionBuckets" aria-label="Filtrer les actions par état">{ACTION_FILTERS.map((filter) => <button type="button" key={filter.id} className={selectedFilter === filter.id ? "isActive" : ""} onClick={() => setActionFilter(filter.id)}><span>{filter.label}</span><strong>{counts[filter.id]}</strong></button>)}</div>
+        <div className="fincaActionBuckets" aria-label="Filtrer les actions par état">{ACTION_FILTERS.map((filter) => <button type="button" key={filter.id} aria-pressed={selectedFilter === filter.id} className={selectedFilter === filter.id ? "isActive" : ""} onClick={() => selectFilter(filter.id)}><span>{filter.label}</span><strong>{counts[filter.id]}</strong></button>)}</div>
         <fieldset disabled={readError} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}><div className="cortijoList fincaActionList">{visibleActions.length === 0 && <article className="cortijoCard fincaEmptyActionState"><p>{selectedFilter === "done" ? "Aucune action accomplie pour ce dossier." : "Aucune action dans cette rubrique."}</p></article>}{visibleActions.map((action) => <DossierAction key={action.id} action={action} dossierLabel={activeDossier.label} assignment={assignments[action.id] || {}} onUpdate={updateAssignment} />)}</div></fieldset>
       </section>
 

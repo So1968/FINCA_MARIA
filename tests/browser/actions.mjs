@@ -62,13 +62,13 @@ try {
   assert.equal(new URL(page.url()).searchParams.get("filter"), "done");
   await dossier.locator('select[aria-label="Suivi"]').waitFor();
   await dossier.locator("summary").first().click();
-  await page.getByRole("button", { name: "Toutes", exact: true }).click();
+  await page.getByRole("button", { name: /^Toutes\b/ }).click();
   assert.equal(await dossier.getAttribute("open"), null);
   await dossier.locator("summary").first().click();
   await dossier.locator('select[aria-label="Suivi"]').selectOption("En cours");
   await page.getByRole("status").filter({ hasText: "Modifications enregistrées" }).waitFor();
   await page.reload();
-  await page.getByRole("button", { name: "Toutes", exact: true }).click();
+  await page.getByRole("button", { name: /^Toutes\b/ }).click();
   assert.equal(await dossier.locator('select[aria-label="Suivi"]').inputValue(), "En cours");
   for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 850 });
@@ -76,7 +76,53 @@ try {
   }
   assert.deepEqual(errors, []);
   console.log("✓ Statut, sauvegarde, actualisation, retour Accomplies, fermeture des dossiers et affichage mobile/bureau");
+
+  const other = await context.newPage();
+  await other.goto(`${origin}/?view=cortijo-memoire&contact=san-juan&filter=all`);
+  await other.locator('select[aria-label="Suivi"]').first().selectOption("En attente");
+  await page.waitForFunction(() => document.querySelector('.fincaDossierCard select[aria-label="Suivi"]')?.value === "En attente");
+  await other.locator('input[type="date"]').first().fill("2026-12-01");
+  await dossier.locator('select[aria-label="Attribution"]').selectOption("Clemencia");
+  await other.waitForFunction(() => document.querySelector('select[aria-label="Attribution"]')?.value === "Clemencia");
+  assert.equal(await dossier.locator('input[type="date"]').inputValue(), "2026-12-01");
+  assert.equal(await other.locator('input[type="date"]').first().inputValue(), "2026-12-01");
+  await other.close();
+  await page.getByRole("button", { name: /^En cours \/ attente/ }).click();
+  await page.reload();
+  assert.equal(await page.getByRole("button", { name: /^En cours \/ attente/ }).getAttribute("aria-pressed"), "true");
+  await dossier.getByRole("button", { name: /Ouvrir le dossier/ }).click();
+  await page.waitForURL(/view=cortijo-memoire/);
+  assert.equal(new URL(page.url()).searchParams.get("filter"), "progress");
+  assert.equal(await page.getByRole("button", { name: /^En cours \/ attente/ }).getAttribute("aria-pressed"), "true");
+  await page.getByRole("link", { name: /Retour à Terre/ }).click();
+  await page.waitForURL(/area=terre/);
+  assert.equal(new URL(page.url()).searchParams.get("filter"), "progress");
+  console.log("✓ Mise à jour entre deux onglets, préservation des autres champs et filtre En cours / attente après actualisation et aller-retour");
   await context.close();
+
+  const recovery = await browser.newContext();
+  const unsaved = await recovery.newPage();
+  await unsaved.addInitScript((key) => {
+    window.fincaTestSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (name, value) {
+      if (name === key) throw new DOMException("Quota", "QuotaExceededError");
+      return window.fincaTestSetItem.call(this, name, value);
+    };
+  }, key);
+  await unsaved.goto(route);
+  await unsaved.locator('select[aria-label="Suivi"]').first().selectOption("En cours");
+  await unsaved.getByRole("status").filter({ hasText: "modifications non enregistrées" }).waitFor();
+  const savedTab = await recovery.newPage();
+  await savedTab.goto(`${origin}/?view=cortijo-memoire&contact=san-juan&filter=all`);
+  await savedTab.locator('input[type="date"]').first().fill("2026-12-02");
+  await unsaved.waitForFunction(() => document.querySelector('.fincaDossierCard input[type="date"]')?.value === "2026-12-02");
+  assert.equal(await unsaved.locator('select[aria-label="Suivi"]').first().inputValue(), "En cours");
+  await unsaved.evaluate(() => { Storage.prototype.setItem = window.fincaTestSetItem; });
+  await unsaved.locator('select[aria-label="Attribution"]').first().selectOption("Clemencia");
+  await savedTab.waitForFunction(() => document.querySelector('select[aria-label="Suivi"]')?.value === "En cours");
+  assert.equal(await savedTab.locator('input[type="date"]').first().inputValue(), "2026-12-02");
+  await recovery.close();
+  console.log("✓ Une modification non enregistrée survit à une mise à jour reçue et se sauvegarde après rétablissement du stockage");
 
   for (const view of [route, `${origin}/?view=cortijo-memoire&contact=san-juan`]) {
     const corrupt = await browser.newContext();

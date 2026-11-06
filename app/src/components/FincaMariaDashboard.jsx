@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cortijoActionDesk } from "../data/cortijoActionDesk";
 
-import { actionFilter, actionsUrl, normalizeActionStatus as normalizeStatus } from "../lib/actionAssignments.mjs";
+import { ACTION_FILTERS, actionFilter, actionsUrl, matchesActionFilter, summarizeActions, normalizeActionStatus as normalizeStatus } from "../lib/actionAssignments.mjs";
 import { useActionAssignments } from "../lib/useActionAssignments";
 const NAV_STORAGE_KEY = "finca_maria_navigation_v2";
 const ACTION_PLAN_DATE = "18/08/2026";
@@ -253,18 +253,14 @@ export function FincaMariaDashboard() {
     reader.readAsText(file);
   }
 
-  const actionSummary = useMemo(() => {
-    const result = { todo: 0, progress: 0, done: 0 };
-    interlocutors.flatMap(actionsFor).forEach((action) => {
-      const status = normalizeStatus(assignments[action.id]?.status || "Action à compléter");
-      if (status === "Action accomplie") result.done += 1;
-      else if (status === "En cours" || status === "En attente") result.progress += 1;
-      else result.todo += 1;
-    });
-    return result;
-  }, [assignments]);
+  const actionSummary = useMemo(() => summarizeActions(interlocutors.flatMap(actionsFor), assignments), [assignments]);
+  const filteredActionsFor = (item) => actionsFor(item).filter((action) => matchesActionFilter(assignments[action.id]?.status, earthActionFilter));
 
-  const filteredActionsFor = (item) => actionsFor(item).filter((action) => { const done = normalizeStatus(assignments[action.id]?.status || "Action à compléter") === "Action accomplie"; return earthActionFilter === "all" || (earthActionFilter === "done" ? done : !done); });
+  function selectEarthFilter(filter) {
+    setEarthActionFilter(filter);
+    const contact = new URLSearchParams(window.location.search).get("contact");
+    window.history.replaceState(null, "", actionsUrl(window.location.href, { contact, filter }));
+  }
 
   const currentEarth = EARTH_TABS.find((tab) => tab.id === earthTab) || EARTH_TABS[0];
   const currentHouse = HOUSE_TABS.find((tab) => tab.id === houseTab) || HOUSE_TABS[0];
@@ -349,7 +345,7 @@ export function FincaMariaDashboard() {
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "gestion" ? "block" : "none" }}><summary><h3>Journal de l’exploitation</h3></summary><div className="cortijoWorkflow"><ol>{managementTimeline.map((item) => <li key={`${item.period}-${item.title}`}><strong>{item.period}</strong><span><b>{item.title}</b><br />{item.text}</span></li>)}</ol></div></details>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "analyse" ? "block" : "none" }}><summary><h3>Analyse</h3></summary><div className="cortijoList">{analysisFindings.map((item) => <article className="cortijoCard" key={item.title}><div className="cortijoCardTop"><span className="cortijoPill">{item.status}</span></div><h4>{item.title}</h4><p>{item.text}</p></article>)}</div></details>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "strategie" ? "block" : "none" }}><summary><h3>Stratégie</h3></summary><div className="cortijoWorkflow"><ol>{strategy.map((item, index) => <li key={item}><strong>{index + 1}</strong><span>{item}</span></li>)}</ol></div></details>
-        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "actions" ? "block" : "none" }}><summary><h3>Dossiers & actions</h3></summary><div className="fincaActionBuckets" aria-label="Afficher les actions"><button type="button" className={earthActionFilter === "active" ? "isActive" : ""} onClick={() => setEarthActionFilter("active")}>À faire / en cours · {actionSummary.todo + actionSummary.progress}</button><button type="button" className={earthActionFilter === "done" ? "isActive" : ""} onClick={() => setEarthActionFilter("done")}>Actions accomplies · {actionSummary.done}</button><button type="button" className={earthActionFilter === "all" ? "isActive" : ""} onClick={() => setEarthActionFilter("all")}>Toutes</button></div><p role="status" aria-live="polite">{saveMessage}</p><div className="fincaDossierStack">{interlocutors.map((item) => { const dossierActions = filteredActionsFor(item); return <details className="fincaDossierCard" key={item.id} open={Boolean(openDossiers[item.id])} onToggle={(event) => { const open = event.currentTarget.open; setOpenDossiers((current) => current[item.id] === open ? current : { ...current, [item.id]: open }); }}><summary className="fincaDossierSummary"><div><span className="cortijoPill">{item.label}</span><h4>{item.subtitle}</h4></div><span className="fincaDossierCount">{dossierActions.length} action{dossierActions.length > 1 ? "s" : ""}</span></summary><div className="fincaDossierBody"><fieldset disabled={readError} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}><div className="cortijoList fincaActionList">{dossierActions.length === 0 && <p>Aucune action dans cette rubrique pour ce dossier.</p>}{dossierActions.map((action) => <DossierAction key={action.id} action={action} dossierLabel={item.label} assignment={assignments[action.id] || {}} onUpdate={updateAssignment} />)}</div></fieldset><button type="button" className="fincaDossierOpen" onClick={() => openDossier(item.id, earthActionFilter)}>Ouvrir le dossier — {item.label}</button></div></details>; })}</div></details>
+        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "actions" ? "block" : "none" }}><summary><h3>Dossiers & actions</h3></summary><div className="fincaActionBuckets" aria-label="Afficher les actions">{ACTION_FILTERS.map((filter) => <button type="button" key={filter.id} aria-pressed={earthActionFilter === filter.id} className={earthActionFilter === filter.id ? "isActive" : ""} onClick={() => selectEarthFilter(filter.id)}><span>{filter.label}</span><strong>{actionSummary[filter.id]}</strong></button>)}</div><p role="status" aria-live="polite">{saveMessage}</p><div className="fincaDossierStack">{interlocutors.map((item) => { const dossierActions = filteredActionsFor(item); return <details className="fincaDossierCard" key={item.id} open={Boolean(openDossiers[item.id])} onToggle={(event) => { const open = event.currentTarget.open; setOpenDossiers((current) => current[item.id] === open ? current : { ...current, [item.id]: open }); }}><summary className="fincaDossierSummary"><div><span className="cortijoPill">{item.label}</span><h4>{item.subtitle}</h4></div><span className="fincaDossierCount">{dossierActions.length} action{dossierActions.length > 1 ? "s" : ""}</span></summary><div className="fincaDossierBody"><fieldset disabled={readError} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}><div className="cortijoList fincaActionList">{dossierActions.length === 0 && <p>Aucune action dans cette rubrique pour ce dossier.</p>}{dossierActions.map((action) => <DossierAction key={action.id} action={action} dossierLabel={item.label} assignment={assignments[action.id] || {}} onUpdate={updateAssignment} />)}</div></fieldset><button type="button" className="fincaDossierOpen" onClick={() => openDossier(item.id, earthActionFilter)}>Ouvrir le dossier — {item.label}</button></div></details>; })}</div></details>
       </div>
 
       <div style={{ display: area === "maison" ? "block" : "none" }}>
