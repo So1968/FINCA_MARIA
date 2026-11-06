@@ -51,6 +51,11 @@ la sauvegarde locale, les erreurs de stockage, le retour au filtre Accomplies et
 l’affichage mobile/bureau. `FINCA_CHROMIUM_PATH` permet d’utiliser un Chromium déjà
 installé ; `FINCA_E2E_PORT` remplace le port de test 5225 si nécessaire.
 
+`npm run test:meetings:browser` vérifie la validation des comptes rendus avec
+une API simulée : échecs de sauvegarde et de validation, annulation de confirmation,
+conservation du texte et protection contre les doubles clics. Il ne modifie aucune
+réunion réelle. `FINCA_MEETINGS_E2E_PORT` remplace son port de test 5226.
+
 Les deux vues Actions proposent les mêmes filtres : à faire, à compléter,
 en cours / attente, accomplies et toutes. Le filtre reste dans le lien lors
 d’une actualisation ou d’un aller-retour dans un dossier. Les modifications
