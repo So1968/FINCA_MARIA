@@ -133,6 +133,9 @@ export default function FincaMeetingsHub() {
   const [newMode, setNewMode] = useState(false);
   const [historicMode, setHistoricMode] = useState(false);
   const [registerMode, setRegisterMode] = useState(false);
+  const [registerFilter, setRegisterFilter] = useState("all");
+  const [returnToRegister, setReturnToRegister] = useState(false);
+  const [highlightedMarkerId, setHighlightedMarkerId] = useState("");
   const [busy, setBusy] = useState(false);
   const [reportOperation, setReportOperation] = useState("");
   const reportOperationRef = useRef(false);
@@ -288,7 +291,12 @@ export default function FincaMeetingsHub() {
   async function loadMeeting(id, quiet = false) {
     if (!id) return;
     const generation = quiet ? meetingLoadGeneration.current : ++meetingLoadGeneration.current;
-    if (!quiet) { activeMeetingId.current = id; foregroundLoad.current = generation; setBusy(true); }
+    if (!quiet) {
+      if (activeMeetingId.current !== id) setMeeting(null);
+      activeMeetingId.current = id;
+      foregroundLoad.current = generation;
+      setBusy(true);
+    }
     try {
       const payload = await api(`/api/meetings/${encodeURIComponent(id)}`);
       if (generation !== meetingLoadGeneration.current || (quiet && reportOperationRef.current)) return;
@@ -333,6 +341,16 @@ export default function FincaMeetingsHub() {
     const timer = window.setInterval(() => loadMeeting(meeting.id, true), 2500);
     return () => window.clearInterval(timer);
   }, [meeting?.id, meeting?.transcriptionState]);
+
+  useEffect(() => {
+    if (registerMode || historicMode || newMode || meeting?.id !== selectedId || !highlightedMarkerId) return;
+    const frame = window.requestAnimationFrame(() => {
+      const marker = document.getElementById(`meeting-marker-${highlightedMarkerId}`);
+      marker?.scrollIntoView({ block: "center" });
+      marker?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [meeting?.id, selectedId, highlightedMarkerId, registerMode, historicMode, newMode]);
 
   useEffect(() => {
     if (!sessionRunning) return undefined;
@@ -865,14 +883,27 @@ export default function FincaMeetingsHub() {
     action();
   }
 
-  function openMeeting(id) {
-    if (id === selectedId && !newMode && !historicMode && !registerMode) return;
+  function openMeeting(id, markerId = "") {
+    if (id === selectedId && !newMode && !historicMode && !registerMode && !markerId) return;
     navigateWithoutLosingEdits(() => {
+      setReturnToRegister(Boolean(markerId));
+      setHighlightedMarkerId(markerId);
+      activeMeetingId.current = id;
+      meetingLoadGeneration.current += 1;
+      setMeeting(null);
       setRegisterMode(false);
       setHistoricMode(false);
       setNewMode(false);
       if (id === selectedId && !newMode) loadMeeting(id);
       else setSelectedId(id);
+    });
+  }
+
+  function backToRegister() {
+    navigateWithoutLosingEdits(() => {
+      setRegisterMode(true);
+      setHistoricMode(false);
+      setNewMode(false);
     });
   }
 
@@ -884,6 +915,8 @@ export default function FincaMeetingsHub() {
   }
 
   function startNew() {
+    setReturnToRegister(false);
+    setHighlightedMarkerId("");
     if (!newMode) previousMeetingId.current = selectedId;
     meetingLoadGeneration.current += 1;
     foregroundLoad.current = -1;
@@ -969,13 +1002,14 @@ export default function FincaMeetingsHub() {
         </aside>
 
         <section className="meetingPanel">
+          {returnToRegister && !registerMode && !historicMode && !newMode && <button type="button" className="meetingBtn" disabled={Boolean(reportOperation)} onClick={backToRegister}>← Retour au registre des décisions</button>}
           {error ? <div className="meetingNotice error" role="alert">{error}</div> : null}
           {notice ? <div className="meetingNotice ok">{notice}</div> : null}
           {preparationEditor.dirty || reportEditor.dirty || speakerEditor.dirty ? <p role="status">Des modifications ne sont pas encore enregistrées. L’actualisation automatique les conserve.</p> : null}
           {reportOperation ? <p role="status">{reportOperation === "saving" ? "Enregistrement du brouillon en cours…" : "Validation du compte rendu en cours…"}</p> : null}
 
           {registerMode ? (
-            <MeetingDecisionRegister onOpen={openMeeting} onClose={() => setRegisterMode(false)} />
+            <MeetingDecisionRegister onOpen={openMeeting} onClose={() => setRegisterMode(false)} filter={registerFilter} onFilterChange={setRegisterFilter} />
           ) : historicMode ? (
             <HistoricMeetingImport onClose={() => setHistoricMode(false)} onImported={async (id) => { await loadList(id); }} />
           ) : newMode ? (
@@ -1049,6 +1083,9 @@ export default function FincaMeetingsHub() {
                     <MarkerCard
                       key={marker.id}
                       marker={marker}
+                      highlighted={marker.id === highlightedMarkerId}
+                      onBackToRegister={returnToRegister && marker.id === highlightedMarkerId ? backToRegister : null}
+                      backDisabled={Boolean(reportOperation)}
                       hasAudio={meeting.hasAudio}
                       validated={Boolean(meeting.validatedVersions?.length)}
                       documents={documents}
@@ -1162,7 +1199,7 @@ function ParticipantEditor({ participant, onSave, onDirtyChange }) {
   );
 }
 
-function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocumentChange, onLinkDocument, onSeek, onUpdate, onCreateAction, onDirtyChange }) {
+function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocumentChange, onLinkDocument, onSeek, onUpdate, onCreateAction, onDirtyChange, highlighted, onBackToRegister, backDisabled }) {
   const reportDirty = useCallback((dirty) => onDirtyChange(`marker:${marker.id}`, dirty), [onDirtyChange, marker.id]);
   const editor = useMeetingDraft(marker, reportDirty);
   const { value: draft, edit: setDraft, refresh } = editor;
@@ -1174,7 +1211,7 @@ function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocu
     if (saved) editor.acknowledge(snapshot, saved);
   }
   return (
-    <article className="markerCard">
+    <article className={`markerCard${highlighted ? " isHighlighted" : ""}`} id={`meeting-marker-${marker.id}`} tabIndex={-1}>
       <div className="markerHead">
         <strong>{markerLabel(marker.type)}</strong>
         <button type="button" onClick={onSeek} disabled={!hasAudio}>{formatClock(marker.timeSeconds)}{hasAudio ? " ▶" : ""}</button>
@@ -1187,6 +1224,7 @@ function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocu
       </div>
       <div className="meetingActions">
         <button type="button" className="meetingBtn" onClick={save}>Enregistrer ce repère</button>
+        {onBackToRegister && <button type="button" className="meetingBtn" disabled={backDisabled} onClick={onBackToRegister}>Retour au registre</button>}
         {editor.dirty ? <small>Modifications non enregistrées</small> : null}
         {marker.classification === "action_confirmee" && validated ? <button type="button" className="meetingBtn primary" onClick={onCreateAction}>Créer l’action FINCA</button> : null}
       </div>

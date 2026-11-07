@@ -83,6 +83,12 @@ L’export reprend la copie figée à sa validation, avec sa date, son numéro d
 version et ses références. Les propositions restent distinctes des décisions
 confirmées. Exporter ne sauvegarde ni ne valide le brouillon actuellement saisi.
 
+Le registre des décisions conserve son filtre lorsqu’on ouvre un compte rendu
+d’origine puis qu’on utilise « Retour au registre des décisions ». Le repère choisi
+est mis en évidence dans la réunion. Une indisponibilité du registre peut être
+retentée sans être confondue avec une liste vide. Le parcours est vérifié par
+`npm run test:decision-register:browser` (port 5229, modifiable par `FINCA_REGISTER_E2E_PORT`).
+
 Les deux vues Actions proposent les mêmes filtres : à faire, à compléter,
 en cours / attente, accomplies et toutes. Le filtre reste dans le lien lors
 d’une actualisation ou d’un aller-retour dans un dossier. Les modifications
