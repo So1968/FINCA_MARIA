@@ -71,6 +71,9 @@ jobs:
       - name: Test meeting microphone and audio recovery lifecycle
         run: npm run test:meeting-audio:browser
 
+      - name: Test meeting search and pagination
+        run: npm run test:meeting-search:browser
+
       - name: Build frontend
         working-directory: app
         run: npm run check
