@@ -78,6 +78,11 @@ par pages. La recherche conserve la réunion ouverte et ses saisies.
 `FINCA_SEARCH_E2E_PORT` remplace le port de test 5228. La CI vérifie également la
 recherche et la pagination sur sa base PostgreSQL de test.
 
+Chaque version validée d’un compte rendu peut être exportée en texte (.txt).
+L’export reprend la copie figée à sa validation, avec sa date, son numéro de
+version et ses références. Les propositions restent distinctes des décisions
+confirmées. Exporter ne sauvegarde ni ne valide le brouillon actuellement saisi.
+
 Les deux vues Actions proposent les mêmes filtres : à faire, à compléter,
 en cours / attente, accomplies et toutes. Le filtre reste dans le lien lors
 d’une actualisation ou d’un aller-retour dans un dossier. Les modifications

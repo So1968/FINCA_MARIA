@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { deletePendingChunk, listPendingChunks, savePendingChunk } from "../lib/meetingAudioStore.js";
 import "../meetings.css";
 import { useMeetingDraft } from "../lib/useMeetingDraft.js";
+import { downloadValidatedReport } from "../lib/meetingReportExport.mjs";
 import HistoricMeetingImport from "./HistoricMeetingImport.jsx";
 import MeetingDecisionRegister from "./MeetingDecisionRegister.jsx";
 
@@ -838,6 +839,16 @@ export default function FincaMeetingsHub() {
     }
   }
 
+  function exportValidatedVersion(version) {
+    try {
+      downloadValidatedReport(version, meeting.id);
+      setError((current) => current.startsWith("Export impossible :") ? "" : current);
+      setNotice(`Export de la version ${version.version} préparé au format texte.`);
+    } catch (err) {
+      setError(`Export impossible : ${err.message}`);
+    }
+  }
+
   function navigateWithoutLosingEdits(action) {
     const message = audioNavigationMessage();
     if (message) { setError(message); return; }
@@ -1116,7 +1127,7 @@ export default function FincaMeetingsHub() {
                 <div className="meetingActions"><button type="button" className="meetingBtn" onClick={saveReport} disabled={busy || Boolean(reportOperation)}>Sauvegarder le brouillon</button><button type="button" className="meetingBtn primary" onClick={validateReport} disabled={busy || Boolean(reportOperation)}>Valider cette version</button></div>
 
                 {meeting.validatedVersions?.map((version) => (
-                  <div className="meetingVersion" key={version.id}><strong>Version {version.version}</strong> · {new Date(version.validatedAt).toLocaleString("fr-FR")}</div>
+                  <div className="meetingVersion" key={version.id}><strong>Version {version.version}</strong> · {new Date(version.validatedAt).toLocaleString("fr-FR", { timeZone: "Europe/Paris" })}<div className="meetingActions"><button type="button" className="meetingBtn" disabled={!version.snapshot} onClick={() => exportValidatedVersion(version)}>Exporter la version {version.version} (.txt)</button></div></div>
                 ))}
               </section>
             </>
