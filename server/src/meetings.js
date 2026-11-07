@@ -250,7 +250,7 @@ export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, aud
   async function fullMeeting(id, client = pool) {
     const safeId = safeMeetingId(id);
     const [meeting, participants, markers, versions, links] = await Promise.all([
-      client.query("SELECT * FROM meetings WHERE id=$1", [safeId]),
+      client.query("SELECT m.*, (SELECT COUNT(*) FROM meeting_audio_chunks c WHERE c.meeting_id=m.id)::int AS audio_chunk_count FROM meetings m WHERE m.id=$1", [safeId]),
       client.query("SELECT * FROM meeting_participants WHERE meeting_id=$1 ORDER BY sort_order, created_at", [safeId]),
       client.query("SELECT * FROM meeting_markers WHERE meeting_id=$1 ORDER BY time_seconds, created_at", [safeId]),
       client.query("SELECT id, version, snapshot, validated_at, validated_by FROM meeting_report_versions WHERE meeting_id=$1 ORDER BY version DESC", [safeId]),
@@ -260,6 +260,7 @@ export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, aud
     const row = meeting.rows[0];
     return {
       ...meetingSummary(row),
+      audioChunkCount: Number(row.audio_chunk_count || 0),
       participants: participants.rows.map(participantView),
       markers: markers.rows.map(markerView),
       transcript: row.transcript || null,
@@ -608,7 +609,7 @@ export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, aud
     const safeId = safeMeetingId(id);
     const body = await readBody(req);
     const chunks = await pool.query("SELECT * FROM meeting_audio_chunks WHERE meeting_id=$1 ORDER BY seq", [safeId]);
-    if (!chunks.rowCount) return json(res, 409, { error: "Aucun bloc audio sauvegardé" });
+    if (!chunks.rowCount) return json(res, 409, { code: "NO_AUDIO_CHUNKS", error: "Aucun bloc audio sauvegardé" });
     for (let index = 0; index < chunks.rows.length; index += 1) {
       if (Number(chunks.rows[index].seq) !== index) return json(res, 409, { error: `Bloc audio manquant : ${index}` });
     }

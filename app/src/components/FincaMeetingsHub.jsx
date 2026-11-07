@@ -7,6 +7,11 @@ import MeetingDecisionRegister from "./MeetingDecisionRegister.jsx";
 
 const STAGES = ["Ouverture", "Participants", "Contexte", "Ordre du jour", "Échanges", "Validation", "Clôture"];
 const RECORDING_NOTICE = "Cette réunion peut être enregistrée pour conserver une mémoire familiale fidèle. L’audio reste dans le stockage privé de FINCA MARIA. Être cité comme participant ne donne pas automatiquement accès au fichier.";
+const AUDIO_NAVIGATION_MESSAGES = {
+  starting: "Attendez la réponse à la demande de microphone avant de changer de réunion.",
+  recording: "Arrêtez l’enregistrement avant de changer de réunion.",
+  saving: "Attendez la fin de la sauvegarde audio avant de changer de réunion."
+};
 
 const MARKERS = [
   ["decision", "Décision"],
@@ -57,7 +62,7 @@ async function api(path, options = {}) {
   }
   const response = await fetch(path, { ...options, headers });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload.error || (response.status === 404 ? "Le serveur privé des réunions n’est pas démarré. Le lancement npm run dev seul ouvre l’interface, sans la base de données des réunions." : `Erreur FINCA (${response.status})`));
+  if (!response.ok) throw Object.assign(new Error(payload.error || (response.status === 404 ? "Le serveur privé des réunions n’est pas démarré. Le lancement npm run dev seul ouvre l’interface, sans la base de données des réunions." : `Erreur FINCA (${response.status})`)), { code: payload.code });
   return payload;
 }
 
@@ -124,6 +129,10 @@ export default function FincaMeetingsHub() {
   const [error, setError] = useState("");
   const [recordingConsent, setRecordingConsent] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [audioOperation, setAudioOperationState] = useState("");
+  const audioOperationRef = useRef("");
+  const audioMountedRef = useRef(true);
+  const [audioNeedsFinalization, setAudioNeedsFinalization] = useState(false);
   const [sessionRunning, setSessionRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [audioStatus, setAudioStatus] = useState("");
@@ -141,7 +150,6 @@ export default function FincaMeetingsHub() {
   const streamRef = useRef(null);
   const seqRef = useRef(0);
   const sessionStartedRef = useRef(0);
-  const recordMimeRef = useRef("audio/webm");
   const uploadRunningRef = useRef(false);
   const chunkSavePromisesRef = useRef([]);
   const audioRef = useRef(null);
@@ -161,13 +169,13 @@ export default function FincaMeetingsHub() {
 
   useEffect(() => {
     function protectUnsaved(event) {
-      if (!hasUnsavedChanges()) return;
+      if (!hasUnsavedChanges() && !recording && !audioOperationRef.current) return;
       event.preventDefault();
       event.returnValue = "";
     }
     window.addEventListener("beforeunload", protectUnsaved);
     return () => window.removeEventListener("beforeunload", protectUnsaved);
-  }, [hasUnsavedChanges]);
+  }, [hasUnsavedChanges, recording, audioOperation]);
 
   const groups = useMemo(() => reportGroups(meeting?.markers || []), [meeting?.markers]);
   const presentNames = useMemo(
@@ -182,6 +190,26 @@ export default function FincaMeetingsHub() {
     }
     return [...map.values()];
   }, [meeting?.transcript]);
+
+  const audioNeedsRecovery = !meeting?.hasAudio && (audioNeedsFinalization || pendingChunks > 0 || Number(meeting?.audioChunkCount || 0) > 0);
+
+  function changeAudioOperation(value) {
+    audioOperationRef.current = value;
+    setAudioOperationState(value);
+    setError((current) => Object.values(AUDIO_NAVIGATION_MESSAGES).includes(current) ? "" : current);
+  }
+
+  function audioNavigationMessage() {
+    if (audioOperationRef.current === "starting") return AUDIO_NAVIGATION_MESSAGES.starting;
+    if (recording || recorderRef.current?.state === "recording") return AUDIO_NAVIGATION_MESSAGES.recording;
+    if (audioOperationRef.current) return AUDIO_NAVIGATION_MESSAGES.saving;
+    return "";
+  }
+
+  function protectAudioLink(event) {
+    const message = audioNavigationMessage();
+    if (message) { event.preventDefault(); setError(message); }
+  }
 
   function applyMeeting(value) {
     if (value.id !== activeMeetingId.current) return false;
@@ -230,6 +258,7 @@ export default function FincaMeetingsHub() {
       const pending = await listPendingChunks(id).catch(() => []);
       if (generation !== meetingLoadGeneration.current) return;
       setPendingChunks(pending.length);
+      if (!quiet) setAudioNeedsFinalization(!payload.meeting.hasAudio && (pending.length > 0 || Number(payload.meeting.audioChunkCount || 0) > 0));
       if (!quiet) setError("");
     } catch (err) {
       if (!quiet && generation === meetingLoadGeneration.current) setError(err.message);
@@ -263,9 +292,13 @@ export default function FincaMeetingsHub() {
     return () => window.clearInterval(timer);
   }, [sessionRunning]);
 
-  useEffect(() => () => {
-    try { recorderRef.current?.stop(); } catch {}
-    streamRef.current?.getTracks?.().forEach((track) => track.stop());
+  useEffect(() => {
+    audioMountedRef.current = true;
+    return () => {
+      audioMountedRef.current = false;
+      try { recorderRef.current?.stop(); } catch {}
+      streamRef.current?.getTracks?.().forEach((track) => track.stop());
+    };
   }, []);
 
   function updatePrep(field, value) {
@@ -465,24 +498,33 @@ export default function FincaMeetingsHub() {
       const payload = await api(`/api/meetings/${meeting.id}/audio/finalize`, {
         method: "POST",
         body: {
-          mimeType: recordMimeRef.current,
           originalName: `conseil-${meeting.date || localDate()}.webm`,
           recordingNotice: RECORDING_NOTICE
         }
       });
       if (!applyMeeting(payload.meeting)) return false;
+      setAudioNeedsFinalization(false);
       setAudioStatus("Enregistrement original sauvegardé dans FINCA MARIA.");
       return true;
     } catch (err) {
-      setAudioStatus(`Finalisation à reprendre : ${err.message}`);
+      if (err.code === "NO_AUDIO_CHUNKS") {
+        setAudioNeedsFinalization(false);
+        setAudioStatus("Aucun bloc audio reçu. Vous pouvez démarrer un nouvel enregistrement.");
+      } else {
+        setAudioStatus(`Finalisation à reprendre : ${err.message}`);
+      }
       return false;
     }
   }
 
   async function retryAudioSave() {
-    setAudioStatus("Reprise de l’envoi…");
-    await uploadPending(meeting?.id);
-    if (!recording) await finalizeRecordedAudio();
+    if (!meeting?.id || audioOperationRef.current || recording) return;
+    changeAudioOperation("finalizing");
+    setAudioNeedsFinalization(true);
+    setAudioStatus("Reprise de la sauvegarde audio…");
+    try { await finalizeRecordedAudio(); }
+    catch (err) { setAudioStatus(`Sauvegarde audio à reprendre : ${err.message}`); }
+    finally { changeAudioOperation(""); }
   }
 
   async function confirmRecordingConsent() {
@@ -494,7 +536,7 @@ export default function FincaMeetingsHub() {
   }
 
   async function startRecording() {
-    if (!meeting?.id || meeting.hasAudio) return;
+    if (!meeting?.id || meeting.hasAudio || busy || audioNeedsRecovery || recording || audioOperationRef.current) return;
     if (!recordingConsent) {
       setError("Confirme d’abord que les participants ont été informés de l’enregistrement.");
       return;
@@ -504,22 +546,25 @@ export default function FincaMeetingsHub() {
       return;
     }
     setError("");
+    changeAudioOperation("starting");
     setAudioStatus("Confirmation de l’information des participants…");
     try {
       await confirmRecordingConsent();
+      if (!audioMountedRef.current) return;
       setAudioStatus("Demande d’accès au microphone…");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (!audioMountedRef.current) { stream.getTracks().forEach((track) => track.stop()); return; }
+      streamRef.current = stream;
       const preferred = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"].find((type) => MediaRecorder.isTypeSupported?.(type));
       const recorder = new MediaRecorder(stream, preferred ? { mimeType: preferred } : undefined);
-      streamRef.current = stream;
       recorderRef.current = recorder;
       seqRef.current = 0;
       chunkSavePromisesRef.current = [];
-      recordMimeRef.current = recorder.mimeType || preferred || "audio/webm";
       startSession(true);
 
       recorder.ondataavailable = (event) => {
         if (!event.data?.size) return;
+        setAudioNeedsFinalization(true);
         const seq = seqRef.current++;
         const saved = savePendingChunk(meeting.id, seq, event.data)
           .then(() => uploadPending(meeting.id))
@@ -528,38 +573,50 @@ export default function FincaMeetingsHub() {
       };
       recorder.onerror = () => setAudioStatus("Le navigateur a signalé une erreur d’enregistrement. Les blocs déjà sauvegardés sont conservés.");
       recorder.onstop = async () => {
+        changeAudioOperation("finalizing");
         stream.getTracks().forEach((track) => track.stop());
         setRecording(false);
         setSessionRunning(false);
-        await finalizeRecordedAudio();
+        setAudioNeedsFinalization(true);
+        try { await finalizeRecordedAudio(); }
+        catch (err) { setAudioStatus(`Sauvegarde audio à reprendre : ${err.message}`); }
+        finally { changeAudioOperation(""); }
       };
       recorder.start(5000);
       setRecording(true);
       setAudioStatus("Enregistrement en cours · sauvegarde progressive toutes les quelques secondes.");
     } catch (err) {
+      streamRef.current?.getTracks?.().forEach((track) => track.stop());
+      streamRef.current = null;
+      recorderRef.current = null;
       setRecording(false);
       setSessionRunning(false);
       setAudioStatus("");
       setError(`Microphone indisponible ou refusé : ${err.message}. La réunion peut continuer en mode notes sans enregistrement.`);
+    } finally {
+      if (audioOperationRef.current === "starting") changeAudioOperation("");
     }
   }
 
   function stopRecording() {
     const recorder = recorderRef.current;
-    if (!recorder || recorder.state === "inactive") return;
+    if (!recorder || recorder.state === "inactive" || audioOperationRef.current) return;
+    changeAudioOperation("finalizing");
     setAudioStatus("Arrêt et vérification des derniers blocs…");
     try { recorder.requestData(); } catch {}
-    recorder.stop();
+    try { recorder.stop(); }
+    catch (err) { changeAudioOperation(""); setAudioStatus(`Arrêt à reprendre : ${err.message}`); }
   }
 
   async function importAudio(event) {
     const file = event.target.files?.[0];
     event.target.value = "";
-    if (!file || !meeting?.id) return;
+    if (!file || !meeting?.id || recording || audioOperationRef.current || audioNeedsRecovery || meeting.hasAudio) return;
     if (!recordingConsent) {
       setError("Confirme d’abord que les participants ont été informés de la conservation de cet enregistrement.");
       return;
     }
+    changeAudioOperation("importing");
     setBusy(true);
     setError("");
     setAudioStatus("Confirmation de l’information des participants…");
@@ -582,6 +639,7 @@ export default function FincaMeetingsHub() {
       setError(err.message);
       setAudioStatus("L’import a échoué ; le fichier source n’a pas été modifié.");
     } finally {
+      changeAudioOperation("");
       setBusy(false);
     }
   }
@@ -732,6 +790,8 @@ export default function FincaMeetingsHub() {
   }
 
   function navigateWithoutLosingEdits(action) {
+    const message = audioNavigationMessage();
+    if (message) { setError(message); return; }
     if (hasUnsavedChanges()) {
       if (!window.confirm("Des modifications ne sont pas enregistrées. Quitter cette saisie sans les enregistrer ?")) return;
       preparationEditor.refresh(meeting ? prepFromMeeting(meeting) : emptyPreparation(), true);
@@ -772,6 +832,8 @@ export default function FincaMeetingsHub() {
     setNewMode(true);
     setSelectedId("");
     setMeeting(null);
+    setAudioNeedsFinalization(false);
+    setPendingChunks(0);
     preparationEditor.refresh(emptyPreparation(), true);
     reportEditor.refresh({ summary: "", subjects: "" }, true);
     speakerEditor.refresh({}, true);
@@ -818,7 +880,7 @@ export default function FincaMeetingsHub() {
           <h1>Réunions et conseils de famille</h1>
           <span className="meetingMuted">Préparer · accompagner · transcrire · valider · retrouver</span>
         </div>
-        <div className="meetingActions"><a className="meetingBack" href="?view=corbeille">Corbeille générale</a><a className="meetingBack" href="/">← FINCA MARIA</a></div>
+        <div className="meetingActions"><a className="meetingBack" onClick={protectAudioLink} href="?view=corbeille">Corbeille générale</a><a className="meetingBack" onClick={protectAudioLink} href="/">← FINCA MARIA</a></div>
       </header>
 
       <div className="meetingLayout">
@@ -894,21 +956,21 @@ export default function FincaMeetingsHub() {
                 <h3>3 · Accompagner les échanges</h3>
                 <div className="meetingNotice">
                   <strong>Avant tout enregistrement</strong><br />{RECORDING_NOTICE}
-                  <label style={{ display: "block", marginTop: ".55rem" }}><input type="checkbox" checked={recordingConsent} onChange={(event) => setRecordingConsent(event.target.checked)} /> J’ai informé les participants avant de conserver l’audio.</label>
+                  <label style={{ display: "block", marginTop: ".55rem" }}><input type="checkbox" disabled={recording || Boolean(audioOperation)} checked={recordingConsent} onChange={(event) => setRecordingConsent(event.target.checked)} /> J’ai informé les participants avant de conserver l’audio.</label>
                 </div>
 
                 <div className="recordingBar" style={{ marginTop: ".7rem" }}>
                   <span className={recording ? "recordingDot on" : "recordingDot"} aria-hidden="true" />
                   <strong className="recordingClock">{formatClock(elapsed)}</strong>
                   <span className="meetingMuted">{recording ? "Enregistrement" : sessionRunning ? "Réunion sans enregistrement" : "Prêt"}</span>
-                  {!recording && !meeting.hasAudio ? <button type="button" className="meetingBtn primary" onClick={startRecording}>● Enregistrer</button> : null}
-                  {recording ? <button type="button" className="meetingBtn danger" onClick={stopRecording}>■ Arrêter</button> : null}
-                  {!recording && !sessionRunning ? <button type="button" className="meetingBtn" onClick={() => startSession(true)}>Commencer sans enregistrer</button> : null}
+                  {!recording && !meeting.hasAudio && !audioNeedsRecovery ? <button type="button" className="meetingBtn primary" disabled={busy || Boolean(audioOperation)} onClick={startRecording}>● Enregistrer</button> : null}
+                  {recording ? <button type="button" className="meetingBtn danger" disabled={Boolean(audioOperation)} onClick={stopRecording}>■ Arrêter</button> : null}
+                  {!recording && !sessionRunning ? <button type="button" className="meetingBtn" disabled={Boolean(audioOperation)} onClick={() => startSession(true)}>Commencer sans enregistrer</button> : null}
                   {!recording && sessionRunning ? <button type="button" className="meetingBtn" onClick={() => setSessionRunning(false)}>Arrêter le chrono</button> : null}
-                  {!recording && !meeting.hasAudio ? <label className="fileInput">Importer un audio<input type="file" accept="audio/*,.m4a,.mp3,.wav,.ogg,.webm,.mp4" onChange={importAudio} /></label> : null}
-                  {pendingChunks > 0 && !recording ? <button type="button" className="meetingBtn" onClick={retryAudioSave}>Reprendre l’envoi ({pendingChunks})</button> : null}
+                  {!recording && !meeting.hasAudio && !audioNeedsRecovery ? <label className="fileInput">Importer un audio<input type="file" accept="audio/*,.m4a,.mp3,.wav,.ogg,.webm,.mp4" disabled={busy || Boolean(audioOperation)} onChange={importAudio} /></label> : null}
+                  {audioNeedsRecovery && !recording ? <button type="button" className="meetingBtn" disabled={busy || Boolean(audioOperation)} onClick={retryAudioSave}>Reprendre la sauvegarde audio{pendingChunks > 0 ? ` (${pendingChunks} bloc(s))` : ""}</button> : null}
                 </div>
-                {audioStatus ? <p className="meetingMuted">{audioStatus}</p> : null}
+                {audioStatus ? <p className="meetingMuted" role="status">{audioStatus}</p> : null}
 
                 <div className="markerGrid">
                   {MARKERS.map(([type, label]) => <button type="button" key={type} onClick={() => addMarker(type)}>{label}</button>)}
