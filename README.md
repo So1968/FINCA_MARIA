@@ -63,6 +63,14 @@ de réunion ou d’abandonner le formulaire. La fermeture ou le rechargement de 
 page active l’avertissement standard du navigateur. Enregistrer les modifications
 retire cette protection ; cela ne crée pas de sauvegarde automatique des brouillons.
 
+`npm run test:meeting-audio:browser` teste le démarrage, l’arrêt et la reprise
+audio avec un microphone et une API simulés, sans utiliser votre microphone.
+Une seule capture peut démarrer à la fois. Le changement de réunion est bloqué
+pendant la capture ou la sauvegarde. Si la finalisation échoue, le bouton
+« Reprendre la sauvegarde audio » reste disponible, y compris après rechargement
+si des blocs sont présents sur le serveur ou dans le stockage local.
+`FINCA_AUDIO_E2E_PORT` remplace son port de test 5227.
+
 Les deux vues Actions proposent les mêmes filtres : à faire, à compléter,
 en cours / attente, accomplies et toutes. Le filtre reste dans le lien lors
 d’une actualisation ou d’un aller-retour dans un dossier. Les modifications
@@ -82,6 +90,8 @@ ayant reçu de nouveaux commits, une branche issue d’un fork ou la branche par
 défaut est conservée. Le workflow exécute uniquement le code de la branche par
 défaut, sans charger celui d’une proposition externe. Le registre des anciennes
 archives est dans `docs/GIT_RANGEMENT_2026-11-06.md`.
+La CI complète s’exécute sur les propositions de fusion et sur les mises à jour
+de `main`, pour éviter une seconde exécution sur chaque push de branche de travail.
 
 ## Confidentialité
 

@@ -13,6 +13,7 @@
     "check:family": "npm --prefix app run check:family",
     "test:actions:browser": "node tests/browser/actions.mjs",
     "test:meetings:browser": "node tests/browser/meetings.mjs",
+    "test:meeting-audio:browser": "node tests/browser/meeting-audio.mjs",
     "start": "bash scripts/ouvrir-cortijo-local.sh"
   }
 }

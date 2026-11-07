@@ -145,6 +145,12 @@ meeting_create_code="$(curl -sS -o "$TMP_DIR/meeting-create" -w '%{http_code}' \
 MEETING_ID="$(node --input-type=module -e 'import fs from "node:fs"; console.log(JSON.parse(fs.readFileSync(process.argv[1],"utf8")).meeting.id)' "$TMP_DIR/meeting-create")"
 [ -n "$MEETING_ID" ] || fail "identifiant réunion absent"
 
+empty_audio_code="$(curl -sS -o "$TMP_DIR/meeting-empty-audio" -w '%{http_code}' \
+  -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
+  --data '{}' "$BASE_URL/api/meetings/$MEETING_ID/audio/finalize" || true)"
+[ "$empty_audio_code" = "409" ] || fail "finalisation sans blocs audio = $empty_audio_code"
+grep -q 'NO_AUDIO_CHUNKS' "$TMP_DIR/meeting-empty-audio" || fail "absence de blocs audio non explicitée"
+
 for marker in \
   '{"id":"ci-decision-marker","type":"decision","timeSeconds":12.5,"note":"Proposition à confirmer"}' \
   '{"id":"ci-action-marker","type":"action","timeSeconds":24.0,"note":"Appeler la coopérative"}' \
@@ -175,9 +181,18 @@ audio_duplicate_code="$(curl -sS -o "$TMP_DIR/meeting-audio-duplicate" -w '%{htt
 [ "$audio_duplicate_code" = "200" ] || fail "reprise idempotente du bloc audio = $audio_duplicate_code"
 grep -q '"duplicate":true' "$TMP_DIR/meeting-audio-duplicate" || fail "bloc audio identique non reconnu"
 
+curl -fsS -H "Cookie: $COOKIE" "$BASE_URL/api/meetings/$MEETING_ID" > "$TMP_DIR/meeting-pending-audio"
+node --input-type=module - "$TMP_DIR/meeting-pending-audio" <<'JS'
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const { meeting } = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+assert.equal(meeting.audioChunkCount, 1);
+assert.equal(meeting.hasAudio, false);
+JS
+
 finalize_code="$(curl -sS -o "$TMP_DIR/meeting-finalize" -w '%{http_code}' \
   -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
-  --data '{"mimeType":"audio/webm","originalName":"conseil-ci.webm","recordingNotice":"Participants informés pour le test CI."}' \
+  --data '{"originalName":"conseil-ci.webm","recordingNotice":"Participants informés pour le test CI."}' \
   "$BASE_URL/api/meetings/$MEETING_ID/audio/finalize" || true)"
 [ "$finalize_code" = "200" ] || fail "finalisation audio réunion = $finalize_code"
 
