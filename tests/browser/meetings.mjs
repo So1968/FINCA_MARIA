@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -76,8 +76,15 @@ try {
       requests.push("validate");
       if (validationGate) await validationGate;
       if (failValidation) return json({ error: "Validation indisponible pour le test" }, 503);
-      meeting = { ...meeting, status: "validated", validatedVersions: [{ id: "v1", version: 1, validatedAt: "2026-11-06T12:00:00Z" }] };
-      return json({ meeting, version: 1 });
+      const nextVersion = (meeting.validatedVersions[0]?.version || 0) + 1;
+      const snapshot = {
+        schema: "finca-meeting-report-v1",
+        meeting: { id: meeting.id, title: meeting.title, date: meeting.date, meetingType: meeting.meetingType, agenda: meeting.agenda },
+        reportDraft: structuredClone(meeting.reportDraft), participants: structuredClone(meeting.participants),
+        markers: structuredClone(meeting.markers), links: [], validatedAt: "2026-11-06T12:00:00Z"
+      };
+      meeting = { ...meeting, status: "validated", validatedVersions: [{ id: `v${nextVersion}`, version: nextVersion, validatedAt: "2026-11-06T12:00:00Z", snapshot }, ...meeting.validatedVersions] };
+      return json({ meeting, version: nextVersion });
     }
     return json({ documents: [], localEngineReady: false });
   });
@@ -132,6 +139,29 @@ try {
   assert.equal(await summary.isEnabled(), true);
   assert.equal(meeting.reportDraft.summary, "Synthèse à conserver malgré une panne");
   assert.deepEqual(errors, []);
+  await summary.fill("Brouillon plus récent non validé");
+  const beforeExport = requests.length;
+  async function exportVersion(number) {
+    const downloadEvent = page.waitForEvent("download");
+    await page.getByRole("button", { name: `Exporter la version ${number} (.txt)`, exact: true }).click();
+    const download = await downloadEvent;
+    assert.ok(download.suggestedFilename().includes(`_v${number}_`));
+    const content = await readFile(await download.path(), "utf8");
+    return content;
+  }
+  const firstExport = await exportVersion(1);
+  assert.ok(firstExport.includes("Synthèse à conserver malgré une panne"));
+  assert.ok(!firstExport.includes("Brouillon plus récent non validé"));
+  assert.equal(await summary.inputValue(), "Brouillon plus récent non validé");
+  assert.equal(requests.length, beforeExport, "Exporter ne doit pas sauvegarder ou valider le brouillon");
+  await validate.click();
+  await page.getByText("Compte rendu validé · v2", { exact: true }).waitFor();
+  const oldExport = await exportVersion(1);
+  const newExport = await exportVersion(2);
+  assert.equal(oldExport, firstExport, "La première version doit rester identique après une seconde validation");
+  assert.ok(newExport.includes("Brouillon plus récent non validé"));
+  assert.ok(newExport.includes("Version validée : 2"));
+  console.log("✓ Téléchargement texte par version, brouillon exclu, texte saisi intact et ancienne version inchangée après une nouvelle validation");
   await context.close();
   console.log("✓ Sauvegarde avant validation, double clic neutralisé, contrôles temporairement bloqués puis réactivés");
   const draftContext = await browser.newContext({ locale: "fr-FR" });
