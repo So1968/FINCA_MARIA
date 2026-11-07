@@ -71,6 +71,13 @@ pendant la capture ou la sauvegarde. Si la finalisation échoue, le bouton
 si des blocs sont présents sur le serveur ou dans le stockage local.
 `FINCA_AUDIO_E2E_PORT` remplace son port de test 5227.
 
+La liste des réunions propose une recherche sur le serveur (titre, thème, texte
+du compte rendu et date), des filtres avec ou sans version validée et un chargement
+par pages. La recherche conserve la réunion ouverte et ses saisies.
+`npm run test:meeting-search:browser` vérifie ce parcours avec une API simulée ;
+`FINCA_SEARCH_E2E_PORT` remplace le port de test 5228. La CI vérifie également la
+recherche et la pagination sur sa base PostgreSQL de test.
+
 Les deux vues Actions proposent les mêmes filtres : à faire, à compléter,
 en cours / attente, accomplies et toutes. Le filtre reste dans le lien lors
 d’une actualisation ou d’un aller-retour dans un dossier. Les modifications

@@ -115,6 +115,16 @@ function reportGroups(markers) {
 
 export default function FincaMeetingsHub() {
   const [meetings, setMeetings] = useState([]);
+  const [meetingSearch, setMeetingSearch] = useState("");
+  const [reportFilter, setReportFilter] = useState("all");
+  const [meetingTotal, setMeetingTotal] = useState(0);
+  const [hasMoreMeetings, setHasMoreMeetings] = useState(false);
+  const [listLoading, setListLoading] = useState(true);
+  const [listError, setListError] = useState("");
+  const listQuery = useRef({ q: "", report: "all" });
+  const listRequest = useRef(0);
+  const listAbort = useRef(null);
+  const loadedMeetings = useRef([]);
   const [selectedId, setSelectedId] = useState("");
   const [meeting, setMeeting] = useState(null);
   const preparationEditor = useMeetingDraft(emptyPreparation);
@@ -218,12 +228,42 @@ export default function FincaMeetingsHub() {
     return true;
   }
 
-  async function loadList(preferredId = "") {
+  function updateListFilters(q, report) {
+    if (q === listQuery.current.q && report === listQuery.current.report) return;
+    listQuery.current = { q, report };
+    listRequest.current += 1;
+    listAbort.current?.abort();
+    setMeetingSearch(q);
+    setReportFilter(report);
+    setListLoading(true);
+    setListError("");
+  }
+
+  async function loadList(preferredId = "", append = false) {
     const generation = meetingLoadGeneration.current;
-    const payload = await api("/api/meetings");
-    setMeetings(payload.meetings || []);
-    const candidate = preferredId || selectedId || payload.meetings?.[0]?.id || "";
-    if (candidate && generation === meetingLoadGeneration.current) setSelectedId(candidate);
+    const request = ++listRequest.current;
+    listAbort.current?.abort();
+    const controller = new AbortController();
+    listAbort.current = controller;
+    const params = new URLSearchParams({ ...listQuery.current, limit: "50", offset: String(append ? loadedMeetings.current.length : 0) });
+    setListLoading(true);
+    try {
+      const payload = await api(`/api/meetings?${params}`, { signal: controller.signal });
+      if (request !== listRequest.current) return;
+      const rows = payload.meetings || [];
+      const next = append ? [...new Map([...loadedMeetings.current, ...rows].map((item) => [item.id, item])).values()] : rows;
+      loadedMeetings.current = next;
+      setMeetings(next);
+      setMeetingTotal(Number(payload.total ?? next.length));
+      setHasMoreMeetings(Boolean(payload.hasMore));
+      setListError("");
+      const candidate = preferredId || activeMeetingId.current || rows[0]?.id || "";
+      if (candidate && generation === meetingLoadGeneration.current) setSelectedId(candidate);
+    } catch (err) {
+      if (request === listRequest.current) setListError(err.message);
+    } finally {
+      if (request === listRequest.current) setListLoading(false);
+    }
   }
 
   async function loadHealth() {
@@ -268,9 +308,18 @@ export default function FincaMeetingsHub() {
   }
 
   useEffect(() => {
-    loadList().catch((err) => setError(err.message));
     loadHealth();
     loadDocuments();
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => loadList(), meetingSearch ? 300 : 0);
+    return () => window.clearTimeout(timer);
+  }, [meetingSearch, reportFilter]);
+
+  useEffect(() => () => {
+    listRequest.current += 1;
+    listAbort.current?.abort();
   }, []);
 
   useEffect(() => {
@@ -819,7 +868,7 @@ export default function FincaMeetingsHub() {
   function cancelNew() {
     navigateWithoutLosingEdits(() => {
       setNewMode(false);
-      setSelectedId(meetings.find((item) => item.id === previousMeetingId.current)?.id || meetings[0]?.id || "");
+      setSelectedId(previousMeetingId.current || meetings[0]?.id || "");
     });
   }
 
@@ -888,7 +937,14 @@ export default function FincaMeetingsHub() {
           <div className="meetingSidebarHead"><strong>Réunions</strong><button type="button" className="meetingBtn primary" disabled={Boolean(reportOperation)} onClick={() => navigateWithoutLosingEdits(() => { setHistoricMode(false); setRegisterMode(false); startNew(); })}>+ Nouvelle</button></div>
           <button className="meetingBtn" type="button" disabled={Boolean(reportOperation)} onClick={() => navigateWithoutLosingEdits(() => { setHistoricMode(true); setRegisterMode(false); setNewMode(false); })} style={{ width: "100%", marginBottom: "1rem" }}>Importer des comptes rendus</button>
           <button className="meetingBtn" type="button" disabled={Boolean(reportOperation)} onClick={() => navigateWithoutLosingEdits(() => { setRegisterMode(true); setHistoricMode(false); setNewMode(false); })} style={{ width: "100%", marginBottom: "1rem" }}>Registre des décisions</button>
-          <div className="meetingList">
+          <div className="meetingListFilters">
+            <label className="meetingField"><span>Rechercher une réunion</span><input type="search" maxLength={200} value={meetingSearch} placeholder="Titre, thème, texte ou date…" onChange={(event) => updateListFilters(event.target.value, reportFilter)} /></label>
+            <label className="meetingField"><span>Compte rendu</span><select aria-label="Filtrer les réunions par compte rendu" value={reportFilter} onChange={(event) => updateListFilters(meetingSearch, event.target.value)}><option value="all">Toutes les réunions</option><option value="validated">Avec compte rendu validé</option><option value="pending">Sans compte rendu validé</option></select></label>
+            {(meetingSearch || reportFilter !== "all") && <button type="button" className="meetingBtn" onClick={() => updateListFilters("", "all")}>Effacer les filtres</button>}
+            <p className="meetingMuted" role="status">{listLoading ? "Recherche des réunions…" : `${meetings.length} réunion${meetings.length > 1 ? "s" : ""} affichée${meetings.length > 1 ? "s" : ""} sur ${meetingTotal}`}</p>
+            {listError && <p role="alert">{listError} <button type="button" className="meetingBtn" disabled={listLoading} onClick={() => loadList()}>Réessayer la recherche</button></p>}
+          </div>
+          <div className="meetingList" aria-busy={listLoading}>
             {meetings.map((item) => (
               <button type="button" key={item.id} disabled={Boolean(reportOperation)} className={selectedId === item.id && !newMode ? "isActive" : ""} onClick={() => openMeeting(item.id)}>
                 <strong>{item.title}</strong>
@@ -896,8 +952,9 @@ export default function FincaMeetingsHub() {
                 <small>{item.presentCount} présent(s) · {item.markerCount} repère(s){item.validatedVersion ? ` · CR v${item.validatedVersion}` : ""}</small>
               </button>
             ))}
-            {!meetings.length ? <span className="meetingMuted">Aucune réunion enregistrée.</span> : null}
+            {!meetings.length && !listLoading && !listError ? <span className="meetingMuted">{meetingSearch || reportFilter !== "all" ? "Aucune réunion ne correspond à ces filtres." : "Aucune réunion enregistrée."}</span> : null}
           </div>
+          {hasMoreMeetings && <button type="button" className="meetingBtn" disabled={listLoading} onClick={() => loadList("", true)}>Afficher plus de réunions</button>}
         </aside>
 
         <section className="meetingPanel">

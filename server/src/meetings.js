@@ -4,6 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { meetingListQuery } from "./meeting-list.js";
 import {
   CLASSIFICATIONS,
   MARKER_TYPES,
@@ -283,16 +284,23 @@ export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, aud
     };
   }
 
-  async function listMeetings(req, res) {
+  async function listMeetings(req, res, url) {
     await requireFamilyUser(req);
+    const query = meetingListQuery(url.searchParams);
+    const totalResult = await pool.query(`SELECT COUNT(*)::int AS total FROM meetings m WHERE ${query.where}`, query.values);
     const result = await pool.query(`
       SELECT m.*,
         (SELECT COUNT(*) FROM meeting_participants p WHERE p.meeting_id=m.id AND p.presence='present') AS present_count,
         (SELECT COUNT(*) FROM meeting_markers x WHERE x.meeting_id=m.id) AS marker_count,
         (SELECT MAX(version) FROM meeting_report_versions v WHERE v.meeting_id=m.id) AS validated_version
-      FROM meetings m WHERE m.deleted_at IS NULL ORDER BY meeting_date DESC, created_at DESC LIMIT 250
-    `);
+      FROM meetings m WHERE ${query.where}
+      ORDER BY meeting_date DESC, created_at DESC, m.id
+      LIMIT $${query.values.length + 1} OFFSET $${query.values.length + 2}
+    `, [...query.values, query.limit, query.offset]);
+    const total = Number(totalResult.rows[0].total);
     return json(res, 200, {
+      total,
+      hasMore: query.offset + result.rows.length < total,
       meetings: result.rows.map((row) => ({
         ...meetingSummary(row),
         presentCount: Number(row.present_count || 0),
@@ -1026,7 +1034,7 @@ export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, aud
       return true;
     }
     if (url.pathname === "/api/meetings" && req.method === "GET") {
-      await listMeetings(req, res);
+      await listMeetings(req, res, url);
       return true;
     }
     if (url.pathname === "/api/meetings" && req.method === "POST") {

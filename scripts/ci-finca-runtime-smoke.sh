@@ -230,6 +230,45 @@ validate_code="$(curl -sS -o "$TMP_DIR/meeting-validate" -w '%{http_code}' \
   --data '{}' "$BASE_URL/api/meetings/$MEETING_ID/validate" || true)"
 [ "$validate_code" = "200" ] || fail "validation compte rendu = $validate_code"
 
+# Recherche et pagination dans la vraie base PostgreSQL de CI.
+CI_SEARCH_COOKIE="$COOKIE" CI_SEARCH_BASE="$BASE_URL" CI_SEARCH_ORIGIN="$APP_ORIGIN" CI_SEARCH_MEETING_ID="$MEETING_ID" node --input-type=module <<'NODE'
+import assert from 'node:assert/strict';
+const base = process.env.CI_SEARCH_BASE;
+async function request(path, body) {
+  const response = await fetch(base + path, {
+    method: body ? 'POST' : 'GET',
+    headers: { Cookie: process.env.CI_SEARCH_COOKIE, ...(body ? { Origin: process.env.CI_SEARCH_ORIGIN, 'Content-Type': 'application/json' } : {}) },
+    ...(body ? { body: JSON.stringify(body) } : {})
+  });
+  return { status: response.status, data: await response.json() };
+}
+const created = await request('/api/meetings', { title: 'Réunion été — budget 50%', date: '2021-07-14', meetingType: 'Conseil de famille', theme: 'Oléiculture Peláez', participants: [] });
+assert.equal(created.status, 201);
+const id = created.data.meeting.id;
+async function search(params) {
+  const result = await request('/api/meetings?' + new URLSearchParams(params));
+  assert.equal(result.status, 200);
+  return result.data;
+}
+for (const q of ['reunion ete', 'RÉUNION ÉTÉ', 'pelaez', 'oleiculture', '14/07/2021', '%']) {
+  const found = await search({ q, report: 'pending', limit: '1' });
+  assert.equal(found.total, 1, q);
+  assert.equal(found.meetings[0].id, id);
+  assert.equal(found.hasMore, false);
+}
+const validated = await search({ q: 'brouillon transformation propositions', report: 'validated' });
+assert.equal(validated.total, 1);
+assert.equal(validated.meetings[0].id, process.env.CI_SEARCH_MEETING_ID);
+const first = await search({ limit: '1', offset: '0' });
+const next = await search({ limit: '1', offset: '1' });
+assert.ok(first.total >= 3);
+assert.equal(first.total, next.total);
+assert.equal(first.hasMore, true);
+assert.notEqual(first.meetings[0].id, next.meetings[0].id);
+assert.equal((await request('/api/meetings?offset=-1')).status, 400);
+NODE
+pass "recherche réunions : accents, texte du compte rendu, date, pourcentage littéral, filtres et pagination"
+
 action_code="$(curl -sS -o "$TMP_DIR/meeting-action-create" -w '%{http_code}' \
   -H "Cookie: $COOKIE" -H "Origin: $APP_ORIGIN" -H 'Content-Type: application/json' \
   --data '{"confirmed":true}' "$BASE_URL/api/meetings/$MEETING_ID/markers/ci-action-marker/create-action" || true)"
