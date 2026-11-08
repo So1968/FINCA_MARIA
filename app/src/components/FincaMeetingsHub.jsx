@@ -67,6 +67,22 @@ async function api(path, options = {}) {
   return payload;
 }
 
+const MEETING_ROLES = ["", "Secrétaire", "Participant", "Invité", "Observateur", "Animateur"];
+
+function MeetingRoleField({ value, onChange }) {
+  const other = !MEETING_ROLES.includes(value || "");
+  return (
+    <label>Rôle
+      <select aria-label="Rôle dans la réunion" value={other ? "__other__" : (value || "")} onChange={(event) => onChange(event.target.value === "__other__" ? "Autre" : event.target.value)}>
+        <option value="">À préciser</option>
+        {MEETING_ROLES.filter(Boolean).map((role) => <option key={role} value={role}>{role}</option>)}
+        <option value="__other__">Autre rôle…</option>
+      </select>
+      {other && <input aria-label="Préciser le rôle" value={value === "Autre" ? "" : value} placeholder="Préciser le rôle" onChange={(event) => onChange(event.target.value || "Autre")} />}
+    </label>
+  );
+}
+
 function emptyPreparation() {
   return {
     title: "",
@@ -985,7 +1001,7 @@ export default function FincaMeetingsHub() {
               <div className="participantRow" key={participant.id}>
                 <label>Nom<input value={participant.name} onChange={(event) => updatePreparationParticipant(participant.id, "name", event.target.value)} /></label>
                 <label>Présence<select value={participant.presence} onChange={(event) => updatePreparationParticipant(participant.id, "presence", event.target.value)}><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
-                <label>Rôle<input value={participant.role} onChange={(event) => updatePreparationParticipant(participant.id, "role", event.target.value)} /></label>
+                <MeetingRoleField value={participant.role} onChange={(value) => updatePreparationParticipant(participant.id, "role", value)} />
                 <label className="check"><input type="checkbox" checked={participant.isFacilitator} onChange={(event) => updatePreparationParticipant(participant.id, "isFacilitator", event.target.checked)} /> Anime</label>
               </div>
             ))}
@@ -1074,7 +1090,7 @@ export default function FincaMeetingsHub() {
                 <div className="participantRow" style={{ marginTop: ".55rem" }}>
                   <label>Nouvel intervenant<input value={newParticipant.name} onChange={(event) => setNewParticipant({ ...newParticipant, name: event.target.value })} placeholder="Nom" /></label>
                   <label>Présence<select value={newParticipant.presence} onChange={(event) => setNewParticipant({ ...newParticipant, presence: event.target.value })}><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
-                  <label>Rôle<input value={newParticipant.role} onChange={(event) => setNewParticipant({ ...newParticipant, role: event.target.value })} /></label>
+                  <MeetingRoleField value={newParticipant.role} onChange={(value) => setNewParticipant({ ...newParticipant, role: value })} />
                   <button type="button" className="meetingBtn" onClick={addParticipantDuringMeeting}>Ajouter</button>
                 </div>
               </section>
@@ -1223,7 +1239,7 @@ function ParticipantEditor({ participant, onSave, onDirtyChange }) {
     <div className="participantRow">
       <label>Nom<input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
       <label>Présence<select value={draft.presence} onChange={(event) => setDraft({ ...draft, presence: event.target.value })}><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
-      <label>Rôle<input value={draft.role} onChange={(event) => setDraft({ ...draft, role: event.target.value })} /></label>
+      <MeetingRoleField value={draft.role} onChange={(value) => setDraft({ ...draft, role: value })} />
       <label className="check"><input type="checkbox" checked={Boolean(draft.isFacilitator)} onChange={(event) => setDraft({ ...draft, isFacilitator: event.target.checked })} /> Anime</label>
       <button type="button" className="meetingBtn" onClick={save}>Enregistrer</button>
       {editor.dirty ? <small>Modifications non enregistrées</small> : null}
