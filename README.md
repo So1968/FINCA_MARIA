@@ -82,6 +82,10 @@ La création d’une action depuis un repère de réunion exige que ses correcti
 soient enregistrées. Le bouton et les champs du repère sont verrouillés pendant
 la demande ; un échec permet de réessayer sans perdre les valeurs enregistrées.
 
+Le chargement des documents distingue une liste vide d’une panne et peut être
+relancé dans la réunion sans effacer les saisies. Un chargement échoué bloque
+les nouveaux rattachements jusqu’à la reprise.
+
 Les repères affichent leurs documents BAÚL rattachés. Un document déjà lié à
 la réunion ne peut pas être rattaché une seconde fois. Pendant la demande,
 le choix du document est verrouillé ; une erreur conserve ce choix pour réessayer.

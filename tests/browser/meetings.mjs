@@ -463,6 +463,9 @@ try {
     markers: [{ id: "document-marker", type: "document_evoque", classification: "document_evoque", note: "Devis à consulter", timeSeconds: 0 }],
     links: [{ id: "old-link", markerId: "document-marker", kind: "document", targetRef: "missing-document" }]
   };
+  let documentsMode = "error";
+  let releaseDocuments;
+  let documentsGate = new Promise((resolve) => { releaseDocuments = resolve; });
   let linkCalls = 0;
   let failLink = true;
   let releaseLink;
@@ -473,7 +476,17 @@ try {
     const json = (body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
     if (pathname === "/api/meetings") return json({ meetings: [documentMeeting] });
     if (pathname === "/api/meetings/document-meeting") return json({ meeting: documentMeeting });
-    if (pathname === "/api/meetings/documents") return json({ documents: [{ id: "doc-one", name: "Devis toiture validé" }, { id: "doc-two", name: "Plan validé" }] });
+    if (pathname.endsWith("/markers/document-marker")) {
+      documentMeeting = { ...documentMeeting, markers: [{ ...documentMeeting.markers[0], ...request.postDataJSON() }] };
+      return json({ meeting: documentMeeting });
+    }
+    if (pathname === "/api/meetings/documents") {
+      await documentsGate;
+      if (documentsMode === "error") return json({ error: "Liste temporairement indisponible" }, 503);
+      if (documentsMode === "malformed") return json({ documents: [{ id: "invalid" }] });
+      if (documentsMode === "empty") return json({ documents: [] });
+      return json({ documents: [{ id: "doc-one", name: "Devis toiture validé" }, { id: "doc-two", name: "Plan validé" }] });
+    }
     if (pathname.endsWith("/link-document")) {
       linkCalls += 1;
       assert.equal(request.postDataJSON().documentId, "doc-one");
@@ -488,6 +501,33 @@ try {
   const documentSelect = documentPage.getByRole("combobox", { name: "Document BAÚL à rattacher", exact: true });
   const linkButton = documentPage.getByRole("button", { name: "Lier", exact: true });
   await documentSelect.waitFor();
+  const reloadDocuments = documentPage.getByRole("button", { name: "Recharger les documents BAÚL", exact: true });
+  const emptyDocuments = documentPage.getByText("Aucun document BAÚL validé disponible pour le rattachement.", { exact: true });
+  await documentPage.getByRole("status").filter({ hasText: "Chargement des documents BAÚL" }).waitFor();
+  assert.equal(await documentSelect.isDisabled(), true);
+  assert.equal(await reloadDocuments.isDisabled(), true);
+  assert.equal(await emptyDocuments.count(), 0);
+  releaseDocuments();
+  await documentPage.getByRole("alert").filter({ hasText: "Liste temporairement indisponible" }).waitFor();
+  assert.equal(await emptyDocuments.count(), 0);
+  assert.equal(await documentSelect.isDisabled(), true);
+  const documentNote = documentPage.getByLabel("Note", { exact: true });
+  await documentNote.fill("Note à conserver pendant la reprise des documents");
+  documentsGate = Promise.resolve();
+  documentsMode = "malformed";
+  await reloadDocuments.click();
+  await documentPage.getByRole("alert").filter({ hasText: "La liste des documents BAÚL reçue est incomplète" }).waitFor();
+  assert.equal(await emptyDocuments.count(), 0);
+  documentsMode = "empty";
+  await reloadDocuments.click();
+  await emptyDocuments.waitFor();
+  assert.equal(await documentSelect.isDisabled(), true);
+  assert.equal(await documentPage.getByRole("alert").count(), 0);
+  documentsMode = "ready";
+  await reloadDocuments.click();
+  await documentPage.waitForFunction(() => !document.querySelector('[aria-label="Document BAÚL à rattacher"]')?.disabled);
+  assert.equal(await emptyDocuments.count(), 0);
+  assert.equal(await documentNote.inputValue(), "Note à conserver pendant la reprise des documents");
   await documentPage.getByText("Document BAÚL indisponible dans la liste des documents validés", { exact: true }).waitFor();
   assert.equal(await linkButton.isDisabled(), true);
   await documentSelect.selectOption("doc-one");
@@ -511,6 +551,10 @@ try {
   await documentPage.getByRole("status").filter({ hasText: "Ce document est déjà rattaché à cette réunion." }).waitFor();
   await documentSelect.selectOption("doc-two");
   assert.equal(await linkButton.isEnabled(), true);
+  const savedDocumentNote = documentPage.waitForResponse((response) => response.url().endsWith("/markers/document-marker"));
+  await documentPage.getByRole("button", { name: "Enregistrer ce repère", exact: true }).click();
+  await savedDocumentNote;
+  await documentPage.waitForFunction(() => !document.querySelector('#meeting-marker-document-marker small')?.textContent?.includes("Modifications non enregistrées"));
   await documentPage.reload();
   await documentPage.locator("#meeting-marker-document-marker li").filter({ hasText: "Devis toiture validé" }).waitFor();
   await documentPage.getByRole("combobox", { name: "Document BAÚL à rattacher", exact: true }).selectOption("doc-one");
