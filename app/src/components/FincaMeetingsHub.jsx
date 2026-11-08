@@ -945,6 +945,29 @@ export default function FincaMeetingsHub() {
 
   const renderPreparationFields = (isNew = false) => (
     <>
+      {isNew && (
+        <div className="meetingActions">
+          <button
+            type="button"
+            className="meetingBtn"
+            onClick={() => {
+              setPreparation((current) => ({
+                ...current,
+                title: "DÉMONSTRATION — Situation de Marie-Jo et FINCA MARIA",
+                meetingType: "Conseil de famille",
+                theme: "Protection de Marie-Jo, succession et exploitation agricole",
+                objective: "Comprendre comment organiser les démarches familiales et la continuité de la finca. Ceci est un exemple fictif.",
+                agendaText: "Situation de Marie-Jo\nContinuité de l’exploitation agricole\nGestion de la succession\nProchaines démarches à examiner",
+                previousRecap: "EXEMPLE FICTIF — aucune décision précédente à considérer comme réelle."
+              }));
+              setNotice("Exemple fictif inséré dans le formulaire. Rien n’a été enregistré comme réunion.");
+            }}
+          >
+            Remplir avec un exemple
+          </button>
+          <span className="meetingMuted">Démonstration uniquement : vérifiez avant de créer une réunion.</span>
+        </div>
+      )}
       <div className="meetingGrid">
         <label className="meetingField"><span>Titre</span><input value={preparation.title} onChange={(event) => updatePrep("title", event.target.value)} placeholder="Conseil de famille — succession / finca…" /></label>
         <label className="meetingField"><span>Date</span><input type="date" value={preparation.date} onChange={(event) => updatePrep("date", event.target.value)} /></label>
