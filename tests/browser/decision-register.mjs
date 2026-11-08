@@ -151,6 +151,52 @@ try {
   await page.getByRole("button", { name: "Registre des décisions", exact: true }).click();
   await page.getByText("Aucun élément dans cette rubrique.", { exact: true }).waitFor();
   assert.equal(await page.getByRole("alert").count(), 0);
+  rows = [
+    ...Array.from({ length: 25 }, (_, i) => ({ ...meeting.markers[0], id: `first-${i}`, meetingId: meeting.id, title: "Début du registre", note: `Repère initial ${i}` })),
+    { ...meeting.markers[0], meetingId: meeting.id, title: meeting.title },
+    ...Array.from({ length: 25 }, (_, i) => ({ ...meeting.markers[0], id: `last-${i}`, meetingId: meeting.id, title: "Fin du registre", note: `Repère final ${i}` }))
+  ];
+  await page.getByRole("button", { name: "Revenir aux réunions", exact: true }).click();
+  await page.getByRole("button", { name: "Registre des décisions", exact: true }).click();
+  const sources = page.getByRole("button", { name: "Voir le compte rendu d’origine", exact: true });
+  const previous = page.getByRole("button", { name: "Page précédente du registre", exact: true });
+  const next = page.getByRole("button", { name: "Page suivante du registre", exact: true });
+  await page.getByRole("status").filter({ hasText: "Éléments 1 à 25 sur 51" }).waitFor();
+  assert.equal(await sources.count(), 25);
+  assert.equal(await previous.isDisabled(), true);
+  await next.click();
+  await page.getByRole("status").filter({ hasText: "Éléments 26 à 50 sur 51" }).waitFor();
+  await sources.first().click();
+  await page.waitForFunction(() => document.activeElement?.id === "meeting-marker-m-confirmed");
+  await page.getByRole("button", { name: "← Retour au registre des décisions", exact: true }).click();
+  await page.getByRole("status").filter({ hasText: "Éléments 26 à 50 sur 51" }).waitFor();
+  await next.click();
+  await page.getByRole("status").filter({ hasText: "Éléments 51 à 51 sur 51" }).waitFor();
+  assert.equal(await sources.count(), 1);
+  assert.equal(await next.isDisabled(), true);
+  await previous.click();
+  await page.getByRole("status").filter({ hasText: "Éléments 26 à 50 sur 51" }).waitFor();
+  await search.fill("Fin du registre");
+  await page.getByRole("status").filter({ hasText: "25 éléments dans cette rubrique" }).waitFor();
+  assert.equal(await sources.count(), 25);
+  assert.equal(await next.count(), 0);
+  await page.getByRole("button", { name: "Effacer la recherche du registre", exact: true }).click();
+  await page.getByRole("status").filter({ hasText: "Éléments 1 à 25 sur 51" }).waitFor();
+  await next.click();
+  await page.getByRole("combobox", { name: "Filtrer le registre des décisions", exact: true }).selectOption("pending");
+  await page.getByText("Aucun élément dans cette rubrique.", { exact: true }).waitFor();
+  await page.getByRole("combobox", { name: "Filtrer le registre des décisions", exact: true }).selectOption("all");
+  await page.getByRole("status").filter({ hasText: "Éléments 1 à 25 sur 51" }).waitFor();
+  // Le registre peut rétrécir pendant la consultation d’un compte rendu.
+  await next.click();
+  await sources.first().click();
+  await page.waitForFunction(() => document.activeElement?.id === "meeting-marker-m-confirmed");
+  rows = rows.slice(0, 2);
+  await page.getByRole("button", { name: "← Retour au registre des décisions", exact: true }).click();
+  await page.getByRole("status").filter({ hasText: "2 éléments dans cette rubrique" }).waitFor();
+  assert.equal(await sources.count(), 2);
+  assert.equal(await next.count(), 0);
+  console.log("✓ Pagination bornée à 25 cartes, dernière page, retour conservé, recherche et filtres réinitialisant la page, registre réduit");
   await context.close();
   console.log("✓ Retour protégé en cas de saisie, filtre confirmé conservé, source indisponible et registre réellement vide");
 } finally {
