@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { searchDecisionRegister } from "../lib/decisionRegisterSearch.mjs";
 
 const LABELS = {
   decision_confirmee: "Décision confirmée", action_confirmee: "Action confirmée",
@@ -6,7 +7,7 @@ const LABELS = {
   declaration: "Déclaration", desaccord: "Désaccord", question_ouverte: "Question ouverte", document_evoque: "Document évoqué"
 };
 
-export default function MeetingDecisionRegister({ onOpen, onClose, filter, onFilterChange }) {
+export default function MeetingDecisionRegister({ onOpen, onClose, filter, onFilterChange, search, onSearchChange }) {
   const [decisions, setDecisions] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -29,7 +30,7 @@ export default function MeetingDecisionRegister({ onOpen, onClose, filter, onFil
     return () => { cancelled = true; controller.abort(); };
   }, [attempt]);
 
-  const selected = decisions.filter((item) => filter === "all" || (filter === "confirmed" ? item.classification === "decision_confirmee" : item.classification !== "decision_confirmee"));
+  const selected = searchDecisionRegister(decisions, search).filter((item) => filter === "all" || (filter === "confirmed" ? item.classification === "decision_confirmee" : item.classification !== "decision_confirmee"));
   return (
     <section className="meetingSection">
       <h2>Registre des décisions de famille</h2>
@@ -37,10 +38,15 @@ export default function MeetingDecisionRegister({ onOpen, onClose, filter, onFil
       <label>Afficher <select aria-label="Filtrer le registre des décisions" value={filter} onChange={(event) => onFilterChange(event.target.value)}>
         <option value="all">Tous les éléments</option><option value="confirmed">Décisions confirmées</option><option value="pending">Autres éléments</option>
       </select></label>
+      <label>Rechercher dans le registre
+        <input type="search" value={search} maxLength={200} onChange={(event) => onSearchChange(event.target.value)} placeholder="Note, responsable ou réunion…" />
+      </label>
+      {search && <button className="meetingBtn" type="button" onClick={() => onSearchChange("")}>Effacer la recherche du registre</button>}
+      {!loading && !error && decisions.length >= 5000 && <p className="meetingMuted">Ce registre affiche les 5 000 repères les plus récents. La recherche porte sur ces éléments.</p>}
       {loading && <p role="status">Chargement du registre…</p>}
       {!loading && !error && <p role="status">{selected.length} élément{selected.length > 1 ? "s" : ""} dans cette rubrique</p>}
       {error && <div role="alert"><p>{error}</p><button className="meetingBtn" type="button" onClick={() => setAttempt((current) => current + 1)}>Réessayer le registre</button></div>}
-      {!loading && !error && selected.length === 0 && <p className="meetingMuted">Aucun élément dans cette rubrique.</p>}
+      {!loading && !error && selected.length === 0 && <p className="meetingMuted">{search.trim() ? "Aucun élément ne correspond à cette recherche dans cette rubrique." : "Aucun élément dans cette rubrique."}</p>}
       {!loading && !error && selected.map((item) => (
         <article className="meetingSection" key={item.id}>
           <strong>{item.note || "Repère sans commentaire"}</strong>

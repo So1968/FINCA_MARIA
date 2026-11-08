@@ -83,7 +83,10 @@ L’export reprend la copie figée à sa validation, avec sa date, son numéro d
 version et ses références. Les propositions restent distinctes des décisions
 confirmées. Exporter ne sauvegarde ni ne valide le brouillon actuellement saisi.
 
-Le registre des décisions conserve son filtre lorsqu’on ouvre un compte rendu
+Le registre des décisions propose une recherche par mots dans les notes, responsables,
+titres, types et dates des réunions, sans distinction de casse ou d’accents.
+La recherche porte sur les 5 000 derniers repères renvoyés par le serveur.
+Il conserve sa recherche et son filtre lorsqu’on ouvre un compte rendu
 d’origine puis qu’on utilise « Retour au registre des décisions ». Le repère choisi
 est mis en évidence dans la réunion. Une indisponibilité du registre peut être
 retentée sans être confondue avec une liste vide. Le parcours est vérifié par
