@@ -170,6 +170,8 @@ export default function FincaMeetingsHub() {
   const [audioStatus, setAudioStatus] = useState("");
   const [pendingChunks, setPendingChunks] = useState(0);
   const [newParticipant, setNewParticipant] = useState({ name: "", role: "", presence: "present" });
+  const [participantNames, setParticipantNames] = useState("");
+  const [bulkPresence, setBulkPresence] = useState("absent");
   const reportEditor = useMeetingDraft(() => ({ summary: "", subjects: "" }));
   const { value: reportDraft, edit: setReportDraft } = reportEditor;
   const [health, setHealth] = useState(null);
@@ -402,6 +404,26 @@ export default function FincaMeetingsHub() {
         isFacilitator: false
       }]
     }));
+  }
+
+  function addParticipantsFromList() {
+    const incoming = participantNames.split(/[\n;,]+/).map((name) => name.trim()).filter(Boolean);
+    if (!incoming.length) return;
+    const known = new Set(preparation.participants.map((person) => person.name.trim().toLocaleLowerCase("fr-FR")).filter(Boolean));
+    const newParticipants = [];
+    for (const name of incoming) {
+      const key = name.toLocaleLowerCase("fr-FR");
+      if (known.has(key) || newParticipants.length >= 100) continue;
+      known.add(key);
+      newParticipants.push({ id: crypto.randomUUID(), name, presence: bulkPresence, role: "Participant", isFacilitator: false });
+    }
+    if (!newParticipants.length) {
+      setNotice("Aucun nouveau participant : noms déjà présents ou liste vide.");
+      return;
+    }
+    setPreparation((current) => ({ ...current, participants: [...current.participants, ...newParticipants] }));
+    setParticipantNames("");
+    setNotice(`${newParticipants.length} participant(s) ajouté(s). Vérifiez les noms, les présences et les rôles avant d’enregistrer.`);
   }
 
   function updatePreparationParticipant(id, field, value) {
@@ -1007,6 +1029,13 @@ export default function FincaMeetingsHub() {
             ))}
           </div>
           <div className="meetingActions"><button type="button" className="meetingBtn" onClick={addPreparationParticipant}>+ Participant</button></div>
+          <details className="meetingSection">
+            <summary>Ajouter plusieurs participants en une fois</summary>
+            <p className="meetingMuted">Collez les noms depuis une liste déjà vérifiée, un par ligne. Aucun nom n’est ajouté automatiquement à partir des comptes familiaux.</p>
+            <label className="meetingField"><span>Noms à ajouter</span><textarea rows="4" value={participantNames} placeholder={"Un nom par ligne"} onChange={(event) => setParticipantNames(event.target.value)} /></label>
+            <label className="meetingField"><span>Présence initiale (modifiable ensuite)</span><select value={bulkPresence} onChange={(event) => setBulkPresence(event.target.value)}><option value="absent">Absent</option><option value="present">Présent</option><option value="excused">Excusé</option></select></label>
+            <button type="button" className="meetingBtn" onClick={addParticipantsFromList} disabled={!participantNames.trim()}>Ajouter ces participants</button>
+          </details>
         </div>
       ) : null}
     </>
