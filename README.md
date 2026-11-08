@@ -86,7 +86,9 @@ confirmées. Exporter ne sauvegarde ni ne valide le brouillon actuellement saisi
 Le registre des décisions propose une recherche par mots dans les notes, responsables,
 titres, types et dates des réunions, sans distinction de casse ou d’accents.
 La recherche porte sur les 5 000 derniers repères renvoyés par le serveur.
-Il conserve sa recherche et son filtre lorsqu’on ouvre un compte rendu
+Les résultats sont affichés par pages de 25 éléments. Une nouvelle recherche ou
+un changement de filtre revient à la première page.
+Il conserve sa page, sa recherche et son filtre lorsqu’on ouvre un compte rendu
 d’origine puis qu’on utilise « Retour au registre des décisions ». Le repère choisi
 est mis en évidence dans la réunion. Une indisponibilité du registre peut être
 retentée sans être confondue avec une liste vide. Le parcours est vérifié par

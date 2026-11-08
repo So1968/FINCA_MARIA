@@ -7,7 +7,7 @@ const LABELS = {
   declaration: "Déclaration", desaccord: "Désaccord", question_ouverte: "Question ouverte", document_evoque: "Document évoqué"
 };
 
-export default function MeetingDecisionRegister({ onOpen, onClose, filter, onFilterChange, search, onSearchChange }) {
+export default function MeetingDecisionRegister({ onOpen, onClose, filter, onFilterChange, search, onSearchChange, page, onPageChange }) {
   const [decisions, setDecisions] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -31,23 +31,32 @@ export default function MeetingDecisionRegister({ onOpen, onClose, filter, onFil
   }, [attempt]);
 
   const selected = searchDecisionRegister(decisions, search).filter((item) => filter === "all" || (filter === "confirmed" ? item.classification === "decision_confirmee" : item.classification !== "decision_confirmee"));
+  const lastPage = Math.max(0, Math.ceil(selected.length / 25) - 1);
+  const currentPage = Math.min(page, lastPage);
+  const start = currentPage * 25;
+  const visible = selected.slice(start, start + 25);
   return (
     <section className="meetingSection">
       <h2>Registre des décisions de famille</h2>
       <p className="meetingMuted">Chaque décision reste reliée au compte rendu et à sa date. Les pistes extraites des archives restent « À valider » jusqu’à une revue humaine.</p>
-      <label>Afficher <select aria-label="Filtrer le registre des décisions" value={filter} onChange={(event) => onFilterChange(event.target.value)}>
+      <label>Afficher <select aria-label="Filtrer le registre des décisions" value={filter} onChange={(event) => { onPageChange(0); onFilterChange(event.target.value); }}>
         <option value="all">Tous les éléments</option><option value="confirmed">Décisions confirmées</option><option value="pending">Autres éléments</option>
       </select></label>
       <label>Rechercher dans le registre
-        <input type="search" value={search} maxLength={200} onChange={(event) => onSearchChange(event.target.value)} placeholder="Note, responsable ou réunion…" />
+        <input type="search" value={search} maxLength={200} onChange={(event) => { onPageChange(0); onSearchChange(event.target.value); }} placeholder="Note, responsable ou réunion…" />
       </label>
-      {search && <button className="meetingBtn" type="button" onClick={() => onSearchChange("")}>Effacer la recherche du registre</button>}
+      {search && <button className="meetingBtn" type="button" onClick={() => { onPageChange(0); onSearchChange(""); }}>Effacer la recherche du registre</button>}
       {!loading && !error && decisions.length >= 5000 && <p className="meetingMuted">Ce registre affiche les 5 000 repères les plus récents. La recherche porte sur ces éléments.</p>}
       {loading && <p role="status">Chargement du registre…</p>}
       {!loading && !error && <p role="status">{selected.length} élément{selected.length > 1 ? "s" : ""} dans cette rubrique</p>}
       {error && <div role="alert"><p>{error}</p><button className="meetingBtn" type="button" onClick={() => setAttempt((current) => current + 1)}>Réessayer le registre</button></div>}
       {!loading && !error && selected.length === 0 && <p className="meetingMuted">{search.trim() ? "Aucun élément ne correspond à cette recherche dans cette rubrique." : "Aucun élément dans cette rubrique."}</p>}
-      {!loading && !error && selected.map((item) => (
+      {!loading && !error && selected.length > 25 && <nav className="meetingActions" aria-label="Pages du registre">
+        <button className="meetingBtn" type="button" disabled={currentPage === 0} onClick={() => onPageChange(currentPage - 1)}>Page précédente du registre</button>
+        <span role="status">Éléments {start + 1} à {Math.min(start + 25, selected.length)} sur {selected.length} · Page {currentPage + 1} sur {lastPage + 1}</span>
+        <button className="meetingBtn" type="button" disabled={currentPage === lastPage} onClick={() => onPageChange(currentPage + 1)}>Page suivante du registre</button>
+      </nav>}
+      {!loading && !error && visible.map((item) => (
         <article className="meetingSection" key={item.id}>
           <strong>{item.note || "Repère sans commentaire"}</strong>
           <p className="meetingMuted">{item.date} · {item.title} · {Object.hasOwn(LABELS, item.classification) ? LABELS[item.classification] : "Qualification non reconnue"}</p>
