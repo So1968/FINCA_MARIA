@@ -67,6 +67,23 @@ async function api(path, options = {}) {
   return payload;
 }
 
+const MEETING_ROLES = ["", "Secrétaire", "Participant", "Invité", "Observateur", "Animateur"];
+
+function MeetingRoleField({ value, onChange }) {
+  const [customRole, setCustomRole] = useState(false);
+  const other = customRole || !MEETING_ROLES.includes(value || "");
+  return (
+    <label>Rôle
+      <select aria-label="Rôle dans la réunion" value={other ? "__other__" : (value || "")} onChange={(event) => { setCustomRole(event.target.value === "__other__"); onChange(event.target.value === "__other__" ? "" : event.target.value); }}>
+        <option value="">À préciser</option>
+        {MEETING_ROLES.filter(Boolean).map((role) => <option key={role} value={role}>{role}</option>)}
+        <option value="__other__">Autre rôle…</option>
+      </select>
+      {other && <input aria-label="Préciser le rôle" value={value || ""} placeholder="Préciser le rôle" onChange={(event) => onChange(event.target.value)} />}
+    </label>
+  );
+}
+
 function emptyPreparation() {
   return {
     title: "",
@@ -154,6 +171,8 @@ export default function FincaMeetingsHub() {
   const [audioStatus, setAudioStatus] = useState("");
   const [pendingChunks, setPendingChunks] = useState(0);
   const [newParticipant, setNewParticipant] = useState({ name: "", role: "", presence: "present" });
+  const [participantNames, setParticipantNames] = useState("");
+  const [bulkPresence, setBulkPresence] = useState("absent");
   const reportEditor = useMeetingDraft(() => ({ summary: "", subjects: "" }));
   const { value: reportDraft, edit: setReportDraft } = reportEditor;
   const [health, setHealth] = useState(null);
@@ -183,8 +202,8 @@ export default function FincaMeetingsHub() {
   }, []);
   const hasUnsavedChanges = useCallback(() => (
     preparationEditor.isDirty() || reportEditor.isDirty() || speakerEditor.isDirty() ||
-    childDrafts.current.size > 0 || Boolean(newParticipant.name.trim() || newParticipant.role.trim() || newParticipant.presence !== "present")
-  ), [preparationEditor.isDirty, reportEditor.isDirty, speakerEditor.isDirty, newParticipant]);
+    childDrafts.current.size > 0 || Boolean(newMode && participantNames.trim()) || Boolean(newParticipant.name.trim() || newParticipant.role.trim() || newParticipant.presence !== "present")
+  ), [preparationEditor.isDirty, reportEditor.isDirty, speakerEditor.isDirty, newParticipant, newMode, participantNames]);
 
   useEffect(() => {
     function protectUnsaved(event) {
@@ -399,6 +418,31 @@ export default function FincaMeetingsHub() {
     }));
   }
 
+  function addParticipantsFromList() {
+    const incoming = participantNames.split(/[\n;]+/).map((name) => name.trim()).filter(Boolean);
+    if (!incoming.length) return;
+    const known = new Set(preparation.participants.map((person) => person.name.trim().toLocaleLowerCase("fr-FR")).filter(Boolean));
+    const newParticipants = [];
+    for (const name of incoming) {
+      const key = name.toLocaleLowerCase("fr-FR");
+      if (known.has(key)) continue;
+      known.add(key);
+      newParticipants.push({ id: crypto.randomUUID(), name, presence: bulkPresence, role: "Participant", isFacilitator: false });
+    }
+    setError("");
+    if (newParticipants.length > 100) {
+      setError("Ajoutez au maximum 100 nouveaux participants à la fois. La liste est conservée pour correction.");
+      return;
+    }
+    if (!newParticipants.length) {
+      setNotice("Aucun nouveau participant : noms déjà présents ou liste vide.");
+      return;
+    }
+    setPreparation((current) => ({ ...current, participants: [...current.participants, ...newParticipants] }));
+    setParticipantNames("");
+    setNotice(`${newParticipants.length} participant(s) ajouté(s). Vérifiez les noms, les présences et les rôles avant d’enregistrer.`);
+  }
+
   function updatePreparationParticipant(id, field, value) {
     setPreparation((current) => ({
       ...current,
@@ -408,6 +452,7 @@ export default function FincaMeetingsHub() {
 
   async function createMeeting(event) {
     event?.preventDefault();
+    if (participantNames.trim()) { setError("Ajoutez les noms de la liste aux participants ou effacez la liste avant de créer la réunion."); return; }
     if (!preparation.title.trim() || !preparation.date) {
       setError("Le titre et la date sont obligatoires.");
       return;
@@ -934,6 +979,8 @@ export default function FincaMeetingsHub() {
   }
 
   function startNew() {
+    setParticipantNames("");
+    setBulkPresence("absent");
     setReturnToRegister(false);
     setHighlightedMarkerId("");
     if (!newMode) previousMeetingId.current = selectedId;
@@ -956,6 +1003,30 @@ export default function FincaMeetingsHub() {
 
   const renderPreparationFields = (isNew = false) => (
     <>
+      {isNew && (
+        <div className="meetingActions">
+          <button
+            type="button"
+            className="meetingBtn"
+            onClick={() => {
+              if (preparationEditor.isDirty() && !window.confirm("Remplacer les champs de préparation par l’exemple fictif ? Les participants sont conservés.")) return;
+              setPreparation((current) => ({
+                ...current,
+                title: "DÉMONSTRATION — Situation de Marie-Jo et FINCA MARIA",
+                meetingType: "Conseil de famille",
+                theme: "Protection de Marie-Jo, succession et exploitation agricole",
+                objective: "Comprendre comment organiser les démarches familiales et la continuité de la finca. Ceci est un exemple fictif.",
+                agendaText: "Situation de Marie-Jo\nContinuité de l’exploitation agricole\nGestion de la succession\nProchaines démarches à examiner",
+                previousRecap: "EXEMPLE FICTIF — aucune décision précédente à considérer comme réelle."
+              }));
+              setNotice("Exemple fictif inséré dans le formulaire. Rien n’a été enregistré comme réunion.");
+            }}
+          >
+            Remplir avec un exemple
+          </button>
+          <span className="meetingMuted">Démonstration uniquement : vérifiez avant de créer une réunion.</span>
+        </div>
+      )}
       <div className="meetingGrid">
         <label className="meetingField"><span>Titre</span><input value={preparation.title} onChange={(event) => updatePrep("title", event.target.value)} placeholder="Conseil de famille — succession / finca…" /></label>
         <label className="meetingField"><span>Date</span><input type="date" value={preparation.date} onChange={(event) => updatePrep("date", event.target.value)} /></label>
@@ -972,13 +1043,20 @@ export default function FincaMeetingsHub() {
             {preparation.participants.map((participant) => (
               <div className="participantRow" key={participant.id}>
                 <label>Nom<input value={participant.name} onChange={(event) => updatePreparationParticipant(participant.id, "name", event.target.value)} /></label>
-                <label>Présence<select value={participant.presence} onChange={(event) => updatePreparationParticipant(participant.id, "presence", event.target.value)}><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
-                <label>Rôle<input value={participant.role} onChange={(event) => updatePreparationParticipant(participant.id, "role", event.target.value)} /></label>
+                <label>Présence<select aria-label="Présence" value={participant.presence} onChange={(event) => updatePreparationParticipant(participant.id, "presence", event.target.value)}><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
+                <MeetingRoleField value={participant.role} onChange={(value) => updatePreparationParticipant(participant.id, "role", value)} />
                 <label className="check"><input type="checkbox" checked={participant.isFacilitator} onChange={(event) => updatePreparationParticipant(participant.id, "isFacilitator", event.target.checked)} /> Anime</label>
               </div>
             ))}
           </div>
           <div className="meetingActions"><button type="button" className="meetingBtn" onClick={addPreparationParticipant}>+ Participant</button></div>
+          <details className="meetingSection">
+            <summary>Ajouter plusieurs participants en une fois</summary>
+            <p className="meetingMuted">Collez les noms depuis une liste déjà vérifiée, un par ligne. Aucun nom n’est ajouté automatiquement à partir des comptes familiaux.</p>
+            <label className="meetingField"><span>Noms à ajouter</span><textarea aria-label="Noms à ajouter" rows="4" value={participantNames} placeholder={"Un nom par ligne"} onChange={(event) => setParticipantNames(event.target.value)} /></label>
+            <label className="meetingField"><span>Présence initiale (modifiable ensuite)</span><select value={bulkPresence} onChange={(event) => setBulkPresence(event.target.value)}><option value="absent">Absent</option><option value="present">Présent</option><option value="excused">Excusé</option></select></label>
+            <button type="button" className="meetingBtn" onClick={addParticipantsFromList} disabled={!participantNames.trim()}>Ajouter ces participants</button>
+          </details>
         </div>
       ) : null}
     </>
@@ -1061,8 +1139,8 @@ export default function FincaMeetingsHub() {
                 </div>
                 <div className="participantRow" style={{ marginTop: ".55rem" }}>
                   <label>Nouvel intervenant<input value={newParticipant.name} onChange={(event) => setNewParticipant({ ...newParticipant, name: event.target.value })} placeholder="Nom" /></label>
-                  <label>Présence<select value={newParticipant.presence} onChange={(event) => setNewParticipant({ ...newParticipant, presence: event.target.value })}><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
-                  <label>Rôle<input value={newParticipant.role} onChange={(event) => setNewParticipant({ ...newParticipant, role: event.target.value })} /></label>
+                  <label>Présence<select aria-label="Présence" value={newParticipant.presence} onChange={(event) => setNewParticipant({ ...newParticipant, presence: event.target.value })}><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
+                  <MeetingRoleField value={newParticipant.role} onChange={(value) => setNewParticipant({ ...newParticipant, role: value })} />
                   <button type="button" className="meetingBtn" onClick={addParticipantDuringMeeting}>Ajouter</button>
                 </div>
               </section>
@@ -1217,8 +1295,8 @@ function ParticipantEditor({ participant, onSave, onDirtyChange }) {
   return (
     <div className="participantRow">
       <label>Nom<input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
-      <label>Présence<select value={draft.presence} onChange={(event) => setDraft({ ...draft, presence: event.target.value })}><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
-      <label>Rôle<input value={draft.role} onChange={(event) => setDraft({ ...draft, role: event.target.value })} /></label>
+      <label>Présence<select aria-label="Présence" value={draft.presence} onChange={(event) => setDraft({ ...draft, presence: event.target.value })}><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
+      <MeetingRoleField value={draft.role} onChange={(value) => setDraft({ ...draft, role: value })} />
       <label className="check"><input type="checkbox" checked={Boolean(draft.isFacilitator)} onChange={(event) => setDraft({ ...draft, isFacilitator: event.target.checked })} /> Anime</label>
       <button type="button" className="meetingBtn" onClick={save}>Enregistrer</button>
       {editor.dirty ? <small>Modifications non enregistrées</small> : null}

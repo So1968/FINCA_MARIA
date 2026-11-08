@@ -78,6 +78,18 @@ par pages. La recherche conserve la réunion ouverte et ses saisies.
 `FINCA_SEARCH_E2E_PORT` remplace le port de test 5228. La CI vérifie également la
 recherche et la pagination sur sa base PostgreSQL de test.
 
+Une nouvelle réunion peut être préremplie avec un exemple explicitement fictif.
+Cela ne crée aucune réunion : seule la validation du formulaire enregistre les données.
+Le remplacement d’une préparation modifiée demande confirmation et conserve les participants.
+Les rôles proposent un menu et une saisie libre, compatible avec les anciens rôles.
+L’ajout groupé accepte un nom par ligne ou séparé par un point-virgule, élimine les
+doublons sans distinguer la casse et refuse un lot de plus de 100 nouveaux noms
+sans le tronquer. Les personnes sont absentes par défaut ; aucune liste n’est
+inférée des comptes familiaux. Une liste encore en attente bloque la création
+jusqu’à son ajout ou son effacement et est protégée avant de quitter le formulaire.
+Le parcours est vérifié par `npm run test:meeting-preparation:browser`
+(port 5230, modifiable par `FINCA_PREPARATION_E2E_PORT`).
+
 La création d’une action depuis un repère de réunion exige que ses corrections
 soient enregistrées. Le bouton et les champs du repère sont verrouillés pendant
 la demande ; un échec permet de réessayer sans perdre les valeurs enregistrées.
