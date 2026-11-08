@@ -455,6 +455,71 @@ try {
   await actionContext.close();
   console.log("✓ Action confirmée : annulation, corrections enregistrées, double clic verrouillé, échec puis nouvelle tentative");
 
+  const documentContext = await browser.newContext({ locale: "fr-FR" });
+  const documentPage = await documentContext.newPage();
+  documentPage.setDefaultTimeout(10000);
+  let documentMeeting = {
+    ...meeting, id: "document-meeting", title: "Réunion avec document", transcriptionState: "idle", validatedVersions: [],
+    markers: [{ id: "document-marker", type: "document_evoque", classification: "document_evoque", note: "Devis à consulter", timeSeconds: 0 }],
+    links: [{ id: "old-link", markerId: "document-marker", kind: "document", targetRef: "missing-document" }]
+  };
+  let linkCalls = 0;
+  let failLink = true;
+  let releaseLink;
+  let linkGate = new Promise((resolve) => { releaseLink = resolve; });
+  await documentPage.route("**/api/**", async (route) => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+    const json = (body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+    if (pathname === "/api/meetings") return json({ meetings: [documentMeeting] });
+    if (pathname === "/api/meetings/document-meeting") return json({ meeting: documentMeeting });
+    if (pathname === "/api/meetings/documents") return json({ documents: [{ id: "doc-one", name: "Devis toiture validé" }, { id: "doc-two", name: "Plan validé" }] });
+    if (pathname.endsWith("/link-document")) {
+      linkCalls += 1;
+      assert.equal(request.postDataJSON().documentId, "doc-one");
+      await linkGate;
+      if (failLink) return json({ error: "Rattachement refusé pour le test" }, 503);
+      documentMeeting = { ...documentMeeting, links: [...documentMeeting.links, { id: "new-link", markerId: "document-marker", kind: "document", targetRef: "doc-one" }] };
+      return json({ meeting: documentMeeting, duplicate: false });
+    }
+    return json({ documents: [], localEngineReady: false });
+  });
+  await documentPage.goto(route);
+  const documentSelect = documentPage.getByRole("combobox", { name: "Document BAÚL à rattacher", exact: true });
+  const linkButton = documentPage.getByRole("button", { name: "Lier", exact: true });
+  await documentSelect.waitFor();
+  await documentPage.getByText("Document BAÚL indisponible dans la liste des documents validés", { exact: true }).waitFor();
+  assert.equal(await linkButton.isDisabled(), true);
+  await documentSelect.selectOption("doc-one");
+  await linkButton.evaluate((button) => { button.click(); button.click(); });
+  const linking = documentPage.getByRole("button", { name: "Rattachement en cours…", exact: true });
+  await linking.waitFor();
+  assert.equal(await linking.isDisabled(), true);
+  assert.equal(await documentSelect.isDisabled(), true);
+  releaseLink();
+  await documentPage.getByRole("alert").filter({ hasText: "Rattachement refusé pour le test" }).waitFor();
+  assert.equal(linkCalls, 1);
+  assert.equal(await documentSelect.inputValue(), "doc-one");
+  assert.equal(await documentSelect.isEnabled(), true);
+  failLink = false;
+  linkGate = Promise.resolve();
+  await linkButton.click();
+  await documentPage.getByText("Document BAÚL rattaché à la réunion.", { exact: true }).waitFor();
+  await documentPage.locator("#meeting-marker-document-marker li").filter({ hasText: "Devis toiture validé" }).waitFor();
+  assert.equal(await linkButton.isDisabled(), true);
+  assert.equal(await documentPage.getByRole("alert").count(), 0);
+  await documentPage.getByRole("status").filter({ hasText: "Ce document est déjà rattaché à cette réunion." }).waitFor();
+  await documentSelect.selectOption("doc-two");
+  assert.equal(await linkButton.isEnabled(), true);
+  await documentPage.reload();
+  await documentPage.locator("#meeting-marker-document-marker li").filter({ hasText: "Devis toiture validé" }).waitFor();
+  await documentPage.getByRole("combobox", { name: "Document BAÚL à rattacher", exact: true }).selectOption("doc-one");
+  assert.equal(await documentPage.getByRole("button", { name: "Lier", exact: true }).isDisabled(), true);
+  assert.equal(linkCalls, 2);
+  await documentContext.close();
+  console.log("✓ Documents rattachés visibles après rechargement, choix conservé après erreur, double clic bloqué et doublon désactivé");
+
+
 } finally {
   try { await browser?.close(); }
   finally {
