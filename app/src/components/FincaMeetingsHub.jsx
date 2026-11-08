@@ -160,6 +160,9 @@ export default function FincaMeetingsHub() {
   const speakerEditor = useMeetingDraft(() => ({}));
   const { value: speakerMapping, edit: setSpeakerMapping } = speakerEditor;
   const [documents, setDocuments] = useState([]);
+  const [documentsLoading, setDocumentsLoading] = useState(true);
+  const [documentsError, setDocumentsError] = useState("");
+  const documentsRequest = useRef(false);
   const [documentSelection, setDocumentSelection] = useState({});
 
   const recorderRef = useRef(null);
@@ -282,11 +285,19 @@ export default function FincaMeetingsHub() {
   }
 
   async function loadDocuments() {
+    if (documentsRequest.current) return;
+    documentsRequest.current = true;
+    setDocumentsLoading(true);
+    setDocumentsError("");
     try {
       const payload = await api("/api/meetings/documents");
-      setDocuments(payload.documents || []);
-    } catch {
-      setDocuments([]);
+      if (!Array.isArray(payload.documents) || payload.documents.some((doc) => !doc || typeof doc.id !== "string" || typeof doc.name !== "string")) throw new Error("La liste des documents BAÚL reçue est incomplète.");
+      setDocuments(payload.documents);
+    } catch (err) {
+      setDocumentsError(err.message);
+    } finally {
+      documentsRequest.current = false;
+      setDocumentsLoading(false);
     }
   }
 
@@ -1086,6 +1097,12 @@ export default function FincaMeetingsHub() {
                   {MARKERS.map(([type, label]) => <button type="button" key={type} onClick={() => addMarker(type)}>{label}</button>)}
                 </div>
 
+                {(meeting.markers || []).some((marker) => marker.type === "document_evoque" || marker.classification === "document_evoque") && <section className="meetingSection" aria-label="Documents BAÚL de la réunion">
+                  {documentsLoading && <p role="status">Chargement des documents BAÚL…</p>}
+                  {documentsError && <p role="alert">Documents BAÚL indisponibles : {documentsError}</p>}
+                  {!documentsLoading && !documentsError && documents.length === 0 && <p className="meetingMuted">Aucun document BAÚL validé disponible pour le rattachement.</p>}
+                  <button className="meetingBtn" type="button" disabled={documentsLoading} onClick={loadDocuments}>Recharger les documents BAÚL</button>
+                </section>}
                 <div className="timeline">
                   {(meeting.markers || []).map((marker) => (
                     <MarkerCard
@@ -1097,6 +1114,7 @@ export default function FincaMeetingsHub() {
                       hasAudio={meeting.hasAudio}
                       validated={Boolean(meeting.validatedVersions?.length)}
                       documents={documents}
+                      documentsUnavailable={documentsLoading || Boolean(documentsError)}
                       documentLinks={(meeting.links || []).filter((link) => link.kind === "document")}
                       documentId={documentSelection[marker.id] || ""}
                       onDocumentChange={(value) => setDocumentSelection((current) => ({ ...current, [marker.id]: value }))}
@@ -1208,7 +1226,7 @@ function ParticipantEditor({ participant, onSave, onDirtyChange }) {
   );
 }
 
-function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocumentChange, onLinkDocument, onSeek, onUpdate, onCreateAction, onDirtyChange, highlighted, onBackToRegister, backDisabled, documentLinks }) {
+function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocumentChange, onLinkDocument, onSeek, onUpdate, onCreateAction, onDirtyChange, highlighted, onBackToRegister, backDisabled, documentLinks, documentsUnavailable }) {
   const reportDirty = useCallback((dirty) => onDirtyChange(`marker:${marker.id}`, dirty), [onDirtyChange, marker.id]);
   const editor = useMeetingDraft(marker, reportDirty);
   const [creatingAction, setCreatingAction] = useState(false);
@@ -1226,7 +1244,7 @@ function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocu
     if (saved) editor.acknowledge(snapshot, saved);
   }
   async function attachDocument() {
-    if (!documentId || documentAlreadyLinked || linkingDocumentRef.current || backDisabled) return;
+    if (!documentId || documentAlreadyLinked || linkingDocumentRef.current || backDisabled || documentsUnavailable || !documents.some((doc) => doc.id === documentId)) return;
     linkingDocumentRef.current = true;
     setLinkingDocument(true);
     try { await onLinkDocument(); }
@@ -1266,8 +1284,8 @@ function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocu
       {marker.classification === "action_confirmee" && validated && editor.dirty && <p className="meetingMuted">Enregistrez ce repère avant de créer l’action pour reprendre vos dernières corrections.</p>}
       {marker.type === "document_evoque" || marker.classification === "document_evoque" ? (
         <div className="docLinkRow">
-          <select aria-label="Document BAÚL à rattacher" disabled={linkingDocument || backDisabled} value={documentId} onChange={(event) => onDocumentChange(event.target.value)}><option value="">Rattacher un document BAÚL validé…</option>{documents.map((doc) => <option key={doc.id} value={doc.id}>{doc.name}{doc.category ? ` · ${doc.category}` : ""}</option>)}</select>
-          <button type="button" className="meetingBtn" onClick={attachDocument} disabled={!documentId || documentAlreadyLinked || linkingDocument || backDisabled}>{linkingDocument ? "Rattachement en cours…" : "Lier"}</button>
+          <select aria-label="Document BAÚL à rattacher" disabled={linkingDocument || backDisabled || documentsUnavailable || documents.length === 0} value={documentId} onChange={(event) => onDocumentChange(event.target.value)}><option value="">Rattacher un document BAÚL validé…</option>{documents.map((doc) => <option key={doc.id} value={doc.id}>{doc.name}{doc.category ? ` · ${doc.category}` : ""}</option>)}</select>
+          <button type="button" className="meetingBtn" onClick={attachDocument} disabled={!documentId || documentAlreadyLinked || linkingDocument || backDisabled || documentsUnavailable || !documents.some((doc) => doc.id === documentId)}>{linkingDocument ? "Rattachement en cours…" : "Lier"}</button>
         </div>
       ) : null}
       {documentAlreadyLinked && <p role="status" className="meetingMuted">Ce document est déjà rattaché à cette réunion.</p>}
