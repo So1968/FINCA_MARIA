@@ -82,6 +82,10 @@ La création d’une action depuis un repère de réunion exige que ses correcti
 soient enregistrées. Le bouton et les champs du repère sont verrouillés pendant
 la demande ; un échec permet de réessayer sans perdre les valeurs enregistrées.
 
+Les repères affichent leurs documents BAÚL rattachés. Un document déjà lié à
+la réunion ne peut pas être rattaché une seconde fois. Pendant la demande,
+le choix du document est verrouillé ; une erreur conserve ce choix pour réessayer.
+
 Chaque version validée d’un compte rendu peut être exportée en texte (.txt).
 L’export reprend la copie figée à sa validation, avec sa date, son numéro de
 version et ses références. Les propositions restent distinctes des décisions

@@ -848,8 +848,11 @@ export default function FincaMeetingsHub() {
   }
 
   async function linkDocument(marker) {
+    if (reportOperationRef.current) return;
     const documentId = documentSelection[marker.id];
     if (!documentId) return;
+    setError("");
+    setNotice("");
     try {
       const payload = await api(`/api/meetings/${meeting.id}/markers/${marker.id}/link-document`, {
         method: "POST",
@@ -1094,6 +1097,7 @@ export default function FincaMeetingsHub() {
                       hasAudio={meeting.hasAudio}
                       validated={Boolean(meeting.validatedVersions?.length)}
                       documents={documents}
+                      documentLinks={(meeting.links || []).filter((link) => link.kind === "document")}
                       documentId={documentSelection[marker.id] || ""}
                       onDocumentChange={(value) => setDocumentSelection((current) => ({ ...current, [marker.id]: value }))}
                       onLinkDocument={() => linkDocument(marker)}
@@ -1204,11 +1208,15 @@ function ParticipantEditor({ participant, onSave, onDirtyChange }) {
   );
 }
 
-function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocumentChange, onLinkDocument, onSeek, onUpdate, onCreateAction, onDirtyChange, highlighted, onBackToRegister, backDisabled }) {
+function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocumentChange, onLinkDocument, onSeek, onUpdate, onCreateAction, onDirtyChange, highlighted, onBackToRegister, backDisabled, documentLinks }) {
   const reportDirty = useCallback((dirty) => onDirtyChange(`marker:${marker.id}`, dirty), [onDirtyChange, marker.id]);
   const editor = useMeetingDraft(marker, reportDirty);
   const [creatingAction, setCreatingAction] = useState(false);
   const creatingActionRef = useRef(false);
+  const [linkingDocument, setLinkingDocument] = useState(false);
+  const linkingDocumentRef = useRef(false);
+  const documentAlreadyLinked = documentLinks.some((link) => link.targetRef === documentId);
+  const linkedDocuments = documentLinks.filter((link) => link.markerId === marker.id);
   const { value: draft, edit: setDraft, refresh } = editor;
   useEffect(() => refresh(marker), [marker, refresh]);
   async function save() {
@@ -1216,6 +1224,16 @@ function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocu
     const { note, classification, responsible, dueDate } = snapshot.value;
     const saved = await onUpdate({ note, classification, responsible, dueDate });
     if (saved) editor.acknowledge(snapshot, saved);
+  }
+  async function attachDocument() {
+    if (!documentId || documentAlreadyLinked || linkingDocumentRef.current || backDisabled) return;
+    linkingDocumentRef.current = true;
+    setLinkingDocument(true);
+    try { await onLinkDocument(); }
+    finally {
+      linkingDocumentRef.current = false;
+      setLinkingDocument(false);
+    }
   }
   async function createAction() {
     if (editor.isDirty() || creatingActionRef.current || backDisabled) return;
@@ -1248,10 +1266,15 @@ function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocu
       {marker.classification === "action_confirmee" && validated && editor.dirty && <p className="meetingMuted">Enregistrez ce repère avant de créer l’action pour reprendre vos dernières corrections.</p>}
       {marker.type === "document_evoque" || marker.classification === "document_evoque" ? (
         <div className="docLinkRow">
-          <select value={documentId} onChange={(event) => onDocumentChange(event.target.value)}><option value="">Rattacher un document BAÚL validé…</option>{documents.map((doc) => <option key={doc.id} value={doc.id}>{doc.name}{doc.category ? ` · ${doc.category}` : ""}</option>)}</select>
-          <button type="button" className="meetingBtn" onClick={onLinkDocument} disabled={!documentId}>Lier</button>
+          <select aria-label="Document BAÚL à rattacher" disabled={linkingDocument || backDisabled} value={documentId} onChange={(event) => onDocumentChange(event.target.value)}><option value="">Rattacher un document BAÚL validé…</option>{documents.map((doc) => <option key={doc.id} value={doc.id}>{doc.name}{doc.category ? ` · ${doc.category}` : ""}</option>)}</select>
+          <button type="button" className="meetingBtn" onClick={attachDocument} disabled={!documentId || documentAlreadyLinked || linkingDocument || backDisabled}>{linkingDocument ? "Rattachement en cours…" : "Lier"}</button>
         </div>
       ) : null}
+      {documentAlreadyLinked && <p role="status" className="meetingMuted">Ce document est déjà rattaché à cette réunion.</p>}
+      {linkedDocuments.length > 0 && <div className="meetingMuted">
+        <strong>Documents rattachés à ce repère</strong>
+        <ul>{linkedDocuments.map((link) => <li key={link.id}>{documents.find((doc) => doc.id === link.targetRef)?.name || "Document BAÚL indisponible dans la liste des documents validés"}</li>)}</ul>
+      </div>}
     </article>
   );
 }
