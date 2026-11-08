@@ -74,6 +74,8 @@ jobs:
       - name: Test meeting search and pagination
         run: npm run test:meeting-search:browser
 
+      - name: Test meeting preparation and participant lists
+        run: npm run test:meeting-preparation:browser
       - name: Test decision register return and source navigation
         run: npm run test:decision-register:browser
 
