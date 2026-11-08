@@ -93,6 +93,14 @@ try {
   assert.equal(await page.getByText("Aucun élément dans cette rubrique.", { exact: true }).count(), 0);
   await page.getByRole("button", { name: "Réessayer le registre", exact: true }).click();
   await page.getByRole("status").filter({ hasText: "2 éléments dans cette rubrique" }).waitFor();
+  const search = page.getByRole("searchbox", { name: "Rechercher dans le registre", exact: true });
+  await search.fill("aucune correspondance");
+  await page.getByText("Aucun élément ne correspond à cette recherche dans cette rubrique.", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Effacer la recherche du registre", exact: true }).click();
+  assert.equal(await search.inputValue(), "");
+  await page.getByRole("status").filter({ hasText: "2 éléments dans cette rubrique" }).waitFor();
+  await search.fill("REUNION source");
+  await page.getByRole("status").filter({ hasText: "2 éléments dans cette rubrique" }).waitFor();
   await page.getByRole("combobox", { name: "Filtrer le registre des décisions", exact: true }).selectOption("pending");
   await page.getByRole("status").filter({ hasText: "1 élément dans cette rubrique" }).waitFor();
   await page.getByText("Repère sans commentaire", { exact: true }).waitFor();
@@ -113,6 +121,7 @@ try {
   await target.getByRole("button", { name: "Retour au registre", exact: true }).click();
   await page.getByRole("status").filter({ hasText: "1 élément dans cette rubrique" }).waitFor();
   assert.equal(await page.getByRole("combobox", { name: "Filtrer le registre des décisions", exact: true }).inputValue(), "pending");
+  assert.equal(await search.inputValue(), "REUNION source");
   await page.getByText("Correction du repère à conserver", { exact: true }).waitFor();
   assert.equal(dialogs, 1, "Le retour après enregistrement ne doit pas demander une nouvelle confirmation");
   console.log("✓ Chargement et échec distingués du registre vide, reprise, filtre conservé et repère d’origine mis en évidence");
@@ -136,6 +145,7 @@ try {
   await page.getByRole("button", { name: "Réessayer le registre", exact: true }).click();
   await page.getByRole("status").filter({ hasText: "1 élément dans cette rubrique" }).waitFor();
   assert.equal(await page.getByRole("combobox", { name: "Filtrer le registre des décisions", exact: true }).inputValue(), "confirmed");
+  await page.getByRole("button", { name: "Effacer la recherche du registre", exact: true }).click();
   rows = [];
   await page.getByRole("button", { name: "Revenir aux réunions", exact: true }).click();
   await page.getByRole("button", { name: "Registre des décisions", exact: true }).click();

@@ -134,6 +134,7 @@ export default function FincaMeetingsHub() {
   const [historicMode, setHistoricMode] = useState(false);
   const [registerMode, setRegisterMode] = useState(false);
   const [registerFilter, setRegisterFilter] = useState("all");
+  const [registerSearch, setRegisterSearch] = useState("");
   const [returnToRegister, setReturnToRegister] = useState(false);
   const [highlightedMarkerId, setHighlightedMarkerId] = useState("");
   const [busy, setBusy] = useState(false);
@@ -1009,7 +1010,7 @@ export default function FincaMeetingsHub() {
           {reportOperation ? <p role="status">{reportOperation === "saving" ? "Enregistrement du brouillon en cours…" : "Validation du compte rendu en cours…"}</p> : null}
 
           {registerMode ? (
-            <MeetingDecisionRegister onOpen={openMeeting} onClose={() => setRegisterMode(false)} filter={registerFilter} onFilterChange={setRegisterFilter} />
+            <MeetingDecisionRegister onOpen={openMeeting} onClose={() => setRegisterMode(false)} filter={registerFilter} onFilterChange={setRegisterFilter} search={registerSearch} onSearchChange={setRegisterSearch} />
           ) : historicMode ? (
             <HistoricMeetingImport onClose={() => setHistoricMode(false)} onImported={async (id) => { await loadList(id); }} />
           ) : newMode ? (
