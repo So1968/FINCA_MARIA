@@ -78,6 +78,10 @@ par pages. La recherche conserve la réunion ouverte et ses saisies.
 `FINCA_SEARCH_E2E_PORT` remplace le port de test 5228. La CI vérifie également la
 recherche et la pagination sur sa base PostgreSQL de test.
 
+La création d’une action depuis un repère de réunion exige que ses corrections
+soient enregistrées. Le bouton et les champs du repère sont verrouillés pendant
+la demande ; un échec permet de réessayer sans perdre les valeurs enregistrées.
+
 Chaque version validée d’un compte rendu peut être exportée en texte (.txt).
 L’export reprend la copie figée à sa validation, avec sa date, son numéro de
 version et ses références. Les propositions restent distinctes des décisions
