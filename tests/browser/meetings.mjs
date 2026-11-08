@@ -383,6 +383,78 @@ try {
   console.log("✓ L’abandon confirmé fonctionne et l’annulation d’une nouvelle réunion revient à la réunion précédente");
   await draftContext.close();
   console.log("✓ Enregistrement des corrections et rejet d’une ancienne réponse après changement de réunion");
+
+  const actionContext = await browser.newContext({ locale: "fr-FR" });
+  const actionPage = await actionContext.newPage();
+  actionPage.setDefaultTimeout(10000);
+  let acceptAction = false;
+  let actionDialogs = 0;
+  actionPage.on("dialog", (dialog) => { actionDialogs += 1; return acceptAction ? dialog.accept() : dialog.dismiss(); });
+  let actionMeeting = {
+    ...meeting, id: "action-meeting", title: "Réunion avec action confirmée", transcriptionState: "idle",
+    validatedVersions: [{ version: 1 }],
+    markers: [{ id: "action-marker", type: "action", classification: "action_confirmee", note: "Travaux à organiser", responsible: "", dueDate: "", timeSeconds: 0 }]
+  };
+  let actionCalls = 0;
+  let failAction = true;
+  let releaseAction;
+  let actionGate = new Promise((resolve) => { releaseAction = resolve; });
+  await actionPage.route("**/api/**", async (route) => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+    const json = (body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+    if (pathname === "/api/meetings") return json({ meetings: [actionMeeting] });
+    if (pathname === "/api/meetings/action-meeting") return json({ meeting: actionMeeting });
+    if (pathname.endsWith("/markers/action-marker")) {
+      actionMeeting = { ...actionMeeting, markers: [{ ...actionMeeting.markers[0], ...request.postDataJSON() }] };
+      return json({ meeting: actionMeeting });
+    }
+    if (pathname.endsWith("/create-action")) {
+      actionCalls += 1;
+      assert.equal(request.postDataJSON().confirmed, true);
+      await actionGate;
+      if (failAction) return json({ error: "Création refusée pour le test" }, 503);
+      return json({ meeting: actionMeeting, duplicate: false });
+    }
+    return json({ documents: [], localEngineReady: false });
+  });
+  await actionPage.goto(route);
+  const createAction = actionPage.getByRole("button", { name: "Créer l’action FINCA", exact: true });
+  await createAction.click();
+  assert.equal(actionCalls, 0, "Une confirmation annulée ne doit envoyer aucune demande");
+  assert.equal(actionDialogs, 1);
+  const actionNote = actionPage.getByLabel("Note", { exact: true });
+  await actionNote.fill("Travaux corrigés avant création");
+  assert.equal(await createAction.isDisabled(), true);
+  await actionPage.getByText("Enregistrez ce repère avant de créer l’action pour reprendre vos dernières corrections.", { exact: true }).waitFor();
+  await actionPage.getByRole("button", { name: "Enregistrer ce repère", exact: true }).click();
+  await actionPage.waitForFunction(() => ![...document.querySelectorAll('button')].find((button) => button.textContent === "Créer l’action FINCA")?.disabled);
+  assert.equal(actionMeeting.markers[0].note, "Travaux corrigés avant création");
+  acceptAction = true;
+  await createAction.evaluate((button) => { button.click(); button.click(); });
+  const pendingAction = actionPage.getByRole("button", { name: "Création de l’action en cours…", exact: true });
+  await pendingAction.waitFor();
+  assert.equal(await pendingAction.isDisabled(), true);
+  assert.equal(await actionNote.isDisabled(), true);
+  assert.equal(await actionPage.locator("#meeting-marker-action-marker .markerFields input:enabled, #meeting-marker-action-marker .markerFields select:enabled").count(), 0);
+  assert.equal(await actionPage.getByRole("button", { name: "Enregistrer ce repère", exact: true }).isDisabled(), true);
+  await actionPage.waitForFunction(() => document.querySelector('#meeting-marker-action-marker input')?.disabled);
+  releaseAction();
+  await actionPage.getByRole("alert").filter({ hasText: "Création refusée pour le test" }).waitFor();
+  assert.equal(actionCalls, 1, "Un double clic doit produire une seule demande");
+  assert.equal(actionDialogs, 2, "Un double clic doit demander une seule confirmation");
+  assert.equal(await createAction.isEnabled(), true);
+  assert.equal(await actionNote.isEnabled(), true);
+  failAction = false;
+  actionGate = Promise.resolve();
+  await createAction.click();
+  await actionPage.getByText("Action confirmée créée dans FINCA MARIA.", { exact: true }).waitFor();
+  assert.equal(actionCalls, 2);
+  assert.equal(await actionPage.getByRole("alert").count(), 0, "Le succès ne doit pas conserver l’erreur précédente");
+  assert.equal(await actionNote.inputValue(), "Travaux corrigés avant création");
+  await actionContext.close();
+  console.log("✓ Action confirmée : annulation, corrections enregistrées, double clic verrouillé, échec puis nouvelle tentative");
+
 } finally {
   try { await browser?.close(); }
   finally {

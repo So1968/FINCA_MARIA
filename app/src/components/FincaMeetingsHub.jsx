@@ -831,7 +831,10 @@ export default function FincaMeetingsHub() {
   }
 
   async function createConfirmedAction(marker) {
+    if (reportOperationRef.current) return;
     if (!window.confirm("Créer cette action confirmée dans les actions FINCA MARIA, sans inventer d’autre responsable ni échéance ?")) return;
+    setError("");
+    setNotice("");
     try {
       const payload = await api(`/api/meetings/${meeting.id}/markers/${marker.id}/create-action`, {
         method: "POST",
@@ -1204,6 +1207,8 @@ function ParticipantEditor({ participant, onSave, onDirtyChange }) {
 function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocumentChange, onLinkDocument, onSeek, onUpdate, onCreateAction, onDirtyChange, highlighted, onBackToRegister, backDisabled }) {
   const reportDirty = useCallback((dirty) => onDirtyChange(`marker:${marker.id}`, dirty), [onDirtyChange, marker.id]);
   const editor = useMeetingDraft(marker, reportDirty);
+  const [creatingAction, setCreatingAction] = useState(false);
+  const creatingActionRef = useRef(false);
   const { value: draft, edit: setDraft, refresh } = editor;
   useEffect(() => refresh(marker), [marker, refresh]);
   async function save() {
@@ -1212,6 +1217,16 @@ function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocu
     const saved = await onUpdate({ note, classification, responsible, dueDate });
     if (saved) editor.acknowledge(snapshot, saved);
   }
+  async function createAction() {
+    if (editor.isDirty() || creatingActionRef.current || backDisabled) return;
+    creatingActionRef.current = true;
+    setCreatingAction(true);
+    try { await onCreateAction(); }
+    finally {
+      creatingActionRef.current = false;
+      setCreatingAction(false);
+    }
+  }
   return (
     <article className={`markerCard${highlighted ? " isHighlighted" : ""}`} id={`meeting-marker-${marker.id}`} tabIndex={-1}>
       <div className="markerHead">
@@ -1219,17 +1234,18 @@ function MarkerCard({ marker, hasAudio, validated, documents, documentId, onDocu
         <button type="button" onClick={onSeek} disabled={!hasAudio}>{formatClock(marker.timeSeconds)}{hasAudio ? " ▶" : ""}</button>
       </div>
       <div className="markerFields">
-        <label className="meetingField wide"><span>Note</span><input value={draft.note} onChange={(event) => setDraft({ ...draft, note: event.target.value })} placeholder="Ajouter une note courte après le clic…" /></label>
-        <label className="meetingField"><span>Qualification</span><select value={draft.classification} onChange={(event) => setDraft({ ...draft, classification: event.target.value })}>{CLASSIFICATIONS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-        <label className="meetingField"><span>Responsable · seulement si précisé</span><input value={draft.responsible || ""} onChange={(event) => setDraft({ ...draft, responsible: event.target.value })} /></label>
-        <label className="meetingField"><span>Échéance · seulement si précisée</span><input type="date" value={draft.dueDate || ""} onChange={(event) => setDraft({ ...draft, dueDate: event.target.value })} /></label>
+        <label className="meetingField wide"><span>Note</span><input disabled={creatingAction} value={draft.note} onChange={(event) => setDraft({ ...draft, note: event.target.value })} placeholder="Ajouter une note courte après le clic…" /></label>
+        <label className="meetingField"><span>Qualification</span><select disabled={creatingAction} value={draft.classification} onChange={(event) => setDraft({ ...draft, classification: event.target.value })}>{CLASSIFICATIONS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+        <label className="meetingField"><span>Responsable · seulement si précisé</span><input disabled={creatingAction} value={draft.responsible || ""} onChange={(event) => setDraft({ ...draft, responsible: event.target.value })} /></label>
+        <label className="meetingField"><span>Échéance · seulement si précisée</span><input disabled={creatingAction} type="date" value={draft.dueDate || ""} onChange={(event) => setDraft({ ...draft, dueDate: event.target.value })} /></label>
       </div>
       <div className="meetingActions">
-        <button type="button" className="meetingBtn" onClick={save}>Enregistrer ce repère</button>
+        <button type="button" className="meetingBtn" disabled={creatingAction} onClick={save}>Enregistrer ce repère</button>
         {onBackToRegister && <button type="button" className="meetingBtn" disabled={backDisabled} onClick={onBackToRegister}>Retour au registre</button>}
         {editor.dirty ? <small>Modifications non enregistrées</small> : null}
-        {marker.classification === "action_confirmee" && validated ? <button type="button" className="meetingBtn primary" onClick={onCreateAction}>Créer l’action FINCA</button> : null}
+        {marker.classification === "action_confirmee" && validated ? <button type="button" className="meetingBtn primary" disabled={editor.dirty || creatingAction || backDisabled} onClick={createAction}>{creatingAction ? "Création de l’action en cours…" : "Créer l’action FINCA"}</button> : null}
       </div>
+      {marker.classification === "action_confirmee" && validated && editor.dirty && <p className="meetingMuted">Enregistrez ce repère avant de créer l’action pour reprendre vos dernières corrections.</p>}
       {marker.type === "document_evoque" || marker.classification === "document_evoque" ? (
         <div className="docLinkRow">
           <select value={documentId} onChange={(event) => onDocumentChange(event.target.value)}><option value="">Rattacher un document BAÚL validé…</option>{documents.map((doc) => <option key={doc.id} value={doc.id}>{doc.name}{doc.category ? ` · ${doc.category}` : ""}</option>)}</select>
