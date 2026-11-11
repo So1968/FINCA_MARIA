@@ -8,6 +8,7 @@ on:
       - "server/**"
       - "scripts/ci-finca-runtime-smoke.sh"
       - "scripts/check-coolify-config.sh"
+      - "scripts/snapshot-meetings-installation.sh"
       - "docker-compose.finca.yml"
       - "docker-compose.coolify.yml"
       - "docker-compose.coolify.ci.yml"
@@ -21,6 +22,7 @@ on:
       - "server/**"
       - "scripts/ci-finca-runtime-smoke.sh"
       - "scripts/check-coolify-config.sh"
+      - "scripts/snapshot-meetings-installation.sh"
       - "docker-compose.finca.yml"
       - "docker-compose.coolify.yml"
       - "docker-compose.coolify.ci.yml"
@@ -55,6 +57,9 @@ jobs:
         working-directory: app
         run: npm ci --no-audit --no-fund
 
+      - name: Install backend dependencies for archive tests
+        run: npm ci --prefix server --ignore-scripts
+
       - name: Test FINCA MARIA navigation
         run: npm test
 
@@ -74,6 +79,9 @@ jobs:
       - name: Test meeting search and pagination
         run: npm run test:meeting-search:browser
 
+      - name: Test archives, review and participation in the browser
+        run: npm run test:meeting-archives:browser
+
       - name: Test meeting preparation and participant lists
         run: npm run test:meeting-preparation:browser
       - name: Test decision register return and source navigation
@@ -88,6 +96,10 @@ jobs:
 
       - name: Audit frontend production dependencies
         working-directory: app
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Audit backend production dependencies
+        working-directory: server
         run: npm audit --omit=dev --audit-level=high
 
       - name: Check backend syntax

@@ -4,10 +4,10 @@ import { searchDecisionRegister } from "../lib/decisionRegisterSearch.mjs";
 const LABELS = {
   decision_confirmee: "Décision confirmée", action_confirmee: "Action confirmée",
   a_valider: "À valider", a_verifier: "À vérifier", proposition: "Proposition",
-  declaration: "Déclaration", desaccord: "Désaccord", question_ouverte: "Question ouverte", document_evoque: "Document évoqué"
+  declaration: "Déclaration", desaccord: "Désaccord", question_ouverte: "Question ouverte", decision_reportee: "Décision reportée", document_evoque: "Document évoqué"
 };
 
-export default function MeetingDecisionRegister({ onOpen, onClose, filter, onFilterChange, search, onSearchChange, page, onPageChange }) {
+export default function MeetingDecisionRegister({ onOpen, onClose, filter, onFilterChange, search, onSearchChange, page, onPageChange, criteria, onCriteriaChange }) {
   const [decisions, setDecisions] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -18,7 +18,9 @@ export default function MeetingDecisionRegister({ onOpen, onClose, filter, onFil
     const controller = new AbortController();
     setLoading(true);
     setError("");
-    fetch("/api/meetings/decision-register", { signal: controller.signal })
+    const params = new URLSearchParams({q:search,year:criteria.year,person:criteria.person,status:criteria.status});
+    const timer=window.setTimeout(() => {
+    fetch(`/api/meetings/decision-register?${params}`, { signal: controller.signal })
       .then(async (response) => {
         const json = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(json.error || "Impossible de charger le registre");
@@ -27,8 +29,9 @@ export default function MeetingDecisionRegister({ onOpen, onClose, filter, onFil
       })
       .catch((err) => { if (!cancelled) setError(err.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; controller.abort(); };
-  }, [attempt]);
+    }, search || criteria.person ? 250 : 0);
+    return () => { cancelled = true; window.clearTimeout(timer); controller.abort(); };
+  }, [attempt,search,criteria.year,criteria.person,criteria.status]);
 
   const selected = searchDecisionRegister(decisions, search).filter((item) => filter === "all" || (filter === "confirmed" ? item.classification === "decision_confirmee" : item.classification !== "decision_confirmee"));
   const lastPage = Math.max(0, Math.ceil(selected.length / 25) - 1);
@@ -47,6 +50,11 @@ export default function MeetingDecisionRegister({ onOpen, onClose, filter, onFil
       </label>
       {search && <button className="meetingBtn" type="button" onClick={() => { onPageChange(0); onSearchChange(""); }}>Effacer la recherche du registre</button>}
       {!loading && !error && decisions.length >= 5000 && <p className="meetingMuted">Ce registre affiche les 5 000 repères les plus récents. La recherche porte sur ces éléments.</p>}
+      <div className="meetingGrid">
+        <label className="meetingField"><span>Année du registre</span><input inputMode="numeric" maxLength={4} value={criteria.year} placeholder="Toutes" onChange={(e)=>{onPageChange(0);onCriteriaChange({...criteria,year:e.target.value.replace(/[^0-9]/g,'')});}}/></label>
+        <label className="meetingField"><span>Responsable du registre</span><input type="search" value={criteria.person} maxLength={180} onChange={(e)=>{onPageChange(0);onCriteriaChange({...criteria,person:e.target.value});}}/></label>
+        <label className="meetingField"><span>Statut précis du registre</span><select value={criteria.status} onChange={(e)=>{onPageChange(0);onCriteriaChange({...criteria,status:e.target.value});}}><option value="">Tous les statuts</option>{Object.entries(LABELS).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+      </div>
       {loading && <p role="status">Chargement du registre…</p>}
       {!loading && !error && <p role="status">{selected.length} élément{selected.length > 1 ? "s" : ""} dans cette rubrique</p>}
       {error && <div role="alert"><p>{error}</p><button className="meetingBtn" type="button" onClick={() => setAttempt((current) => current + 1)}>Réessayer le registre</button></div>}

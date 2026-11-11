@@ -2,3 +2,5 @@
 .meetingListFilters{display:grid;gap:.6rem;margin:0 0 .8rem;min-width:0}.meetingListFilters p{margin:0;font-size:.8rem}.meetingListFilters input,.meetingListFilters select{max-width:100%;box-sizing:border-box}
 
 .markerCard.isHighlighted{outline:2px solid #efd99d;outline-offset:3px;scroll-margin-block:2rem}
+
+.meetingYear{width:100%;min-width:0}.meetingYear summary{cursor:pointer;padding:.65rem;color:#efd99d;font-weight:700}.meetingYear button{margin-bottom:.4rem}.archiveFields{border:0;padding:0;min-width:0;display:grid;gap:.8rem}.archiveOriginal{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;max-height:28rem;overflow:auto}.archiveTable{overflow-x:auto}.archiveTable table{width:100%;border-collapse:collapse}.archiveTable th,.archiveTable td{padding:.6rem;border-bottom:1px solid #645534;text-align:left}.archiveTable caption{text-align:left;margin:1rem 0}

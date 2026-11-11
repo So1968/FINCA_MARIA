@@ -107,6 +107,9 @@ grep -qi '^Set-Cookie: .*SameSite=Strict' "$TMP_DIR/login-headers" || fail "cook
 grep -qi '^Set-Cookie: .*Secure' "$TMP_DIR/login-headers" || fail "cookie de session sans Secure"
 pass "connexion administrateur et cookie sécurisé"
 
+FINCA_TEST_URL="$BASE_URL" FINCA_TEST_COOKIE="$COOKIE" node tests/integration/meeting-archives.mjs
+pass "archives : reprise, présences, statistiques et Word testés avec PostgreSQL"
+
 # Parcours Réunions et conseils de famille.
 
 # Historique : import en lot, conservation de la source, anti-doublon et registre
