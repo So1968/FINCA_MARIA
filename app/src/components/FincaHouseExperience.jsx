@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CortijoHousePortal } from "./CortijoHousePortal";
+import { HouseDepartureChecklist } from "./HouseDepartureChecklist.jsx";
+import { resolveHouseHash } from "../lib/houseNavigation.mjs";
 
 const PRESENCES_KEY = "finca_maria_maison_presences_v1";
 const READY_KEY = "finca_maria_chambres_preparation_v1";
@@ -77,10 +79,6 @@ function normalizeRoomPlan(value) {
   };
 }
 
-function scrollToId(id) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
 export function FincaHouseExperience() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("mode") === "vacanciers") return <CortijoHousePortal />;
@@ -94,8 +92,8 @@ export function FincaHouseExperience() {
   const [selectedBookingId, setSelectedBookingId] = useState("");
   const [message, setMessage] = useState("");
   const [mobileRoom, setMobileRoom] = useState(ROOMS[0].name);
-  const [showAll, setShowAll] = useState(false);
-  const [openSection, setOpenSection] = useState(null);
+  const [showAll, setShowAll] = useState(() => Boolean(resolveHouseHash(window.location.hash).details));
+  const [openSection, setOpenSection] = useState(() => resolveHouseHash(window.location.hash).journey);
   function toggleSection(id) {
     const next = openSection === id ? null : id;
     setOpenSection(next);
@@ -103,6 +101,28 @@ export function FincaHouseExperience() {
   }
   const [legacyVersion, setLegacyVersion] = useState(0);
   const nameRef = useRef(null);
+
+  useEffect(() => {
+    function openHashDestination() {
+      const target = resolveHouseHash(window.location.hash);
+      if (target.journey) setOpenSection(target.journey);
+      if (target.details) {
+        setShowAll(true);
+        // Le panneau historique est monté après l’ouverture : attendre son rendu.
+        window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+          const panel = document.getElementById(target.details);
+          if (panel instanceof HTMLDetailsElement) panel.open = true;
+          panel?.scrollIntoView({ block: "start" });
+        }));
+      }
+      if (target.journey) {
+        window.requestAnimationFrame(() => document.getElementById(target.journey)?.scrollIntoView({ block: "start" }));
+      }
+    }
+    openHashDestination();
+    window.addEventListener("hashchange", openHashDestination);
+    return () => window.removeEventListener("hashchange", openHashDestination);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(PRESENCES_KEY, JSON.stringify(bookings));
@@ -238,7 +258,12 @@ export function FincaHouseExperience() {
 
   function revealLegacy(id) {
     setShowAll(true);
-    window.setTimeout(() => scrollToId(id), 60);
+    // « Ouvrir le jardin / les consignes » doit aussi déplier la fiche ciblée.
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      const panel = document.getElementById(id);
+      if (panel instanceof HTMLDetailsElement) panel.open = true;
+      panel?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }));
   }
 
   function dayCell(room, day, mobile = false) {
@@ -392,7 +417,7 @@ export function FincaHouseExperience() {
 
       <section id="depart-maison" className="fincaStaySection" style={{display:openSection === "depart-maison" ? undefined : "none"}}>
         <div className="fincaStaySectionHead"><div><h2>Je prépare le départ</h2><p>Un dernier passage simple avant de fermer la maison.</p></div><button type="button" className="fincaStayButton" onClick={() => setOpenSection(null)}>✕ Fermer</button></div>
-        <div className="fincaDepartureList"><span>Linge utilisé</span><span>Ménage des espaces occupés</span><span>Déchets sortis</span><span>Eau, fenêtres et accès</span><span>Clés rangées</span><span>Incident ou réparation signalé</span></div>
+        <HouseDepartureChecklist />
         <button type="button" className="fincaStayButton" onClick={() => revealLegacy("menage")}>Ouvrir les consignes détaillées</button>
       </section>
 

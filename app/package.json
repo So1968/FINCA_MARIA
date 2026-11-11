@@ -6,7 +6,7 @@
     "dev": "vite --config vite.config.preview.js",
     "build": "vite build --config vite.config.preview.js",
     "check": "vite build --config vite.config.preview.js",
-    "test": "node scripts/test-finca-navigation.mjs && node scripts/test-finca-data-consistency.mjs && node scripts/test-baul-workflow.mjs && npm run build && npm run build:family",
+    "test": "node scripts/test-finca-navigation.mjs && node scripts/test-finca-house-deeplinks.mjs && node scripts/test-finca-house-departure.mjs && node scripts/test-finca-data-consistency.mjs && node scripts/test-baul-workflow.mjs && npm run build && npm run build:family",
     "preview": "vite preview --config vite.config.preview.js",
     "dev:family": "vite --config vite.config.family.mjs",
     "build:family": "vite build --config vite.config.family.mjs",
