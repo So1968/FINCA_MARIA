@@ -8,7 +8,15 @@ import { once } from "node:events";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const require = createRequire(path.join(root, "app/package.json"));
-const { chromium } = require("playwright");
+const { chromium, firefox } = require("playwright");
+const browserName = process.env.FINCA_TEST_BROWSER || "chromium";
+if (!["chromium", "firefox"].includes(browserName)) {
+  throw new Error("FINCA_TEST_BROWSER doit être chromium ou firefox.");
+}
+const browserType = browserName === "firefox" ? firefox : chromium;
+const browserExecutablePath = browserName === "firefox"
+  ? process.env.FINCA_FIREFOX_PATH
+  : process.env.FINCA_CHROMIUM_PATH;
 const baul = await mkdtemp(path.join(tmpdir(), "finca-archives-browser-"));
 const port = Number(process.env.FINCA_ARCHIVES_E2E_PORT || 5231);
 const origin = `http://127.0.0.1:${port}`;
@@ -62,11 +70,9 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   assert.ok(ready, `Serveur de test indisponible : ${logs}`);
-  browser = await chromium.launch({
+  browser = await browserType.launch({
     headless: true,
-    ...(process.env.FINCA_CHROMIUM_PATH
-      ? { executablePath: process.env.FINCA_CHROMIUM_PATH }
-      : {}),
+    ...(browserExecutablePath ? { executablePath: browserExecutablePath } : {}),
   });
   const context = await browser.newContext({ locale: "fr-FR" });
   const page = await context.newPage();
