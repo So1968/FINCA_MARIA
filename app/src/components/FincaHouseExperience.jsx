@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CortijoHousePortal } from "./CortijoHousePortal";
+import { HouseDepartureChecklist } from "./HouseDepartureChecklist.jsx";
 import { resolveHouseHash } from "../lib/houseNavigation.mjs";
 
 const PRESENCES_KEY = "finca_maria_maison_presences_v1";
@@ -416,7 +417,7 @@ export function FincaHouseExperience() {
 
       <section id="depart-maison" className="fincaStaySection" style={{display:openSection === "depart-maison" ? undefined : "none"}}>
         <div className="fincaStaySectionHead"><div><h2>Je prépare le départ</h2><p>Un dernier passage simple avant de fermer la maison.</p></div><button type="button" className="fincaStayButton" onClick={() => setOpenSection(null)}>✕ Fermer</button></div>
-        <div className="fincaDepartureList"><span>Linge utilisé</span><span>Ménage des espaces occupés</span><span>Déchets sortis</span><span>Eau, fenêtres et accès</span><span>Clés rangées</span><span>Incident ou réparation signalé</span></div>
+        <HouseDepartureChecklist />
         <button type="button" className="fincaStayButton" onClick={() => revealLegacy("menage")}>Ouvrir les consignes détaillées</button>
       </section>
 
