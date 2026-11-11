@@ -1025,11 +1025,11 @@ export default function FincaMeetingsHub() {
               if (preparationEditor.isDirty() && !window.confirm("Remplacer les champs de préparation par l’exemple fictif ? Les participants sont conservés.")) return;
               setPreparation((current) => ({
                 ...current,
-                title: "DÉMONSTRATION — Situation de Marie-Jo et FINCA MARIA",
+                title: "DÉMONSTRATION — Organisation d’une journée d’entretien",
                 meetingType: "Conseil de famille",
-                theme: "Protection de Marie-Jo, succession et exploitation agricole",
-                objective: "Comprendre comment organiser les démarches familiales et la continuité de la finca. Ceci est un exemple fictif.",
-                agendaText: "Situation de Marie-Jo\nContinuité de l’exploitation agricole\nGestion de la succession\nProchaines démarches à examiner",
+                theme: "Organisation des travaux d’entretien du jardin",
+                objective: "Planifier les tâches et répartir les responsabilités. Ceci est un exemple fictif.",
+                agendaText: "État des lieux du jardin\nTravaux prioritaires\nRépartition des tâches\nProchaines étapes",
                 previousRecap: "EXEMPLE FICTIF — aucune décision précédente à considérer comme réelle."
               }));
               setNotice("Exemple fictif inséré dans le formulaire. Rien n’a été enregistré comme réunion.");
