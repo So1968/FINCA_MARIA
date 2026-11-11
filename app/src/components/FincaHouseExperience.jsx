@@ -78,10 +78,6 @@ function normalizeRoomPlan(value) {
   };
 }
 
-function scrollToId(id) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
 export function FincaHouseExperience() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("mode") === "vacanciers") return <CortijoHousePortal />;
