@@ -131,6 +131,22 @@ variable `FINCA_ARCHIVES_E2E_PORT`), `npm run test:meeting-archives:api` (Docker
 PostgreSQL éphémère). Les parcours existants du registre restent couverts par
 `npm run test:decision-register:browser` (port 5229).
 
+
+
+Pour effectuer **le test des archives avec Firefox plutôt que Chromium** :
+
+```bash
+cd app && npx playwright install firefox && cd ..
+FINCA_TEST_BROWSER=firefox npm run test:meeting-archives:browser
+```
+
+Cette installation concerne la version Firefox pilotée par Playwright, indépendante
+du navigateur quotidien. Il est aussi possible d'essayer le Firefox système avec
+`FINCA_TEST_BROWSER=firefox FINCA_FIREFOX_PATH=/chemin/vers/firefox`, mais les
+versions distribuées avec le système ne sont pas garanties compatibles avec Playwright.
+Aucun Chromium n'est requis pour ce test en mode Firefox. Les autres tests navigateur
+restent configurés pour Chromium tant qu'ils n'ont pas été adaptés.
+
 Les deux vues Actions proposent les mêmes filtres : à faire, à compléter,
 en cours / attente, accomplies et toutes. Le filtre reste dans le lien lors
 d’une actualisation ou d’un aller-retour dans un dossier. Les modifications
