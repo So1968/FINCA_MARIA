@@ -344,8 +344,45 @@ export function FincaMariaDashboard() {
 
       <div id="finca-maria-sections" className="fincaMariaSections" style={{ display: area === "terre" ? "block" : "none" }}>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "gestion" ? "block" : "none" }}><summary><h3>Journal de l’exploitation</h3></summary><div className="cortijoWorkflow"><ol>{managementTimeline.map((item) => <li key={`${item.period}-${item.title}`}><strong>{item.period}</strong><span><b>{item.title}</b><br />{item.text}</span></li>)}</ol></div></details>
-        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "analyse" ? "block" : "none" }}><summary><h3>Analyse</h3></summary><div className="cortijoList">{analysisFindings.map((item) => <article className="cortijoCard" key={item.title}><div className="cortijoCardTop"><span className="cortijoPill">{item.status}</span></div><h4>{item.title}</h4><p>{item.text}</p></article>)}</div></details>
-        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "strategie" ? "block" : "none" }}><summary><h3>Stratégie</h3></summary><div className="cortijoWorkflow"><ol>{strategy.map((item, index) => <li key={item}><strong>{index + 1}</strong><span>{item}</span></li>)}</ol></div></details>
+        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "analyse" ? "block" : "none" }}>
+          <summary><h3>Analyse</h3></summary>
+          <div className="cortijoCard" style={{ marginBottom: ".8rem" }}>
+            <h4 style={{ marginTop: 0 }}>À retenir</h4>
+            <p>Les campagnes ne sont pas toutes comparables : il faut distinguer la part familiale, la récolte totale et les quantités réellement livrées. La transition autour de 2023/24 reste à documenter.</p>
+            <p style={{ marginBottom: 0 }}>Ouvrez chaque constat pour consulter le détail et son degré de certitude. Les hypothèses ne sont pas des conclusions.</p>
+          </div>
+          <div className="cortijoList">
+            {analysisFindings.map((item) => (
+              <details className="cortijoCard" key={item.title}>
+                <summary style={{ cursor: "pointer", display: "flex", alignItems: "flex-start", gap: ".7rem" }}>
+                  <span className="cortijoPill" title="Repère de provenance / niveau de certitude">{item.status}</span>
+                  <strong style={{ flex: 1 }}>{item.title}</strong>
+                  <span aria-hidden="true">▾</span>
+                </summary>
+                <p style={{ marginTop: ".75rem" }}>{item.text}</p>
+              </details>
+            ))}
+          </div>
+        </details>
+        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "strategie" ? "block" : "none" }}>
+          <summary><h3>Stratégie</h3></summary>
+          <div className="cortijoCard" style={{ marginBottom: ".8rem" }}>
+            <h4 style={{ marginTop: 0 }}>Priorité : rassembler les preuves avant de conclure</h4>
+            <p style={{ marginBottom: 0 }}>Clarifier les apports San Juan, comparer les campagnes sur des bases identiques et demander une expertise indépendante. Les démarches ci-dessous sont des pistes de travail, pas des décisions familiales validées.</p>
+          </div>
+          <div className="cortijoList">
+            {strategy.map((item, index) => (
+              <details className="cortijoCard" key={item}>
+                <summary style={{ cursor: "pointer", display: "flex", gap: ".7rem", alignItems: "baseline" }}>
+                  <span className="cortijoPill">{index + 1}</span>
+                  <strong style={{ flex: 1 }}>{item.split(" : ")[0]}{item.includes(" : ") ? "" : " — Point à approfondir"}</strong>
+                  <span aria-hidden="true">▾</span>
+                </summary>
+                <p style={{ marginTop: ".75rem" }}>{item}</p>
+              </details>
+            ))}
+          </div>
+        </details>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "actions" ? "block" : "none" }}><summary><h3>Dossiers & actions</h3></summary><div className="fincaActionBuckets" aria-label="Afficher les actions">{ACTION_FILTERS.map((filter) => <button type="button" key={filter.id} aria-pressed={earthActionFilter === filter.id} className={earthActionFilter === filter.id ? "isActive" : ""} onClick={() => selectEarthFilter(filter.id)}><span>{filter.label}</span><strong>{actionSummary[filter.id]}</strong></button>)}</div><ActionSaveStatus message={saveMessage} canRetry={canRetrySave} onRetry={retrySave} /><div className="fincaDossierStack">{interlocutors.map((item) => { const dossierActions = filteredActionsFor(item); return <details className="fincaDossierCard" key={item.id} open={Boolean(openDossiers[item.id])} onToggle={(event) => { const open = event.currentTarget.open; setOpenDossiers((current) => current[item.id] === open ? current : { ...current, [item.id]: open }); }}><summary className="fincaDossierSummary"><div><span className="cortijoPill">{item.label}</span><h4>{item.subtitle}</h4></div><span className="fincaDossierCount">{dossierActions.length} action{dossierActions.length > 1 ? "s" : ""}</span></summary><div className="fincaDossierBody"><fieldset disabled={readError} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}><div className="cortijoList fincaActionList">{dossierActions.length === 0 && <p>Aucune action dans cette rubrique pour ce dossier.</p>}{dossierActions.map((action) => <DossierAction key={action.id} action={action} dossierLabel={item.label} assignment={assignments[action.id] || {}} onUpdate={updateAssignment} />)}</div></fieldset><button type="button" className="fincaDossierOpen" onClick={() => openDossier(item.id, earthActionFilter)}>Ouvrir le dossier — {item.label}</button></div></details>; })}</div></details>
       </div>
 
