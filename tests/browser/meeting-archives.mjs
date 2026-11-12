@@ -90,7 +90,7 @@ try {
     participants: [],
     markers: [],
     validatedVersions: [],
-    reportDraft: { historicOriginal: original },
+    reportDraft: { historicOriginal: original, summary: "Synthèse de la fiche courante" },
     transcriptionState: "idle",
     participantCount: 0,
     presentCount: 0,
@@ -101,6 +101,7 @@ try {
     ...meeting,
     id: "archive-2021",
     title: "Archive précédente",
+    reportDraft: {historicOriginal: original, summary: "Synthèse de l’autre réunion"},
     date: "2021-12-01",
   };
   let releaseReview;
@@ -281,6 +282,16 @@ try {
     1,
     "Choisir et analyser un Word ne doit rien enregistrer",
   );
+  const previewSummary = page.getByRole("textbox", {name: /Synthèse de l’archive/});
+  assert.equal(await previewSummary.inputValue(), "Synthèse de la fiche courante");
+  await target.selectOption(old.id);
+  await page.getByRole("button", {name:"Analyser et afficher l’aperçu",exact:true}).click();
+  await previewSummary.waitFor();
+  assert.equal(await previewSummary.inputValue(), "Synthèse de l’autre réunion");
+  await target.selectOption("");
+  await page.getByRole("button", {name:"Analyser et afficher l’aperçu",exact:true}).click();
+  await previewSummary.waitFor();
+  assert.equal(await previewSummary.inputValue(), "", "Une nouvelle réunion ne doit pas hériter de la synthèse de la fiche précédente");
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(
     await page.evaluate(

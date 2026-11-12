@@ -90,10 +90,13 @@ export default function ArchiveReview({
         "/api/meetings/archive-preview",
         word ? { file } : { meetingId: meeting.id },
       );
+      const destination = word
+        ? (target === meeting?.id ? meeting : meetings.find((item) => item.id === target))
+        : meeting;
       setPreview({
         ...data,
-        summary: meeting?.reportDraft?.summary || data.summary || "",
-        subjects: meeting?.reportDraft?.subjects || data.subjects || "",
+        summary: destination?.reportDraft?.summary || data.summary || "",
+        subjects: destination?.reportDraft?.subjects || data.subjects || "",
       });
       setTitle(data.title);
       setDate(
