@@ -4,6 +4,7 @@ import { cortijoActionDesk } from "../data/cortijoActionDesk";
 import { ACTION_FILTERS, actionFilter, actionsUrl, matchesActionFilter, summarizeActions, normalizeActionStatus as normalizeStatus } from "../lib/actionAssignments.mjs";
 import { useActionAssignments } from "../lib/useActionAssignments";
 import { ActionSaveStatus } from "./ActionSaveStatus";
+import { FincaEarthMaintenancePanel } from "./FincaEarthMaintenancePanel";
 const NAV_STORAGE_KEY = "finca_maria_navigation_v2";
 const ACTION_PLAN_DATE = "18/08/2026";
 const BACKUP_VERSION = 2;
@@ -25,6 +26,7 @@ const CONTACT_WITH_OPTIONS = ["San Juan", "ASAJA", "Peláez", "Agriculteur / Vit
 
 const EARTH_TABS = [
   { id: "gestion", label: "Journal", icon: "leaf", title: "Journal de l’exploitation" },
+  { id: "entretien", label: "Entretien", icon: "check", title: "Calendrier d’entretien de la terre" },
   { id: "analyse", label: "Analyse", icon: "search", title: "Analyse de la terre" },
   { id: "strategie", label: "Stratégie", icon: "compass", title: "Stratégie" },
   { id: "actions", label: "Actions", icon: "folder", title: "Dossiers & actions" }
@@ -222,7 +224,7 @@ export function FincaMariaDashboard() {
   const { assignments, updateAssignment, saveMessage, readError, canRetrySave, retrySave } = useActionAssignments();
   const [earthActionFilter, setEarthActionFilter] = useState(() => actionFilter(new URLSearchParams(window.location.search).get("filter")));
   const [area, setArea] = useState(() => new URLSearchParams(window.location.search).get("area") === "terre" ? "terre" : "home");
-  const [earthTab, setEarthTab] = useState(() => new URLSearchParams(window.location.search).get("tab") === "actions" ? "actions" : initialNavigation.earthTab || "gestion");
+  const [earthTab, setEarthTab] = useState(() => ["actions", "entretien"].includes(new URLSearchParams(window.location.search).get("tab")) ? new URLSearchParams(window.location.search).get("tab") : initialNavigation.earthTab || "gestion");
   const [houseTab, setHouseTab] = useState(initialNavigation.houseTab || "gerer");
   const importRef = useRef(null);
   const [openDossiers, setOpenDossiers] = useState(() => {
@@ -344,6 +346,7 @@ export function FincaMariaDashboard() {
 
       <div id="finca-maria-sections" className="fincaMariaSections" style={{ display: area === "terre" ? "block" : "none" }}>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "gestion" ? "block" : "none" }}><summary><h3>Journal de l’exploitation</h3></summary><div className="cortijoWorkflow"><ol>{managementTimeline.map((item) => <li key={`${item.period}-${item.title}`}><strong>{item.period}</strong><span><b>{item.title}</b><br />{item.text}</span></li>)}</ol></div></details>
+        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "entretien" ? "block" : "none" }}><summary><h3>Calendrier d’entretien de la terre</h3></summary><FincaEarthMaintenancePanel /></details>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "analyse" ? "block" : "none" }}><summary><h3>Analyse</h3></summary><div className="cortijoList">{analysisFindings.map((item) => <article className="cortijoCard" key={item.title}><div className="cortijoCardTop"><span className="cortijoPill">{item.status}</span></div><h4>{item.title}</h4><p>{item.text}</p></article>)}</div></details>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "strategie" ? "block" : "none" }}><summary><h3>Stratégie</h3></summary><div className="cortijoWorkflow"><ol>{strategy.map((item, index) => <li key={item}><strong>{index + 1}</strong><span>{item}</span></li>)}</ol></div></details>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "actions" ? "block" : "none" }}><summary><h3>Dossiers & actions</h3></summary><div className="fincaActionBuckets" aria-label="Afficher les actions">{ACTION_FILTERS.map((filter) => <button type="button" key={filter.id} aria-pressed={earthActionFilter === filter.id} className={earthActionFilter === filter.id ? "isActive" : ""} onClick={() => selectEarthFilter(filter.id)}><span>{filter.label}</span><strong>{actionSummary[filter.id]}</strong></button>)}</div><ActionSaveStatus message={saveMessage} canRetry={canRetrySave} onRetry={retrySave} /><div className="fincaDossierStack">{interlocutors.map((item) => { const dossierActions = filteredActionsFor(item); return <details className="fincaDossierCard" key={item.id} open={Boolean(openDossiers[item.id])} onToggle={(event) => { const open = event.currentTarget.open; setOpenDossiers((current) => current[item.id] === open ? current : { ...current, [item.id]: open }); }}><summary className="fincaDossierSummary"><div><span className="cortijoPill">{item.label}</span><h4>{item.subtitle}</h4></div><span className="fincaDossierCount">{dossierActions.length} action{dossierActions.length > 1 ? "s" : ""}</span></summary><div className="fincaDossierBody"><fieldset disabled={readError} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}><div className="cortijoList fincaActionList">{dossierActions.length === 0 && <p>Aucune action dans cette rubrique pour ce dossier.</p>}{dossierActions.map((action) => <DossierAction key={action.id} action={action} dossierLabel={item.label} assignment={assignments[action.id] || {}} onUpdate={updateAssignment} />)}</div></fieldset><button type="button" className="fincaDossierOpen" onClick={() => openDossier(item.id, earthActionFilter)}>Ouvrir le dossier — {item.label}</button></div></details>; })}</div></details>
