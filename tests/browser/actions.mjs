@@ -5,6 +5,8 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { once } from "node:events";
+import { cortijoActionDesk } from "../../app/src/data/cortijoActionDesk.js";
+import { actionScriptsFr } from "../../app/src/data/cortijoActionScriptsFr.mjs";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const require = createRequire(path.join(root, "app/package.json"));
@@ -99,6 +101,43 @@ try {
   assert.equal(new URL(page.url()).searchParams.get("filter"), "progress");
   console.log("✓ Mise à jour entre deux onglets, préservation des autres champs et filtre En cours / attente après actualisation et aller-retour");
   await context.close();
+
+  const content = await browser.newContext({ locale: "fr-FR" });
+  const reviewed = await content.newPage();
+  reviewed.setDefaultTimeout(10000);
+  const legacyVisit = { status: "En cours", assignedTo: "Clemencia", resolution: "Demande en préparation", contactWith: "ASAJA Málaga" };
+  await content.addInitScript(({ key, legacyVisit }) => {
+    if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify({ "asaja-visite-technique": legacyVisit }));
+  }, { key, legacyVisit });
+  for (const [id, contact] of [["san-juan-historique", "san-juan"], ["pelaez-role-fiscal", "pelaez"], ["vitines-378-detail", "agriculteur"], ["asaja-visite-technique", "asaja"]]) {
+    const action = cortijoActionDesk.find((item) => item.id === id);
+    const translations = [];
+    for (const view of [`?area=terre&tab=actions&contact=${contact}&filter=all`, `?view=cortijo-memoire&contact=${contact}&filter=all`]) {
+      await reviewed.goto(`${origin}/${view}`);
+      const parent = reviewed.locator(".fincaDossierCard").filter({ hasText: action.title });
+      if (await parent.count() && await parent.getAttribute("open") === null) await parent.locator("summary").first().click();
+      const card = reviewed.locator(".fincaActionCard").filter({ hasText: action.title });
+      if (await card.getAttribute("open") === null) await card.getByRole("heading", { name: action.title, exact: true }).click();
+      const script = card.locator(".fincaReadScript");
+      if (await script.getAttribute("open") === null) await script.locator("summary").click();
+      const spanish = script.locator('p[lang="es"]');
+      await spanish.waitFor({ state: "visible" });
+      const french = spanish.locator("xpath=following-sibling::p");
+      await french.waitFor({ state: "visible" });
+      assert.equal(await spanish.textContent(), action.script, `Texte espagnol canonique : ${id}`);
+      assert.equal(await french.textContent(), actionScriptsFr[id], `Traduction française canonique : ${id}`);
+      translations.push(await french.textContent());
+      if (id === "asaja-visite-technique") {
+        assert.equal(await card.locator('select[aria-label="Suivi"]').inputValue(), legacyVisit.status);
+        assert.equal(await card.locator('select[aria-label="Attribution"]').inputValue(), legacyVisit.assignedTo);
+        assert.equal(await card.locator("textarea").inputValue(), legacyVisit.resolution);
+        assert.equal(await card.locator('select[aria-label="Avec"]').inputValue(), legacyVisit.contactWith);
+      }
+    }
+    assert.equal(translations[0], translations[1], `Même traduction entre Terre et Dossiers : ${id}`);
+  }
+  await content.close();
+  console.log("✓ Textes français/espagnols cohérents entre Terre et Dossiers ; suivi existant de la visite technique conservé");
 
   const recovery = await browser.newContext();
   const unsaved = await recovery.newPage();

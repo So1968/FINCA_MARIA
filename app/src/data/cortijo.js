@@ -9,7 +9,7 @@ export const cortijoQuestions = [
     status: "Partiellement documenté",
     linkedTo: "Historique San Juan 2014/15 → 2025/26",
     urgency: "Priorité 1",
-    proof: "Déjà acquis : [C] 2014/15 à 2017/18 reconstitués à partir de la part de 15 % ; [P] 2023/24 = 2 294 kg, 389,06 kg d'huile, rendement 16,96 % ; [P] 2024/25 = 6 551 kg, 1 357,37 kg d'huile, rendement 20,72 % ; [P] 2025/26 = les reçus San Juan n°1062 et n°1769 reprennent la même base de 18 210 kg d'olives, 3 860,64 kg d'huile et 21,20 % de rendement. Les repartos sont des paiements successifs et leurs kilos ne s'additionnent pas. [CR/P-ANT] 7 943 kg reste un premier ramassage partiel ; 6 541 kg reste en conflit de nature. [P/C] Le 24/08/2026, 6 437,10 € apparaissent dans l'extracto San Juan, puis sur un chèque et en crédit Unicaja. Reste à obtenir surtout 2019/20–2022/23, les vales détaillés 2025/26 et la liquidation finale.",
+    proof: "[C conditionnel] 2014/15 à 2017/18 : scénarios kilos familiaux ÷ 0,15, valables seulement s'ils représentent 15 % de tous les apports, total officiel non confirmé ; [P] 2023/24 = 2 294 kg, 389,06 kg d'huile, rendement 16,96 % ; [P] 2024/25 = 6 551 kg, 1 357,37 kg d'huile, rendement 20,72 % ; [P] 2025/26 = les reçus San Juan n°1062 et n°1769 reprennent la même base de 18 210 kg d'olives, 3 860,64 kg d'huile et 21,20 % de rendement. Les repartos sont des paiements successifs et leurs kilos ne s'additionnent pas. [CR] 7 943 kg est un ramassage rapporté par la famille, à rapprocher des vales ; 6 541 kg reste en conflit de nature. [P/C] Le 24/08/2026, 6 437,10 € apparaissent dans l'extracto San Juan, puis sur un chèque et en crédit Unicaja. Reste à obtenir surtout 2019/20–2022/23, les vales détaillés 2025/26 et la liquidation finale.",
     nextReminder: "Demande ciblée San Juan"
   },
   {
@@ -126,8 +126,8 @@ export const cortijoQuestions = [
     status: "Facture acquise — détail manquant",
     linkedTo: "Facture n°378 du 04/04/2026 — 5 445 € TTC",
     urgency: "Priorité 2",
-    proof: "[P] La facture n°378 du 04/04/2026 porte 4 950 € HT + 495 € TVA = 5 445 € TTC avec le libellé récolte d'olives + travail phytosanitaire. [CR] Le C.R. familial mentionne aussi un traitement foliaire, une cuve de 3 000 L, 8 h de débroussaillage et 2 cuves de liquide au sol. [SOURCE_SECONDAIRE_A_RETROUVER] Les dates 22/04, 29/04 et 01/05/2026 figurent dans d'anciennes synthèses ; elles sont toutes postérieures à la facture du 04/04 et ne peuvent donc pas être présentées comme son détail sans pièce de rattachement. Ce qui manque : ventilation de la facture elle-même, dates des prestations qu'elle couvre, produits/doses/parcelles, puis pièce séparée pour les interventions postérieures si elles sont confirmées.",
-    nextReminder: "Demander la ventilation de la facture puis identifier séparément les travaux postérieurs"
+    proof: "[P] Facture n°378 du 04/04/2026 : 4 950 € HT + 495 € TVA = 5 445 € TTC, libellé récolte d'olives + travail phytosanitaire. [CR] Le compte rendu mentionne un traitement foliaire, une cuve de 3 000 L, huit heures de débroussaillage et deux cuves de liquide au sol, sans dates individuelles confirmées. Les dates avancées dans d'anciennes synthèses ne prouvent aucune anomalie chronologique. À obtenir : dates réelles, produits, doses, parcelles et ventilation du prix.",
+    nextReminder: "Demander les dates réelles et la ventilation des travaux facturés"
   }
 ];
 
@@ -215,12 +215,12 @@ export const cortijoAnomalies = [
   },
   {
     id: "a-vitines-detail",
-    title: "Facture Vitines n°378 non ventilée et interventions postérieures à séparer",
+    title: "Facture Vitines n°378 : ventilation et dates réelles à obtenir",
     type: "Rapprochement facture / travaux",
     severity: "Moyenne",
     status: "À détailler",
     linkedTo: "Facture n°378 — 04/04/2026 — 5 445 € TTC",
-    question: "La facture n°378 est datée du 04/04/2026. Les dates secondaires 22/04, 29/04 et 01/05/2026 sont postérieures : même si elles sont confirmées, elles ne doivent pas être rattachées automatiquement à cette facture. Il faut obtenir la ventilation de la facture elle-même et identifier séparément la pièce couvrant les interventions ultérieures."
+    question: "La facture n°378 est datée du 04/04/2026. Le C.R. rapporte les travaux sans les dater individuellement. Les dates avancées dans d'anciennes synthèses ne sont pas confirmées : aucune antériorité de la facture sur les travaux n'est établie. Demander les dates réelles, les bons de travail et la ventilation de chaque poste."
   }
 ];
 

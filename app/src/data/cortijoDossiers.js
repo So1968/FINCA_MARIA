@@ -6,15 +6,15 @@ export const CORTIJO_DOSSIERS = [
     actionIds: ["san-juan-historique"],
     facts: [
       { tag: "RÉCENT", text: "2023/24 : 2 294 kg documentés. 2024/25 : 6 551 kg documentés." },
-      { tag: "2025/26", text: "San Juan documente 18 210 kg d'olives, 3 860,64 kg d'huile et un rendement de 21,20 % comme base commune des 1er et 2e repartos. Les 7 943 kg restent un premier ramassage partiel documenté ; les 6 541 kg restent en conflit de nature. Les deux repartos ne doivent jamais être additionnés comme deux volumes physiques distincts." },
+      { tag: "2025/26", text: "San Juan documente 18 210 kg d'olives, 3 860,64 kg d'huile et un rendement de 21,20 % comme base commune des 1er et 2e repartos. Les 7 943 kg sont un repère de ramassage rapporté par la famille, à rapprocher des vales ; les 6 541 kg restent en conflit de nature. Les deux repartos ne doivent jamais être additionnés comme deux volumes physiques distincts." },
       { tag: "RÈGLEMENT 2026", text: "L'extracto San Juan du 24/08/2026 fait apparaître 6 437,10 € ; un chèque du même montant puis le crédit Unicaja du 24/08/2026 forment une chaîne de règlement cohérente. Ce montant ne doit pas être confondu avec le cumul net des deux repartos, calculé à 7 203,65 €." },
       { tag: "2019 → 2022", text: "Nous avons bien des états de factures San Juan pour 2019, 2020, 2021 et 2022. Ils prouvent des écritures coopératives, mais pas les kilos de production de chaque campagne." },
-      { tag: "CALCUL", text: "Pour 2014/15 à 2017/18, les productions totales de la finca ont été reconstituées à partir de la part contractuelle de 15 %." },
+      { tag: "CALCUL", text: "Pour 2014/15 à 2017/18, les scénarios kilos familiaux ÷ 0,15 ne valent que si ces kilos représentent 15 % de tous les apports. Ce ne sont pas des totaux officiels ; la base 2015/16 reste notamment discutée." },
       { tag: "ARCHIVES", text: "Les pièces San Juan conservées remontent jusqu'à la campagne 2007/08." }
     ],
     history: [
       { date: "24/08/2026", title: "Chaîne de règlement San Juan documentée", text: "L'extracto de cuenta San Juan fait apparaître 6 437,10 €. Une remesa de cheque du même montant puis le crédit correspondant sur l'extrait Unicaja du 24/08/2026 documentent le passage du solde coopérative au compte bancaire. Cette chaîne prouve le règlement de ce montant mais ne vaut pas, à elle seule, liquidation finale complète de la campagne." },
-      { date: "2025/26", title: "Base physique San Juan des repartos documentée", text: "Les reçus n°1062 du 20/05/2026 et n°1769 du 15/07/2026 reprennent exactement les mêmes 18 210 kg d'olives, 3 860,64 kg d'huile et 21,20 % de rendement. Il s'agit de deux paiements successifs sur une même base physique : les kilos ne s'additionnent pas. Les 7 943 kg restent un premier ramassage partiel inclus dans la campagne ; les 6 541 kg restent en conflit de nature jusqu'à réouverture de l'original." },
+      { date: "2025/26", title: "Base physique San Juan des repartos documentée", text: "Les reçus n°1062 du 20/05/2026 et n°1769 du 15/07/2026 reprennent exactement les mêmes 18 210 kg d'olives, 3 860,64 kg d'huile et 21,20 % de rendement. Il s'agit de deux paiements successifs sur une même base physique : les kilos ne s'additionnent pas. Les 7 943 kg rapportés par la famille restent à rapprocher des vales ; les 6 541 kg restent en conflit de nature jusqu'à réouverture de l'original." },
       { date: "2024/25", title: "Campagne documentée", text: "6 551 kg d'olives, 1 357,37 kg d'huile et rendement 20,72 %." },
       { date: "2023/24", title: "Campagne documentée", text: "Trois vales totalisent 217 + 1 562 + 515 = 2 294 kg ; 389,06 kg d'huile ; rendement 16,96 %." },
       { date: "2022", title: "État de factures San Juan retrouvé", text: "Un listado de facturas recibidas 2022 est présent au nom de María Josefa. C'est une pièce primaire de coopérative, mais elle ne donne pas à elle seule le total d'olives de la campagne." },
@@ -23,10 +23,10 @@ export const CORTIJO_DOSSIERS = [
       { date: "2019", title: "État de factures San Juan retrouvé", text: "Un listado de facturas recibidas 2019 est présent sous le compte de María. Cette pièce coopérative est conservée, mais ne vaut pas total annuel de production." },
       { date: "2018/19", title: "Repère à expliquer", text: "Une pièce ancienne fait apparaître 1 590 kg ; sa nature exacte reste à confirmer." },
       { date: "2017/18", title: "Pièces San Juan retrouvées", text: "Un groupe documentaire indique 4 008 kg et 851,60 kg d'huile. La production totale de finca est traitée séparément par reconstitution de la part de 15 %." },
-      { date: "2017/18", title: "Production totale reconstituée", text: "Environ 26,72 t à partir de la part contractuelle de 15 %." },
-      { date: "2016/17", title: "Production totale reconstituée", text: "Environ 11,48 t à partir de la part contractuelle de 15 %." },
-      { date: "2015/16", title: "Production totale reconstituée", text: "Environ 25,69 t à partir de la part contractuelle de 15 %." },
-      { date: "2014/15", title: "Production totale reconstituée", text: "Environ 10,37 t à partir de la part contractuelle de 15 %." },
+      { date: "2017/18", title: "Scénario de production à confirmer", text: "Environ 26,72 t sous l'hypothèse que les kilos familiaux représentent exactement 15 % de tous les apports. Total officiel non confirmé." },
+      { date: "2016/17", title: "Scénario de production à confirmer", text: "Environ 11,48 t sous l'hypothèse que les kilos familiaux représentent exactement 15 % de tous les apports. Total officiel non confirmé." },
+      { date: "2015/16", title: "Scénario de production à confirmer", text: "Environ 25,69 t sous l'hypothèse que les kilos familiaux représentent exactement 15 % de tous les apports. Total officiel non confirmé." },
+      { date: "2014/15", title: "Scénario de production à confirmer", text: "Environ 10,37 t sous l'hypothèse que les kilos familiaux représentent exactement 15 % de tous les apports. Total officiel non confirmé." },
       { date: "2013/14", title: "Groupes documentaires", text: "Une ligne à 1 163 kg et un groupe à 3 463 kg / 696,14 kg d'huile sont conservés séparément en raison d'une incohérence de lecture sur une pièce." },
       { date: "2012/13", title: "Groupes documentaires", text: "Un groupe à 2 174 kg / 390,25 kg d'huile et un autre à 489 kg sont conservés séparément." },
       { date: "2011/12", title: "Campagne San Juan", text: "3 635 kg d'olives, 824,64 kg d'huile, rendement 22,69 %." },
@@ -49,9 +49,10 @@ export const CORTIJO_DOSSIERS = [
   {
     id: "asaja",
     label: "ASAJA",
-    subtitle: "PAC / droits / SIGPAC / surfaces / technique",
+    subtitle: "PAC / droits / surfaces · visite technique à confirmer",
     actionIds: ["pac-2020-droits", "asaja-pac-2026-copie", "asaja-visite-technique"],
     facts: [
+      { tag: "SERVICE À CONFIRMER", text: "Le dossier documente le rôle PAC d'ASAJA. Il ne confirme pas un service de visite agronomique, son tarif ni l'indépendance du technicien ; demander d'abord à San Juan quel conseil technique est disponible." },
       { tag: "2026", text: "La déclaration PAC du 12/03/2026 est référencée. Après recherche ciblée, les pages détaillées 2026 ne sont pas retrouvées dans les pièces indexées." },
       { tag: "2024", text: "Le dossier PAC détaillé identifié est celui enregistré le 05/04/2024 ; il ne doit pas être confondu avec 2026." },
       { tag: "2022", text: "Une réponse administrative retrouvée indique un refus PAC lié à la condition d'agriculteur actif." },
@@ -111,7 +112,7 @@ export const CORTIJO_DOSSIERS = [
     actionIds: ["vitines-378-detail", "vitines-cereales-trace"],
     facts: [
       { tag: "FACTURE 378", text: "La facture Agrícola Vitines n°378 du 04/04/2026 est de 4 950 € HT + 495 € de TVA = 5 445 € TTC, avec un libellé global récolte d'olives + travail phytosanitaire. Elle ne ventile pas les heures, produits, doses, parcelles ni la part exacte de récolte." },
-      { tag: "DATES À SÉPARER", text: "Les dates secondaires 22/04, 29/04 et 01/05/2026 sont postérieures à la facture du 04/04/2026. Même si elles correspondent bien à un traitement foliaire, 8 h de débroussaillage et 2 cuves de liquide au sol, elles ne peuvent pas être présentées comme le détail de la facture n°378 sans pièce de rattachement." },
+      { tag: "DATES NON CONFIRMÉES", text: "Le C.R. familial liste les travaux sans dates individuelles établies. Les 22/04, 29/04 et 01/05/2026 proviennent d'anciennes synthèses non confirmées ; aucune anomalie chronologique avec la facture n°378 n'est donc démontrée." },
       { tag: "2024", text: "La facture Vitines n°336 est de 1 518 € TTC. Une note manuscrite distincte totalise environ 2 565 € et détaille fumier, taille, bois, broyage, liquide sol, débroussaillage et liquide arbre. Ne pas additionner 1 518 € + 2 565 € tant que leur relation n'est pas démontrée." },
       { tag: "CÉRÉALES 2024", text: "Deux factures du 03/01/2024 portent sur 600 kg d'avoine pour 165 € et 500 kg de triticale pour 148,50 €. Elles prouvent des achats / fournitures ; elles ne prouvent ni la récolte ultérieure ni la vente ni l'encaissement." },
       { tag: "CÉRÉALES POST-2020", text: "Après la fin du bail écrit le 11/03/2020, aucun contrat signé organisant clairement l'exploitation des terres arables n'est actuellement retrouvé. Les C.R. 2026 demandent encore une facture de ramassage d'avoine ou autres céréales à Vitines." },
@@ -120,7 +121,7 @@ export const CORTIJO_DOSSIERS = [
     ],
     history: [
       { date: "15/05 et 19/06/2026", title: "Ramassage céréales encore à justifier", text: "Les C.R. familiaux conservent explicitement l'action « facture ramassage avoine ou autres céréales » à demander à Vitines. Cela documente un besoin de traçabilité, pas la quantité récoltée ni sa destination. Un montant de 1 200 € réglé à Vitines « l'année dernière » est aussi rapporté dans un C.R., mais son objet n'est pas assez précis pour être affecté aux céréales." },
-      { date: "2026 — dates secondaires", title: "Interventions à identifier séparément", text: "D'anciennes synthèses indiquent 22/04/2026 : traitement foliaire + cuve 3 000 L ; 29/04/2026 : 8 h de débroussaillage ; 01/05/2026 : 2 cuves de liquide au sol. Ces dates restent à retrouver dans leur source et, surtout, elles sont postérieures à la facture n°378 du 04/04/2026." },
+      { date: "2026 — dates à vérifier", title: "Dates d'exécution non établies", text: "Le C.R. rapporte un traitement foliaire, une cuve de 3 000 L, huit heures de débroussaillage et deux cuves de liquide au sol. Les dates avancées dans d'anciennes synthèses restent non confirmées ; obtenir les bons de travail et le rattachement à la facture." },
       { date: "04/04/2026", title: "Facture Agrícola Vitines n°378", text: "Facture de 4 950 € HT + 495 € TVA = 5 445 € TTC, libellée récolte d'olives + travail phytosanitaire. Les paiements de 2 500 € le 05/05/2026 et 2 945 € le 10/05/2026 sont rapportés dans le C.R. familial approuvé ; la preuve bancaire reste à rapprocher." },
       { date: "25/07/2024 ?", title: "Note manuscrite Vitines détaillée", text: "Lecture actuelle : 3 remorques de fumier = 360 € ; 9 journées / peones de taille = 720 € ; 6 journées / peones de bois = 360 € ; 4 h de broyage du bois = 240 € ; 1 cuve liquide sol = 220 € ; 15 h de débroussaillage = 525 € ; 2 cubos liquide arbre = 140 € ; total manuscrit ≈ 2 565 €. Sa relation avec la facture n°336 n'est pas prouvée." },
       { date: "03/05/2024", title: "Facture Agrícola Vitines n°336", text: "Facture officielle de 1 380 € HT + 138 € TVA = 1 518 € TTC pour des « travaux réalisés en finca ». Le libellé est trop général pour identifier les travaux précis sans rapprochement documentaire." },
@@ -134,7 +135,7 @@ export const CORTIJO_DOSSIERS = [
     documents: [
       "Facture Agrícola Vitines n°378 du 04/04/2026 — 5 445 € TTC, récolte + phytosanitaire non ventilés",
       "C.R. familial approuvé 2026 — postes de travaux et paiements rapportés",
-      "Source d'origine à retrouver pour les dates 22/04, 29/04 et 01/05/2026 — dates postérieures à la facture n°378",
+      "Bons de travail à obtenir : dates d'exécution non confirmées dans le C.R. familial",
       "Facture Agrícola Vitines n°336 du 03/05/2024 — 1 518 € TTC",
       "Note manuscrite Vitines du 25/07/2024 ? — détail ≈ 2 565 €, possible détail / complément / doublon à contrôler",
       "Factures López Gallego José du 03/01/2024 — 600 kg avoine + 500 kg triticale, total 313,50 €",
