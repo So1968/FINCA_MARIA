@@ -105,6 +105,8 @@ Pour chacune des archives des 28 janvier, 11, 18 et 25 mars et 1er avril 2022 :
 L’opération est additive : retirer une ligne de l’aperçu ne supprime pas une ligne
 existante. Modifier le texte d’un repère constitue un nouveau repère : corriger les
 repères existants depuis leur fiche plutôt que réextraire un texte modifié.
+Lorsqu’un nom correspond à une seule ligne existante, son rôle est prérempli
+dans l’aperçu pour éviter un effacement involontaire. Il reste modifiable.
 Les versions de compte rendu déjà validées restent des copies figées.
 
 Le compte rendu **n° 2 de 2022** reste un traitement distinct. Son numéro déclenche

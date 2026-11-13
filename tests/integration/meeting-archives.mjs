@@ -44,10 +44,14 @@ const imported = await api("/import-historic", {
 const id = imported.results[0].id;
 const before = (await api(`/${id}`)).meeting;
 assert.equal(before.participants.length, 0);
+await api(`/${id}/participants`, {
+  name: "Test A", presence: "present", role: "Secrétaire fictif",
+}, 201);
 const validated = await api(`/${id}/validate`, {});
 const frozen = validated.meeting.validatedVersions;
 const preview = await api("/archive-preview", { meetingId: id });
 assert.equal(preview.originalText, original);
+assert.equal(preview.participants.find((p) => p.name === "Test A").role, "Secrétaire fictif");
 const review = {
   meetingId: id,
   sourceHash: preview.sourceHash,
@@ -66,6 +70,7 @@ assert.equal(first.meeting.participants.length, 3);
 assert.equal(second.meeting.participants.length, 3);
 const after = (await api(`/${id}`)).meeting;
 assert.equal(after.markers.length, 3);
+assert.equal(after.participants.find((p) => p.name === "Test A").role, "Secrétaire fictif");
 assert.equal(after.reportDraft.historicOriginal, original);
 assert.deepEqual(after.validatedVersions, frozen);
 assert.ok(
@@ -137,11 +142,15 @@ assert.deepEqual(
   Buffer.from(file.base64, "base64"),
 );
 await api("/structure-review", wordBody, 409);
-const attach = { ...wordBody, meetingId: id };
+await api(`/${id}/participants`, {name:"Test Word",presence:"present",role:"Rapporteur fictif"}, 201);
+const targetWordPreview = await api("/archive-preview", {file,meetingId:id});
+assert.equal(targetWordPreview.participants[0].role,"Rapporteur fictif");
+const attach = { ...wordBody, meetingId: id, participants:targetWordPreview.participants };
 await api("/structure-review", attach);
 await api("/structure-review", attach);
 const attached = (await api(`/${id}`)).meeting;
 assert.equal(attached.sources.length, 1);
+assert.equal(attached.participants.find((p)=>p.name==="Test Word").role,"Rapporteur fictif");
 assert.equal(attached.reportDraft.historicOriginal, original);
 const bad = await api("/archive-preview", {
   originalText:
@@ -160,6 +169,17 @@ await api(
   },
   400,
 );
+const changedRole = structuredClone(review);
+changedRole.participants.find((p) => p.name === "Test A").role = "Animateur fictif";
+const roleUpdated = await api("/structure-review", changedRole);
+assert.equal(roleUpdated.meeting.participants.find((p) => p.name === "Test A").role, "Animateur fictif");
+changedRole.participants.find((p) => p.name === "Test A").role = "";
+const roleCleared = await api("/structure-review", changedRole);
+assert.equal(roleCleared.meeting.participants.find((p) => p.name === "Test A").role, "");
+await api(`/${id}/participants`, {name:"test a",presence:"unknown",role:"Autre rôle fictif"}, 201);
+const ambiguous = await api("/archive-preview", {meetingId:id});
+assert.equal(ambiguous.participants.find((p) => p.name === "Test A").role, "");
+await api("/structure-review", {...review,participants:ambiguous.participants,summary:"Contrôle fictif des homonymes"}, 409);
 const unauth = await fetch(`${base}/api/meetings/participation`);
 assert.equal(unauth.status, 401);
 console.log(

@@ -110,6 +110,7 @@ try {
   });
   let saved = 0;
   let analyzed = 0;
+  let lastPreviewBody;
   let lastBody;
   const { previewArchive, participationSummary } = await import(
     "../../server/src/archive-domain.js"
@@ -131,6 +132,7 @@ try {
       return json({ meeting: old });
     if (pathname === "/api/meetings/archive-preview") {
       analyzed++;
+      lastPreviewBody = req.postDataJSON();
       return json({ ...previewArchive(original), originalText: original });
     }
     if (pathname === "/api/meetings/structure-review") {
@@ -284,14 +286,17 @@ try {
   );
   const previewSummary = page.getByRole("textbox", {name: /Synthèse de l’archive/});
   assert.equal(await previewSummary.inputValue(), "Synthèse de la fiche courante");
+  assert.equal(lastPreviewBody.meetingId, meeting.id);
   await target.selectOption(old.id);
   await page.getByRole("button", {name:"Analyser et afficher l’aperçu",exact:true}).click();
   await previewSummary.waitFor();
   assert.equal(await previewSummary.inputValue(), "Synthèse de l’autre réunion");
+  assert.equal(lastPreviewBody.meetingId, old.id);
   await target.selectOption("");
   await page.getByRole("button", {name:"Analyser et afficher l’aperçu",exact:true}).click();
   await previewSummary.waitFor();
   assert.equal(await previewSummary.inputValue(), "", "Une nouvelle réunion ne doit pas hériter de la synthèse de la fiche précédente");
+  assert.equal(lastPreviewBody.meetingId, undefined);
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(
     await page.evaluate(

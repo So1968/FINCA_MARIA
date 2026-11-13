@@ -88,7 +88,7 @@ export default function ArchiveReview({
     try {
       const data = await request(
         "/api/meetings/archive-preview",
-        word ? { file } : { meetingId: meeting.id },
+        word ? { file, meetingId: target || undefined } : { meetingId: meeting.id },
       );
       const destination = word
         ? (target === meeting?.id ? meeting : meetings.find((item) => item.id === target))

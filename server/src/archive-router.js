@@ -109,8 +109,19 @@ export function createArchiveRouter({
     const body = await readBody(req, 16 * 1024 * 1024);
     const input = await source(body);
     const preview = previewArchive(input.text);
-    if (url.pathname.endsWith("/archive-preview"))
+    if (url.pathname.endsWith("/archive-preview")) {
+      if (body.meetingId) {
+        const existing = await pool.query(
+          "SELECT p.name,p.role FROM meeting_participants p JOIN meetings m ON m.id=p.meeting_id WHERE p.meeting_id=$1 AND m.deleted_at IS NULL",
+          [body.meetingId],
+        );
+        for (const participant of preview.participants) {
+          const matches = existing.rows.filter((row) => nameKey(row.name) === nameKey(participant.name));
+          if (matches.length === 1) participant.role = matches[0].role;
+        }
+      }
       return (json(res, 200, { ...preview, originalText: input.text }), true);
+    }
     if (body.reviewed !== true || body.sourceHash !== preview.sourceHash)
       throw fail(
         "Relisez et validez explicitement cet aperçu avant enregistrement.",
