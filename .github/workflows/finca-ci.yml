@@ -8,6 +8,7 @@ on:
       - "server/**"
       - "scripts/ci-finca-runtime-smoke.sh"
       - "scripts/check-coolify-config.sh"
+      - "scripts/recover-finca-account.py"
       - "docker-compose.finca.yml"
       - "docker-compose.coolify.yml"
       - "docker-compose.coolify.ci.yml"
@@ -21,6 +22,7 @@ on:
       - "server/**"
       - "scripts/ci-finca-runtime-smoke.sh"
       - "scripts/check-coolify-config.sh"
+      - "scripts/recover-finca-account.py"
       - "docker-compose.finca.yml"
       - "docker-compose.coolify.yml"
       - "docker-compose.coolify.ci.yml"
@@ -54,6 +56,9 @@ jobs:
       - name: Install frontend dependencies from lockfile
         working-directory: app
         run: npm ci --no-audit --no-fund
+
+      - name: Install backend dependencies for recovery tests
+        run: npm ci --prefix server --ignore-scripts
 
       - name: Test FINCA MARIA navigation
         run: npm test
@@ -92,6 +97,9 @@ jobs:
 
       - name: Check backend syntax
         run: node --check server/src/server.js
+
+      - name: Test local account recovery with isolated PostgreSQL
+        run: npm run test:account-recovery:api
 
       - name: Build frontend container
         run: docker build --pull -t finca-maria-web:ci ./app
