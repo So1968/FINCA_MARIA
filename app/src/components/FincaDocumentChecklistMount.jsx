@@ -5,7 +5,7 @@ const rows = [
   {
     period: "2026",
     level: "PRIORITAIRE",
-    have: "Déclaration PAC 2026 référencée au 12/03/2026 ; facture Vitines n°378 de 5 445 € TTC ; interventions déclarées des 22/04, 29/04 et 01/05/2026.",
+    have: "Déclaration PAC 2026 référencée au 12/03/2026 ; facture Vitines n°378 de 5 445 € TTC ; postes de travaux rapportés par le C.R., sans dates individuelles confirmées.",
     missing: "Dossier PAC 2026 complet ; détail poste par poste de Vitines n°378, produits, matières actives, doses, parcelles et bons de travail ; relevé/achats San Juan 2026 si existants. Le Modelo 100 exercice 2026 sera établi en 2027.",
     ask: ["ASAJA", "Agriculteur / Vitines", "San Juan"],
     contacts: ["asaja", "agriculteur", "san-juan"]
@@ -13,8 +13,8 @@ const rows = [
   {
     period: "2025/26",
     level: "PRIORITAIRE",
-    have: "Ticket San Juan n°6139 du 23/03/2026 : 7 943 kg, parcelle 27 recinto 3. Environ 6 541 kg ont ensuite été signalés par la famille comme restant au sol ; ils ne sont pas comptés comme livraison faute de ticket.",
-    missing: "Tous les autres tickets/vales éventuels, relevé officiel complet, total annuel, rendement, kilos d’huile, repartos et liquidation finale ; Modelo 100 exercice 2025.",
+    have: "Reçus n°1062 du 20/05/2026 et n°1769 du 15/07/2026 : même base de 18 210 kg d’olives, 3 860,64 kg d’huile, rendement 21,20 %. Les kilos ne s’additionnent pas. Repères familiaux 7 943 kg et 6 541 kg à rapprocher des originaux. Modelo 100 exercice 2025 référencé.",
+    missing: "Vales détaillés et référence 6139 ; nature des 6 541 kg ; confirmation de complétude des 18 210 kg ; éventuel troisième reparto ou liquidation finale.",
     ask: ["San Juan", "Peláez"],
     contacts: ["san-juan", "pelaez"]
   },
@@ -22,7 +22,7 @@ const rows = [
     period: "2024/25",
     level: "À verrouiller",
     have: "6 551 kg, 1 357,37 kg d’huile, rendement 20,72 % ; valeur huile HT ≈ 4 283,31 € ; achats de produits coop visibles en 2025 : 980,63 € ; PAC détaillée 2024.",
-    missing: "Liquidation complète et total réellement encaissé ; détail des prestations Vitines de la campagne ; Modelo 100 exercice 2024.",
+    missing: "Confirmation de complétude des apports et rapprochement des liquidations avec les encaissements ; détail des prestations Vitines de la campagne ; Modelo 100 exercice 2024.",
     ask: ["San Juan", "Agriculteur / Vitines", "Peláez"],
     contacts: ["san-juan", "agriculteur", "pelaez"]
   },
@@ -37,7 +37,7 @@ const rows = [
   {
     period: "2022/23",
     level: "À consolider",
-    have: "Récapitulatif San Juan : 684 kg correspondant à la part de 15 % dans l’ancien fonctionnement ; production totale reconstituée [C] ≈ 4 560 kg. Extrait de compte : 421,61 € de crédits documentés à ce stade, hors liquidation finale non retrouvée. Modelo 100 exercice 2022 présent.",
+    have: "Récapitulatif San Juan : 684 kg au compte familial, dont la nature et la complétude restent à confirmer ; scénario conditionnel à 15 % [C] ≈ 4 560 kg. Extrait de compte : 421,61 € de crédits documentés à ce stade, hors liquidation finale non retrouvée. Modelo 100 exercice 2022 présent.",
     missing: "Vales détaillés et liquidation finale complète pour fermer le calcul financier de la campagne.",
     ask: ["San Juan"],
     contacts: ["san-juan"]
@@ -45,7 +45,7 @@ const rows = [
   {
     period: "2021/22",
     level: "À consolider",
-    have: "Récapitulatif San Juan : 3 861 kg = part 15 % ; production totale reconstituée [C] ≈ 25 740 kg. Extraits de compte : 2 799,11 € de crédits bruts et 55,99 € de retenues, soit ≈ 2 743,12 € net.",
+    have: "Récapitulatif San Juan : 3 861 kg au compte familial ; scénario conditionnel à 15 % [C] ≈ 25 740 kg. Extraits de compte : 2 799,11 € de crédits bruts et 55,99 € de retenues, soit ≈ 2 743,12 € net.",
     missing: "Vales détaillés ; Modelo 100 exercice 2021 et justificatifs agricoles sources.",
     ask: ["San Juan", "Peláez"],
     contacts: ["san-juan", "pelaez"]
@@ -53,7 +53,7 @@ const rows = [
   {
     period: "2020/21",
     level: "À consolider",
-    have: "Récapitulatif San Juan : 1 225 kg = part 15 % ; production totale reconstituée [C] ≈ 8 166,67 kg. Extraits de compte : 653,11 € de crédits bruts et 13,07 € de retenues, soit ≈ 640,04 € net. Le bail écrit s’est terminé le 11/03/2020 mais le fonctionnement à 15 % a continué de fait selon la famille.",
+    have: "Récapitulatif San Juan : 1 225 kg au compte familial ; scénario conditionnel à 15 % [C] ≈ 8 166,67 kg. Extraits de compte : 653,11 € de crédits bruts et 13,07 € de retenues, soit ≈ 640,04 € net. Le bail écrit s’est terminé le 11/03/2020 mais le fonctionnement à 15 % a continué de fait selon la famille.",
     missing: "Vales détaillés ; Modelo 100 exercice 2020 et justificatifs agricoles sources ; pièces datées de la période de renégociation.",
     ask: ["San Juan", "Peláez", "Archives familiales"],
     contacts: ["san-juan", "pelaez"]
@@ -61,7 +61,7 @@ const rows = [
   {
     period: "2019/20",
     level: "À consolider",
-    have: "Récapitulatif San Juan : 5 360 kg = part 15 % ; production totale reconstituée [C] ≈ 35 733,33 kg. Crédits de campagne vérifiés : 1 952,74 € brut, 39,05 € de retenues, ≈ 1 913,69 € net. Une ligne résiduelle de 21,55 € reste à attribuer. Modelo 100 exercice 2019 présent.",
+    have: "Récapitulatif San Juan : 5 360 kg au compte familial ; scénario conditionnel à 15 % [C] ≈ 35 733,33 kg. Crédits de campagne vérifiés : 1 952,74 € brut, 39,05 € de retenues, ≈ 1 913,69 € net. Une ligne résiduelle de 21,55 € reste à attribuer. Modelo 100 exercice 2019 présent.",
     missing: "Vales détaillés et attribution de la ligne résiduelle de 21,55 €.",
     ask: ["San Juan"],
     contacts: ["san-juan"]
@@ -69,7 +69,7 @@ const rows = [
   {
     period: "2018/19",
     level: "À consolider",
-    have: "Récapitulatif San Juan : 1 590 kg = part 15 % ; production totale reconstituée [C] ≈ 10 600 kg. Extraits de compte : 602,97 € brut, 12,06 € de retenues, ≈ 590,91 € net. Modelo 100 exercice 2018 présent.",
+    have: "Récapitulatif San Juan : 1 590 kg au compte familial ; scénario conditionnel à 15 % [C] ≈ 10 600 kg. Extraits de compte : 602,97 € brut, 12,06 € de retenues, ≈ 590,91 € net. Modelo 100 exercice 2018 présent.",
     missing: "Vales détaillés si disponibles pour rattacher chaque apport au total de campagne.",
     ask: ["San Juan"],
     contacts: ["san-juan"]
@@ -77,7 +77,7 @@ const rows = [
   {
     period: "2017/18",
     level: "À consolider",
-    have: "4 008 kg = part 15 % ; 851,60 kg d’huile ; production totale reconstituée [C] ≈ 26 720 kg. Extraits de compte : 2 538,80 € brut, 50,78 € de retenues, ≈ 2 488,02 € net. Modelo 100 exercice 2017 présent.",
+    have: "4 008 kg au compte familial ; 851,60 kg d’huile ; scénario conditionnel à 15 % [C] ≈ 26 720 kg. Extraits de compte : 2 538,80 € brut, 50,78 € de retenues, ≈ 2 488,02 € net. Modelo 100 exercice 2017 présent.",
     missing: "Jeu San Juan complet si disponible pour rapprocher tous les apports et règlements.",
     ask: ["San Juan"],
     contacts: ["san-juan"]
@@ -85,7 +85,7 @@ const rows = [
   {
     period: "2016/17",
     level: "À consolider",
-    have: "1 722 kg = part 15 % ; production totale reconstituée [C] 11 480 kg. Extraits de compte : 1 488,12 € brut, 29,77 € de retenues, ≈ 1 458,35 € net.",
+    have: "1 722 kg au compte familial ; scénario conditionnel à 15 % [C] 11 480 kg. Extraits de compte : 1 488,12 € brut, 29,77 € de retenues, ≈ 1 458,35 € net.",
     missing: "Jeu San Juan complet si disponible.",
     ask: ["San Juan"],
     contacts: ["san-juan"]
@@ -93,7 +93,7 @@ const rows = [
   {
     period: "2015/16",
     level: "À consolider",
-    have: "3 854 kg = part 15 % ; production totale reconstituée [C] ≈ 25 693,33 kg. Crédits reconstitués à partir du compte : 2 701,70 € brut, 54,02 € de retenues, ≈ 2 647,68 € net. Le repère OCR 9 064 kg n’est pas additionné.",
+    have: "3 854 kg au compte familial ; scénario conditionnel à 15 % [C] ≈ 25 693,33 kg. Crédits reconstitués à partir du compte : 2 701,70 € brut, 54,02 € de retenues, ≈ 2 647,68 € net. Le repère OCR 9 064 kg n’est pas additionné.",
     missing: "Original/lecture définitive de la pièce OCR ambiguë et jeu San Juan complet si disponible.",
     ask: ["San Juan"],
     contacts: ["san-juan"]
@@ -101,7 +101,7 @@ const rows = [
   {
     period: "2014/15",
     level: "À consolider",
-    have: "1 556 kg = part 15 % ; production totale reconstituée [C] ≈ 10 373,33 kg. Trois règlements visibles totalisent au moins 609,91 € avant clôture définitive de la campagne.",
+    have: "1 556 kg au compte familial ; scénario conditionnel à 15 % [C] ≈ 10 373,33 kg. Trois règlements visibles totalisent au moins 609,91 € avant clôture définitive de la campagne.",
     missing: "Liquidation finale/compte complet pour obtenir le revenu annuel exact.",
     ask: ["San Juan"],
     contacts: ["san-juan"]
@@ -125,7 +125,7 @@ const rows = [
   {
     period: "2011/12",
     level: "À confirmer",
-    have: "3 635 kg sur le compte de María ; 824,64 kg d’huile ; rendement 22,69 %. Le contrat prévoit 15 % : production totale reconstituée [C] ≈ 24 233,33 kg.",
+    have: "3 635 kg sur le compte de María ; 824,64 kg d’huile ; rendement 22,69 %. Le contrat prévoit 15 % : scénario conditionnel à 15 % [C] ≈ 24 233,33 kg.",
     missing: "Liquidation financière complète de campagne.",
     ask: ["San Juan"],
     contacts: ["san-juan"]
@@ -133,7 +133,7 @@ const rows = [
   {
     period: "2010/11",
     level: "À confirmer",
-    have: "1 405 kg sur le compte de María ; 264,82 kg d’huile ; rendement 18,85 %. Le contrat prévoit 15 % : production totale reconstituée [C] ≈ 9 366,67 kg.",
+    have: "1 405 kg sur le compte de María ; 264,82 kg d’huile ; rendement 18,85 %. Le contrat prévoit 15 % : scénario conditionnel à 15 % [C] ≈ 9 366,67 kg.",
     missing: "Liquidation financière complète de campagne.",
     ask: ["San Juan"],
     contacts: ["san-juan"]
@@ -149,7 +149,7 @@ const rows = [
   {
     period: "2008/09",
     level: "À confirmer",
-    have: "1 795 kg sur le compte de María ; 316,49 kg d’huile ; rendement 17,63 %. Le bail 2007 prévoit 15 % : production totale reconstituée [C] ≈ 11 966,67 kg.",
+    have: "1 795 kg sur le compte de María ; 316,49 kg d’huile ; rendement 17,63 %. Le bail 2007 prévoit 15 % : scénario conditionnel à 15 % [C] ≈ 11 966,67 kg.",
     missing: "Liquidation financière annuelle complète et réconciliation des repartos visibles.",
     ask: ["San Juan"],
     contacts: ["san-juan"]
@@ -157,7 +157,7 @@ const rows = [
   {
     period: "2007/08",
     level: "À confirmer",
-    have: "Premier bail écrit 12/02/2007–11/02/2013 : María reçoit 15 % de la production oléicole. San Juan : 4 468 kg / 815,03 kg d’huile / 18,24 % ; production totale reconstituée [C] ≈ 29 786,67 kg ; total de campagne documenté pour María : 1 530,94 €.",
+    have: "Premier bail écrit 12/02/2007–11/02/2013 : María reçoit 15 % de la production oléicole. San Juan : 4 468 kg / 815,03 kg d’huile / 18,24 % ; scénario conditionnel à 15 % [C] ≈ 29 786,67 kg ; total de campagne documenté pour María : 1 530,94 €.",
     missing: "Relevé San Juan complet si encore disponible ; vérifier la complétude du contrôle PAC 2007.",
     ask: ["San Juan", "ASAJA"],
     contacts: ["san-juan", "asaja"]
@@ -168,12 +168,12 @@ const economicRows = [
   {
     campaign: "2025/26",
     regime: "Gestion directe / prestations",
-    familyKg: "7 943 kg livrés [P]",
-    totalKg: "Total annuel non fixé",
+    familyKg: "18 210 kg — base commune des repartos",
+    totalKg: "18 210 kg documentés ; complétude à confirmer",
     joseKg: "—",
-    familyMoney: "Liquidation non disponible",
+    familyMoney: "Deux repartos : 7 203,65 € net documentés ; liquidation finale non confirmée",
     joseMoney: "5 445 € TTC [P] facture n°378",
-    note: "6 541 kg signalés comme restant au sol : non ajoutés sans ticket. José est ici prestataire, pas titulaire de 85 %."
+    note: "Les 7 943 kg rapportés et les 6 541 kg de nature discutée restent à rapprocher des originaux. Facture de prestation documentée, paiements rapportés à vérifier ; aucune extrapolation à 85 %."
   },
   {
     campaign: "2024/25",
@@ -183,7 +183,7 @@ const economicRows = [
     joseKg: "—",
     familyMoney: "Valeur huile HT ≈ 4 283,31 € ; encaissement final à consolider",
     joseMoney: "Prestations à consolider",
-    note: "Produits coop visibles : 980,63 €. Ne pas confondre valeur de l’huile et argent effectivement encaissé."
+    note: "Achats coop rattachés à 2024/25 : 1 211,63 € TTC (231,00 € + 980,63 €), minimum à ventiler. Ne pas confondre valeur de l’huile, encaissement et bénéfice."
   },
   {
     campaign: "2023/24",
@@ -197,17 +197,17 @@ const economicRows = [
   },
   {
     campaign: "2022/23",
-    regime: "15 % de fait [D]",
+    regime: "15 % rapportés, à confirmer [D]",
     familyKg: "684 kg",
     totalKg: "4 560 kg [C]",
     joseKg: "3 876 kg [C]",
     familyMoney: "≥ 421,61 € brut documenté ; ≈ 413,18 € net",
     joseMoney: "≥ 2 389,12 € brut équivalent [C]",
-    note: "Liquidation finale absente : montants minimums. Année de très forte sécheresse à distinguer de la question de gestion."
+    note: "Liquidation finale non retrouvée : données incomplètes. Vérifier climat, entretien, récolte et apports avant toute attribution de cause."
   },
   {
     campaign: "2021/22",
-    regime: "15 % de fait [D]",
+    regime: "15 % rapportés, à confirmer [D]",
     familyKg: "3 861 kg",
     totalKg: "25 740 kg [C]",
     joseKg: "21 879 kg [C]",
@@ -217,7 +217,7 @@ const economicRows = [
   },
   {
     campaign: "2020/21",
-    regime: "Après fin écrite du bail ; 15 % de fait [D]",
+    regime: "Après fin écrite du bail ; 15 % rapportés, à confirmer [D]",
     familyKg: "1 225 kg",
     totalKg: "8 166,67 kg [C]",
     joseKg: "6 941,67 kg [C]",
@@ -360,27 +360,27 @@ const economicRows = [
 const contractSummaries = [
   {
     title: "1er bail écrit · 2007 → 2013",
-    production: "Sur les 4 campagnes sans groupes conflictuels : famille 11 303 kg ; production reconstituée 75,35 t ; José 64,05 t [C].",
+    production: "Sur les 4 campagnes sans groupes conflictuels : famille 11 303 kg ; scénario conditionnel de production 75,35 t ; José 64,05 t [C].",
     money: "Le total financier du contrat n’est pas encore calculable proprement. 2007/08 est fermé à 1 530,94 € pour María ; les autres campagnes restent partielles ou conflictuelles.",
     status: "TOTAL INCOMPLET"
   },
   {
     title: "2e bail écrit · 2014 → mars 2020",
-    production: "Campagnes 2014/15 à 2019/20 : famille 18 090 kg ; production reconstituée 120,60 t ; José 102,51 t [C].",
+    production: "Campagnes 2014/15 à 2019/20 : famille 18 090 kg ; scénario conditionnel de production 120,60 t ; José 102,51 t [C].",
     money: "Minimum documenté : famille ≥ 9 894,24 € brut ; équivalent 85 % de José ≥ 56 067,36 € brut [C], avant ses frais d’exploitation. 2014/15 n’est pas financièrement complet.",
-    status: "MINIMUM DOCUMENTÉ"
+    status: "SCÉNARIO CONDITIONNEL INCOMPLET"
   },
   {
     title: "Continuité du 15 % après mars 2020 · jusqu’à 2022/23",
-    production: "Famille 5 770 kg ; production reconstituée 38,47 t ; José 32,70 t [C].",
+    production: "Famille 5 770 kg ; scénario conditionnel de production 38,47 t ; José 32,70 t [C].",
     money: "Minimum documenté : famille ≥ 3 873,83 € brut ; équivalent 85 % de José ≥ 21 951,70 € brut [C]. Le 2022/23 est incomplet financièrement.",
-    status: "RÉGIME DE FAIT [D]"
+    status: "CONTINUITÉ RAPPORTÉE [D]"
   },
   {
     title: "Ancien système 15 % · 2014/15 → 2022/23",
-    production: "Famille 23 860 kg ; production totale reconstituée 159,07 t ; José 135,21 t [C].",
+    production: "Famille 23 860 kg ; scénario conditionnel de production totale 159,07 t ; José 135,21 t [C].",
     money: "Sur les montants déjà documentés : famille ≥ 13 768,07 € brut ; équivalent 85 % de José ≥ 78 019,06 € brut [C]. Ce n’est pas un bénéfice net et ce total reste un minimum.",
-    status: "VUE D’ENSEMBLE"
+    status: "SCÉNARIO CONDITIONNEL INCOMPLET"
   }
 ];
 
@@ -430,11 +430,11 @@ function EconomicAnalysis() {
             <strong style={{ display: "block", fontSize: "1.12rem" }}>Économie du bail : famille vs agriculteur · 2007 → 2026</strong>
             <small style={{ opacity: .82 }}>Production · argent reçu · part de José · coûts · niveau de preuve</small>
           </div>
-          <span className="cortijoPill">MISE À JOUR 20/08/2026</span>
+          <span className="cortijoPill">REVUE 13/11/2026</span>
         </div>
 
         <p style={{ lineHeight: 1.52 }}>
-          <strong>Règle de calcul.</strong> Pendant le régime à 15 %, les kilos inscrits au nom de María puis de María Josefa correspondent à la part propriétaire. La production totale est reconstituée par <strong>part famille ÷ 0,15</strong> et la part de José par <strong>85 %</strong>. Les montants indiqués pour José sont donc des <strong>équivalents de recette brute</strong> aux mêmes conditions de valorisation, <strong>pas son bénéfice net</strong> : les contrats mettent les frais d’exploitation à la charge du fermier.
+          <strong>Calculs conditionnels.</strong> La formule <strong>kilos familiaux ÷ 0,15</strong> suppose que ces kilos représentent exactement 15 % de tous les apports. Cette portée reste à confirmer, et la poursuite du régime après mars 2020 est seulement rapportée. Les équivalents à <strong>85 %</strong> supposent aussi la même valorisation : ils ne prouvent ni une recette effectivement perçue, ni un bénéfice. Les totaux par contrat ci-dessous sont des scénarios incomplets, pas des bilans certifiés.
         </p>
         <p style={{ lineHeight: 1.52, marginBottom: 0 }}>
           <strong>Périmètre actuel.</strong> Les totaux ci-dessous portent d’abord sur l’<strong>olivier</strong>. Ils ne comprennent pas encore la valeur des terres arables/céréales ni toutes les subventions. Le bail fixe une rente de 0 % sur les terres de calme ; un brouillon familial de 2020 indique en outre que María conservait la totalité de la subvention. Ces deux postes doivent être reconstitués année par année avant de parler de revenu global définitif du contrat.
@@ -518,14 +518,14 @@ function EconomicAnalysis() {
             <li>Valeur annuelle des céréales / terres arables sous les deux baux.</li>
             <li>Montants PAC/subventions année par année et leur bénéficiaire réel.</li>
             <li>Date exacte de fin pratique du 15 % autour de 2023/24.</li>
-            <li>Liquidation complète 2024/25 et tous les tickets 2025/26.</li>
+            <li>Rapprochement des encaissements 2024/25, vales détaillés et éventuelle liquidation finale 2025/26.</li>
             <li>Détail des factures Vitines et suppression des éventuels doublons.</li>
           </ul>
         </article>
       </div>
 
       <p style={{ margin: ".8rem .1rem 0", fontSize: ".82rem", opacity: .8, lineHeight: 1.45 }}>
-        Légende : [P] documenté · [D] déclaré par la famille · [C] calculé/reconstitué · [H] hypothèse. Les équivalents 85 % sont des recettes brutes théoriques avant charges d’exploitation ; ils ne doivent jamais être présentés comme le bénéfice personnel de José.
+        Légende : [P] document référencé · [D] déclaré par la famille · [C] calcul dont les hypothèses restent à confirmer · [H] hypothèse. Les équivalents 85 % sont des recettes brutes théoriques avant charges d’exploitation ; ils ne doivent jamais être présentés comme le bénéfice personnel de José.
       </p>
     </section>
   );
