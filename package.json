@@ -17,6 +17,8 @@
     "test:meeting-search:browser": "node tests/browser/meeting-search.mjs",
     "test:decision-register:browser": "node tests/browser/decision-register.mjs",
     "start": "bash scripts/ouvrir-cortijo-local.sh",
-    "test:meeting-preparation:browser": "node tests/browser/meeting-preparation.mjs"
+    "test:meeting-preparation:browser": "node tests/browser/meeting-preparation.mjs",
+    "test:meeting-archives:browser": "node tests/browser/meeting-archives.mjs",
+    "test:meeting-archives:api": "node tests/integration/run-meeting-archives.mjs"
   }
 }

@@ -4,6 +4,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { decisionRegisterQuery } from "./decision-register-query.js";
+import { createArchiveRouter } from "./archive-router.js";
 import { meetingListQuery } from "./meeting-list.js";
 import {
   CLASSIFICATIONS,
@@ -107,7 +109,7 @@ function participantInput(item, index = 0) {
   return {
     id: safeText(item?.id, 80) || crypto.randomUUID(),
     name: safeText(item?.name, 180),
-    presence: ["present", "absent", "excused"].includes(item?.presence) ? item.presence : "present",
+    presence: ["present", "absent", "excused", "unknown"].includes(item?.presence) ? item.presence : "unknown",
     role: safeText(item?.role, 300),
     isFacilitator: Boolean(item?.isFacilitator),
     addedDuring: Boolean(item?.addedDuring),
@@ -259,7 +261,9 @@ export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, aud
     ]);
     if (!meeting.rowCount) throw Object.assign(new Error("Réunion introuvable"), { status: 404 });
     const row = meeting.rows[0];
+    const sources = await client.query("SELECT id,name,sha256 FROM meeting_sources WHERE meeting_id=$1 ORDER BY created_at", [safeId]);
     return {
+      sources: sources.rows,
       ...meetingSummary(row),
       audioChunkCount: Number(row.audio_chunk_count || 0),
       participants: participants.rows.map(participantView),
@@ -291,6 +295,8 @@ export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, aud
     const result = await pool.query(`
       SELECT m.*,
         (SELECT COUNT(*) FROM meeting_participants p WHERE p.meeting_id=m.id AND p.presence='present') AS present_count,
+        (SELECT COUNT(*) FROM meeting_participants p WHERE p.meeting_id=m.id) AS participant_count,
+        (SELECT COUNT(*) FROM meeting_participants p WHERE p.meeting_id=m.id AND p.presence='unknown') AS unknown_count,
         (SELECT COUNT(*) FROM meeting_markers x WHERE x.meeting_id=m.id) AS marker_count,
         (SELECT MAX(version) FROM meeting_report_versions v WHERE v.meeting_id=m.id) AS validated_version
       FROM meetings m WHERE ${query.where}
@@ -304,6 +310,8 @@ export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, aud
       meetings: result.rows.map((row) => ({
         ...meetingSummary(row),
         presentCount: Number(row.present_count || 0),
+        participantCount: Number(row.participant_count || 0),
+        unknownCount: Number(row.unknown_count || 0),
         markerCount: Number(row.marker_count || 0),
         validatedVersion: Number(row.validated_version || 0)
       }))
@@ -312,17 +320,17 @@ export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, aud
 
 
 
-  async function decisionRegister(req, res) {
+  async function decisionRegister(req, res, url) {
     await requireFamilyUser(req);
-    const result = await pool.query(
-      "SELECT k.id, k.meeting_id, k.note, k.classification, k.responsible, k.due_date, m.title, m.meeting_date, m.meeting_type FROM meeting_markers k JOIN meetings m ON m.id=k.meeting_id WHERE m.deleted_at IS NULL AND (k.marker_type='decision' OR k.classification='decision_confirmee') ORDER BY m.meeting_date DESC, k.created_at DESC LIMIT 5000"
-    );
+    const query = decisionRegisterQuery(url.searchParams);
+    const result = await pool.query(`SELECT k.id,k.meeting_id,k.note,k.classification,k.responsible,k.due_date,m.title,m.theme,m.report_draft->>'subjects' AS subjects,m.report_draft->>'summary' AS summary,m.meeting_date,m.meeting_type FROM meeting_markers k JOIN meetings m ON m.id=k.meeting_id WHERE ${query.where} ORDER BY m.meeting_date DESC,k.created_at DESC,k.id LIMIT 5001`,query.values);
     return json(res, 200, {
-      decisions: result.rows.map((row) => ({
+      hasMore: result.rows.length > 5000,
+      decisions: result.rows.slice(0,5000).map((row) => ({
         id: row.id, meetingId: row.meeting_id, note: row.note,
         classification: row.classification, responsible: row.responsible,
         dueDate: safeDate(row.due_date), title: row.title,
-        date: safeDate(row.meeting_date), meetingType: row.meeting_type
+        date: safeDate(row.meeting_date), meetingType: row.meeting_type, theme: row.theme, subjects: row.subjects, summary: row.summary
       }))
     });
   }
@@ -445,7 +453,10 @@ export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, aud
     if (!MEETING_STAGES.includes(stage)) return json(res, 400, { error: "Étape de trame invalide" });
     const date = body.date === undefined ? before.meeting_date : safeDate(body.date);
     if (!date) return json(res, 400, { error: "Date invalide" });
-    const reportDraft = body.reportDraft === undefined ? before.report_draft : body.reportDraft;
+    const reportDraft = body.reportDraft === undefined ? before.report_draft : { ...body.reportDraft };
+    for (const key of ["historicOriginal", "historicHash", "archiveSourceHash", "archiveCanonicalHash"]) {
+      if (before.report_draft?.[key] !== undefined) reportDraft[key] = before.report_draft[key];
+    }
     const saved = await pool.query(
       `UPDATE meetings SET
         title=$2, meeting_date=$3, meeting_type=$4, theme=$5, objective=$6, agenda=$7::jsonb,
@@ -493,7 +504,7 @@ export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, aud
     if (!current.rowCount) return json(res, 404, { error: "Participant introuvable" });
     const before = current.rows[0];
     const presence = body.presence === undefined ? before.presence : String(body.presence);
-    if (!["present", "absent", "excused"].includes(presence)) return json(res, 400, { error: "Présence invalide" });
+    if (!["present", "absent", "excused", "unknown"].includes(presence)) return json(res, 400, { error: "Présence invalide" });
     await pool.query(
       `UPDATE meeting_participants SET name=$3,presence=$4,role=$5,is_facilitator=$6,updated_at=NOW()
        WHERE id=$1 AND meeting_id=$2`,
@@ -1014,8 +1025,11 @@ export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, aud
     });
   }
 
+  const archiveRoute = createArchiveRouter({ pool, requireAdmin, requireFamilyUser, readBody, json, audit, fullMeeting });
+
   async function route(req, res, url) {
     if (!url.pathname.startsWith("/api/meetings")) return false;
+    if (await archiveRoute(req,res,url)) return true;
 
     if (url.pathname === "/api/meetings/transcription/health" && req.method === "GET") {
       await transcriptionHealth(req, res);
@@ -1026,7 +1040,7 @@ export function createMeetingRouter({ pool, requireAdmin, requireFamilyUser, aud
       return true;
     }
     if (url.pathname === "/api/meetings/decision-register" && req.method === "GET") {
-      await decisionRegister(req, res);
+      await decisionRegister(req, res, url);
       return true;
     }
     if (url.pathname === "/api/meetings/import-historic" && req.method === "POST") {
