@@ -20,6 +20,21 @@ Le BAÚL local est conservé dans `~/Documents/FINCA_MARIA/BAUL_PRIVE`, ou dans 
 Les clés de stockage du navigateur sont conservées pour retrouver les données existantes à la même adresse.
 Les originaux du BAÚL et les sauvegardes personnelles restent hors Git.
 
+## Maison
+
+L'entrée **MAISON** ouvre directement le calendrier mensuel. La même interface
+regroupe **Calendrier et réservations**, **Inventaire**, **Entretien**, **Jardin**,
+**Fonctionnement** et **Sorties**. Les anciens liens restent compatibles.
+Les séjours annulés et les fiches archivées restent consultables ; aucune remise
+à zéro des données n'est nécessaire. Le guide des sorties peut être copié,
+partagé ou téléchargé en HTML, sans les notes privées familiales.
+
+`npm run test:house:browser` vérifie ces parcours sur ordinateur et téléphone,
+avec un BAÚL et des profils de navigateur de test. Le test runtime CI ajoute
+une vérification réelle entre navigateurs, API et PostgreSQL, sans compte familial.
+L'audit et les limites sont détaillés dans
+[AUDIT_MAISON_2026-11-16.md](docs/AUDIT_MAISON_2026-11-16.md).
+
 ## Organisation
 
 - `app/` : interface FINCA MARIA et interface familiale isolée.

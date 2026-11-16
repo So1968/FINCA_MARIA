@@ -107,6 +107,11 @@ grep -qi '^Set-Cookie: .*SameSite=Strict' "$TMP_DIR/login-headers" || fail "cook
 grep -qi '^Set-Cookie: .*Secure' "$TMP_DIR/login-headers" || fail "cookie de session sans Secure"
 pass "connexion administrateur et cookie sécurisé"
 
+if [ "${FINCA_HOUSE_RUNTIME_BROWSER:-0}" = "1" ]; then
+  FINCA_HOUSE_RUNTIME_TEST=1 node tests/browser/house-server.mjs
+  pass "Maison : interface, API et PostgreSQL entre plusieurs navigateurs"
+fi
+
 # Parcours Réunions et conseils de famille.
 
 # Historique : import en lot, conservation de la source, anti-doublon et registre

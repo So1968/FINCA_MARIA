@@ -14,7 +14,10 @@ const Meetings = lazy(() => import("./components/FincaMeetingsHub.jsx"));
 const Trash = lazy(() => import("./components/FincaTrashHub.jsx"));
 const Baul = lazy(() => import("./components/FincaBaulHub.jsx"));
 export const NAVIGATION_EVENT = "finca:navigation";
-const currentView = () => new URLSearchParams(window.location.search).get("view") || "";
+const currentView = () => {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("view") || (params.get("area") === "maison" ? "cortijo-maison" : "");
+};
 export default function App() {
   const [view, setView] = useState(currentView);
   useEffect(() => {

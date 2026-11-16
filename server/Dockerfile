@@ -1,10 +1,10 @@
 FROM node:22-alpine
 WORKDIR /srv
 ENV NODE_ENV=production
-COPY package*.json ./
+COPY --chown=node:node package*.json ./
 RUN npm ci --omit=dev --no-audit --no-fund
-COPY src ./src
-COPY sql ./sql
+COPY --chown=node:node src ./src
+COPY --chown=node:node sql ./sql
 RUN mkdir -p /data/baul && chown -R node:node /data/baul
 USER node
 EXPOSE 3000

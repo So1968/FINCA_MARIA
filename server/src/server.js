@@ -31,6 +31,8 @@ const SHARED_KEYS = new Set([
   "finca_maria_sejour_checklist_v1",
   "finca_maria_entretien_maison_v1",
   "finca_maria_couchages_plan_v1",
+  "finca_maria_reservations_corbeille_locale_v1",
+  "finca_maria_maison_depart_checklist_v1",
   "finca_maria_inventaire_maison_v1",
   "cortijo_action_logs_v1",
   "cortijo_action_facts_v1",
@@ -53,6 +55,8 @@ const FAMILY_SHARED_KEYS = new Set([
   "finca_maria_sejour_checklist_v1",
   "finca_maria_entretien_maison_v1",
   "finca_maria_couchages_plan_v1",
+  "finca_maria_reservations_corbeille_locale_v1",
+  "finca_maria_maison_depart_checklist_v1",
   "finca_maria_inventaire_maison_v1"
 ]);
 

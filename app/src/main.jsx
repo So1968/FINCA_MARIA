@@ -13,10 +13,6 @@ function lazyFincaMount(loader, exportName) {
 
 const FincaDocumentChecklistMount = lazyFincaMount(() => import("./components/FincaDocumentChecklistMount.jsx"), "FincaDocumentChecklistMount");
 const FincaOperationsMount = lazyFincaMount(() => import("./components/FincaOperationsMount.jsx"), "FincaOperationsMount");
-const FincaHouseRulesHistoryMount = lazyFincaMount(() => import("./components/FincaHouseRulesHistoryMount.jsx"), "FincaHouseRulesHistoryMount");
-const FincaHouseBookingCalendarMount = lazyFincaMount(() => import("./components/FincaHouseBookingCalendarMount.jsx"), "FincaHouseBookingCalendarMount");
-const FincaHouseStatusMount = lazyFincaMount(() => import("./components/FincaHouseStatusMount.jsx"), "FincaHouseStatusMount");
-const FincaHouseInventoryMount = lazyFincaMount(() => import("./components/FincaHouseInventoryMount.jsx"), "FincaHouseInventoryMount");
 const FincaSharedSyncMount = lazyFincaMount(() => import("./components/FincaSharedSyncMount.jsx"), "FincaSharedSyncMount");
 
 const NAVIGATION_EVENT = "finca:navigation";
@@ -25,7 +21,8 @@ function getRouteState() {
   const params = new URLSearchParams(window.location.search);
   const view = params.get("view") || "";
   return {
-    directHouseView: view === "cortijo-maison",
+    directHouseView: view === "cortijo-maison" || params.get("area") === "maison",
+    visitor: params.get("mode") === "vacanciers",
     isFincaEntry: true,
   };
 }
@@ -34,11 +31,13 @@ function DeferredFincaEnhancements() {
   const initialRoute = getRouteState();
   const [ready, setReady] = useState(initialRoute.isFincaEntry);
   const [directHouseView, setDirectHouseView] = useState(initialRoute.directHouseView);
+  const [visitor, setVisitor] = useState(initialRoute.visitor);
 
   useEffect(() => {
     const handleNavigation = () => {
       const route = getRouteState();
       setDirectHouseView(route.directHouseView);
+      setVisitor(route.visitor);
       if (route.isFincaEntry) setReady(true);
     };
 
@@ -55,12 +54,8 @@ function DeferredFincaEnhancements() {
   return (
     <Suspense fallback={null}>
       <FincaDocumentChecklistMount />
-      <FincaOperationsMount />
-      <FincaHouseRulesHistoryMount />
-      {!directHouseView && <FincaHouseBookingCalendarMount />}
-      <FincaHouseStatusMount />
-      <FincaHouseInventoryMount />
-      <FincaSharedSyncMount />
+      {!directHouseView && <FincaOperationsMount />}
+      {!visitor && <FincaSharedSyncMount />}
     </Suspense>
   );
 }

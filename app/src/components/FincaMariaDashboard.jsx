@@ -30,14 +30,7 @@ const EARTH_TABS = [
   { id: "actions", label: "Actions", icon: "folder", title: "Dossiers & actions" }
 ];
 
-const HOUSE_TABS = [
-  { id: "gerer", label: "Gérer", icon: "home", title: "Gérer la maison" },
-  { id: "afaire", label: "À faire", icon: "check", title: "À faire pendant un séjour" },
-  { id: "presences", label: "Présences", icon: "people", title: "Présences & couchages" },
-  { id: "inventaire", label: "Inventaire", icon: "box", title: "Inventaire & besoins" },
-  { id: "jardin", label: "Jardin", icon: "leaf", title: "Patio & jardin" },
-  { id: "sorties", label: "Sorties", icon: "compass", title: "Guide des vacanciers" }
-];
+
 
 const ACTION_SCRIPT_FR = {
   "san-juan-historique": "Bonjour. Nous reconstituons la production de la finca campagne par campagne. Nous avons déjà de nombreux documents anciens, y compris depuis 2007. Nous avons aussi des états de factures San Juan de 2019, 2020, 2021 et 2022, mais ils ne permettent pas à eux seuls de connaître les kilos d'olives ni la production totale de chaque campagne. Pour 2025/26, deux reçus de répartition utilisent la même base de 18 210 kg d'olives, 3 860,64 kg d'huile et un rendement de 21,20 % : ces kilos ne doivent donc pas être additionnés deux fois. Nous avons besoin de la liste complète des vales ou apports, des dates et kilos de chaque apport, de rattacher le premier ramassage de 7 943 kg à cette base, de clarifier la nature des 6 541 kg et de la référence 6139, puis de confirmer si 18 210 kg correspond bien au total des apports de la campagne. Nous devons aussi savoir s'il existe un troisième reparto ou une liquidation finale. Pour 2019/20 à 2022/23, il reste à récupérer l'historique complet de production et à confirmer que le relevé fourni couvre tous les apports enregistrés.",
@@ -223,7 +216,7 @@ export function FincaMariaDashboard() {
   const [earthActionFilter, setEarthActionFilter] = useState(() => actionFilter(new URLSearchParams(window.location.search).get("filter")));
   const [area, setArea] = useState(() => new URLSearchParams(window.location.search).get("area") === "terre" ? "terre" : "home");
   const [earthTab, setEarthTab] = useState(() => new URLSearchParams(window.location.search).get("tab") === "actions" ? "actions" : initialNavigation.earthTab || "gestion");
-  const [houseTab, setHouseTab] = useState(initialNavigation.houseTab || "gerer");
+  const houseTab = initialNavigation.houseTab || "gerer";
   const importRef = useRef(null);
   const [openDossiers, setOpenDossiers] = useState(() => {
     const contact = new URLSearchParams(window.location.search).get("contact");
@@ -264,7 +257,6 @@ export function FincaMariaDashboard() {
   }
 
   const currentEarth = EARTH_TABS.find((tab) => tab.id === earthTab) || EARTH_TABS[0];
-  const currentHouse = HOUSE_TABS.find((tab) => tab.id === houseTab) || HOUSE_TABS[0];
 
   return (
     <section className="cortijoDashboard fincaMariaShell fincaTwoWorlds" aria-label="FINCA MARIA">
@@ -294,7 +286,7 @@ export function FincaMariaDashboard() {
       <div style={{ display: area === "home" ? "block" : "none" }}>
         <div className="fincaAreaGrid">
           <AreaChoice area="terre" title="TERRE" subtitle="Exploitation agricole" stats={`${actionSummary.todo} action${actionSummary.todo > 1 ? "s" : ""} à compléter · année-test 2022/23`} icon="leaf" onClick={() => { setArea("terre"); setEarthTab(earthTab || "gestion"); }} />
-          <AreaChoice area="maison" title="MAISON" subtitle="Maison familiale" stats="Séjours · jardin · guide vacanciers" icon="home" onClick={() => { setArea("maison"); setHouseTab(houseTab || "gerer"); }} />
+          <AreaChoice area="maison" title="MAISON" subtitle="Maison familiale" stats="Séjours · jardin · guide vacanciers" icon="home" onClick={openHouse} />
           <a href={appViewUrl("reunions")} className="fincaMainMeetingTile" aria-label="Ouvrir les réunions et conseils de famille"><span className="fincaMeetingIcon" aria-hidden="true">🎙️</span><span><strong>RÉUNIONS</strong><small>Conseils de famille · comptes rendus</small></span><span aria-hidden="true">→</span></a>
         </div>
         <style>{`
@@ -349,18 +341,7 @@ export function FincaMariaDashboard() {
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "actions" ? "block" : "none" }}><summary><h3>Dossiers & actions</h3></summary><div className="fincaActionBuckets" aria-label="Afficher les actions">{ACTION_FILTERS.map((filter) => <button type="button" key={filter.id} aria-pressed={earthActionFilter === filter.id} className={earthActionFilter === filter.id ? "isActive" : ""} onClick={() => selectEarthFilter(filter.id)}><span>{filter.label}</span><strong>{actionSummary[filter.id]}</strong></button>)}</div><ActionSaveStatus message={saveMessage} canRetry={canRetrySave} onRetry={retrySave} /><div className="fincaDossierStack">{interlocutors.map((item) => { const dossierActions = filteredActionsFor(item); return <details className="fincaDossierCard" key={item.id} open={Boolean(openDossiers[item.id])} onToggle={(event) => { const open = event.currentTarget.open; setOpenDossiers((current) => current[item.id] === open ? current : { ...current, [item.id]: open }); }}><summary className="fincaDossierSummary"><div><span className="cortijoPill">{item.label}</span><h4>{item.subtitle}</h4></div><span className="fincaDossierCount">{dossierActions.length} action{dossierActions.length > 1 ? "s" : ""}</span></summary><div className="fincaDossierBody"><fieldset disabled={readError} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}><div className="cortijoList fincaActionList">{dossierActions.length === 0 && <p>Aucune action dans cette rubrique pour ce dossier.</p>}{dossierActions.map((action) => <DossierAction key={action.id} action={action} dossierLabel={item.label} assignment={assignments[action.id] || {}} onUpdate={updateAssignment} />)}</div></fieldset><button type="button" className="fincaDossierOpen" onClick={() => openDossier(item.id, earthActionFilter)}>Ouvrir le dossier — {item.label}</button></div></details>; })}</div></details>
       </div>
 
-      <div style={{ display: area === "maison" ? "block" : "none" }}>
-        <div className="fincaAreaHeader"><button type="button" className="fincaBack" onClick={() => setArea("home")}>← Accueil</button><div><h2>MAISON</h2><p>Maison familiale</p></div></div>
-        <SubNav items={HOUSE_TABS} active={houseTab} onChange={setHouseTab} label="Maison" />
-        <div className="fincaPanelIntro"><strong>{currentHouse.title}</strong><span>Accès direct aux outils utiles pendant un séjour</span></div>
 
-        <div style={{ display: houseTab === "gerer" ? "block" : "none" }}><div className="fincaHouseGrid"><article className="fincaHouseCard"><h4>Fonctionnement</h4><p>Clés, compteurs, eau, électricité, équipements et consignes utiles.</p></article><article className="fincaHouseCard"><h4>Ménage</h4><p>Ce qu’il faut préparer, nettoyer et laisser prêt avant un départ.</p></article><article className="fincaHouseCard"><h4>Couchages</h4><p>Qui dort où, combien de places et ce qu’il faut prévoir.</p></article><article className="fincaHouseCard"><h4>Tout le module Maison</h4><p>Visite, fonctionnement, ménage, présences, inventaire, jardin et sorties.</p><button type="button" className="fincaHouseOpen" onClick={() => openHouse()}>Ouvrir le module Maison</button></article></div></div>
-        <div style={{ display: houseTab === "afaire" ? "block" : "none" }}><div className="fincaHouseGrid"><article className="fincaHouseCard"><h4>Avant l’arrivée</h4><ul><li>Vérifier eau et électricité</li><li>Préparer les couchages</li><li>Contrôler les produits indispensables</li></ul></article><article className="fincaHouseCard"><h4>Pendant le séjour</h4><ul><li>Noter les réparations à faire</li><li>Mettre à jour les besoins</li><li>Signaler tout problème de fonctionnement</li></ul></article><article className="fincaHouseCard"><h4>Avant de partir</h4><ul><li>Ménage et linge</li><li>Fermeture eau, fenêtres et accès</li><li>Rangement des clés et vérification finale</li></ul></article></div></div>
-        <div style={{ display: houseTab === "presences" ? "block" : "none" }}><article className="fincaHouseCard"><h4>Planning familial</h4><p>Voir les arrivées, départs, couchages et remarques de séjour.</p><button type="button" className="fincaHouseOpen" onClick={() => openHouse("presences")}>Ouvrir les présences</button></article></div>
-        <div style={{ display: houseTab === "inventaire" ? "block" : "none" }}><article className="fincaHouseCard"><h4>Inventaire de la maison</h4><p>Mobilier, linge, vaisselle, appareils, consommables, réparations et achats.</p><button type="button" className="fincaHouseOpen" onClick={() => openHouse("inventaire")}>Ouvrir l’inventaire</button></article></div>
-        <div style={{ display: houseTab === "jardin" ? "block" : "none" }}><div className="fincaHouseGrid"><article className="fincaHouseCard"><h4>Patio & arbres</h4><p>Suivi du laurier, du cerisier et du citronnier : intervention, photos avant/après et réaction de l’arbre.</p><button type="button" className="fincaHouseOpen" onClick={() => openHouse("patio-jardin")}>Ouvrir le suivi du jardin</button></article><article className="fincaHouseCard"><h4>Point actuel</h4><p>Taille progressive, pas de rabattage brutal ; priorité au puits de lumière du citronnier et à la réduction du volume côté voiture.</p></article></div></div>
-        <div style={{ display: houseTab === "sorties" ? "block" : "none" }}><div className="fincaHouseGrid"><article className="fincaHouseCard"><h4>Carnet des bonnes adresses</h4><p>Plages, villages, balades et excursions réellement conseillés par la famille, avec parking, meilleur moment et notes personnelles.</p><button type="button" className="fincaHouseOpen" onClick={() => openHouse("sorties")}>Gérer les lieux</button></article><article className="fincaHouseCard"><h4>Guide vacanciers</h4><p>Une vue simple à montrer ou imprimer, sans les informations privées de gestion de la maison.</p><button type="button" className="fincaHouseOpen" onClick={openVisitorGuide}>Ouvrir le guide vacanciers</button></article></div></div>
-      </div>
     </section>
   );
 }
