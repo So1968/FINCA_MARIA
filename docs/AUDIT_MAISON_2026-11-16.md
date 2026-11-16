@@ -54,6 +54,8 @@ Les fiches d'inventaire, les lieux et les travaux sont archivés, pas effacés. 
 
 Le partage serveur autorise en plus les deux clés MAISON déjà existantes pour les annulations et le suivi de départ. Il n'y a pas de migration SQL, de changement de compte ou de désactivation d'authentification. Les copies de récupération restent locales et portent le préfixe inclus dans les sauvegardes de l'application.
 
+Avant l'application du serveur, les modifications locales refusées et les autres saisies restées en attente sont copiées, y compris lors de la première connexion. Un test réel provoque un refus de modification de réservation et vérifie que ses dates ainsi qu'une note non encore envoyée restent récupérables. Une erreur de quota pendant l'application du partage est signalée et la récupération est retentée après libération de l'espace. Les anciens accès `?area=maison` affichent aussi l'état du partage.
+
 ## Vérifications reproductibles
 
 | Contrôle | Commande / preuve | Portée |

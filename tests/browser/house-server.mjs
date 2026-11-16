@@ -28,13 +28,16 @@ async function eventually(operation, message) {
   }
   throw new Error(message);
 }
-async function login() {
+async function login(route = "/?view=cortijo-maison", initialNotes) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: "fr-FR" }); contexts.push(context);
+  if (initialNotes) await context.addInitScript(({ key, value }) => {
+    if (localStorage.getItem(key) === null) localStorage.setItem(key, JSON.stringify(value));
+  }, { key: HOUSE_KEYS.notes, value: initialNotes });
   const response = await context.request.post(`${origin}/api/auth/login`, { headers: { Origin: origin }, data: { email, password } });
   assert.equal(response.status(), 200, "Connexion au compte de test");
   const page = await context.newPage(); page.setDefaultTimeout(15000);
   const errors = []; page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto(`${origin}/?view=cortijo-maison`);
+  await page.goto(`${origin}${route}`);
   try { await page.getByRole("button", { name: /État de synchronisation : Synchronisé/ }).waitFor(); }
   catch { throw new Error(`Maison serveur indisponible : ${new URL(page.url()).pathname}, ${errors.join(" ; ")}, ${(await page.locator("body").innerText()).slice(0, 1200)}`); }
   return { context, page };
@@ -94,7 +97,7 @@ try {
   await eventually(async () => Boolean((await bootstrap(second.context)).sharedState[HOUSE_KEYS.departure]?.value.cles), "La checklist de départ n’a pas été partagée.");
   const familyData = await b.evaluate(async () => { const response = await fetch("/api/family/bootstrap"); if (!response.ok) throw new Error(`Partage familial : ${response.status}`); return response.json(); });
   assert.ok(familyData.sharedState[HOUSE_KEYS.departure]); assert.ok(familyData.sharedState[HOUSE_KEYS.bookingTrash]);
-  const third = await login(); await third.page.getByRole("navigation", { name: "Rubriques Maison" }).getByRole("link", { name: /^Fonctionnement/ }).click();
+  const third = await login("/?area=maison"); await third.page.getByRole("navigation", { name: "Rubriques Maison" }).getByRole("link", { name: /^Fonctionnement/ }).click();
   assert.equal(await third.page.getByLabel("Consignes — Eau", { exact: true }).inputValue(), "Consignes eau intégration serveur test");
   console.log("✓ Serveur : consignes et checklist de départ persistantes, clés autorisées pour le partage familial et lecture depuis un navigateur neuf");
   await b.bringToFront();
@@ -117,6 +120,50 @@ try {
     && JSON.parse(localStorage.getItem(recovery) || "[]").some((item) => item.stateKey === key && item.value?.["infra-Eau"] === "COPIE_LOCALE_CONFLIT_TEST"), { key: HOUSE_KEYS.notes, recovery: HOUSE_KEYS.syncRecovery });
   assert.equal(await b.evaluate(() => window.houseConflictMarker), true);
   console.log("✓ Serveur : conflit de version réel, version distante conservée et copie locale intacte sans rechargement");
+  const restored = (await bootstrap(second.context)).reservations.find((item) => item.name === original.name);
+  await b.evaluate(async ({ booking, bookingsKey, notesKey, room }) => {
+    Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
+    const localBookings = JSON.parse(localStorage.getItem(bookingsKey));
+    localStorage.setItem(bookingsKey, JSON.stringify(localBookings.map((item) => item.id === booking.id ? { ...item, departure: "2042-11-25" } : item)));
+    const notes = JSON.parse(localStorage.getItem(notesKey));
+    localStorage.setItem(notesKey, JSON.stringify({ ...notes, "infra-Eau": "NOTE_EN_ATTENTE_APRES_CONFLIT_RESERVATION_TEST" }));
+    dispatchEvent(new Event("finca-maria-storage-updated"));
+    const response = await fetch("/api/reservations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: crypto.randomUUID(), name: "Occupant concurrent de test", place: room, arrival: "2042-11-24", departure: "2042-11-26" }) });
+    if (!response.ok) throw new Error(`Préparation du conflit réservation : ${response.status}`);
+    delete document.visibilityState;
+    dispatchEvent(new Event("focus"));
+  }, { booking: restored, bookingsKey: HOUSE_KEYS.bookings, notesKey: HOUSE_KEYS.notes, room: roomName });
+  await b.waitForFunction(({ bookings, notes, recovery, id }) => {
+    const copies = JSON.parse(localStorage.getItem(recovery) || "[]");
+    return JSON.parse(localStorage.getItem(bookings) || "[]").find((item) => item.id === id)?.departure === "2042-11-23"
+      && JSON.parse(localStorage.getItem(notes) || "{}")["infra-Eau"] === "VERSION_SERVEUR_CONFLIT_TEST"
+      && copies.some((item) => item.booking?.id === id && item.booking.departure === "2042-11-25")
+      && copies.some((item) => item.stateKey === notes && item.value?.["infra-Eau"] === "NOTE_EN_ATTENTE_APRES_CONFLIT_RESERVATION_TEST");
+  }, { bookings: HOUSE_KEYS.bookings, notes: HOUSE_KEYS.notes, recovery: HOUSE_KEYS.syncRecovery, id: restored.id });
+  assert.equal((await bootstrap(second.context)).reservations.find((item) => item.id === restored.id).departure, "2042-11-23");
+  console.log("✓ Serveur : modification de réservation refusée, dates locales et autres saisies non envoyées récupérables, ancien lien Maison synchronisé");
+  const fourth = await login("/?view=cortijo-maison", { "infra-Eau": "NOTE_LOCALE_AVANT_PREMIERE_CONNEXION_TEST" });
+  assert.ok(await fourth.page.evaluate(({ recovery, notes }) => JSON.parse(localStorage.getItem(recovery) || "[]").some((item) => item.stateKey === notes && item.value?.["infra-Eau"] === "NOTE_LOCALE_AVANT_PREMIERE_CONNEXION_TEST"), { recovery: HOUSE_KEYS.syncRecovery, notes: HOUSE_KEYS.notes }));
+  console.log("✓ Serveur : note ancienne préservée avant adoption des données du serveur lors de la première connexion");
+  await b.bringToFront();
+  await b.evaluate(async (key) => {
+    Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
+    const prototype = Object.getPrototypeOf(localStorage);
+    const originalSet = prototype.setItem;
+    prototype.setItem = function (name, value) { if (name === key) throw new DOMException("Quota de test", "QuotaExceededError"); return originalSet.call(this, name, value); };
+    window.restoreHouseStorage = () => { prototype.setItem = originalSet; };
+    const remote = await (await fetch("/api/bootstrap")).json();
+    const state = remote.sharedState[key];
+    const response = await fetch(`/api/state/${encodeURIComponent(key)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ expectedVersion: state.version, value: { ...state.value, "infra-Eau": "NOTE_DISTANTE_APRES_QUOTA_TEST" } }) });
+    if (!response.ok) throw new Error(`Préparation du quota : ${response.status}`);
+    delete document.visibilityState;
+    dispatchEvent(new Event("focus"));
+  }, HOUSE_KEYS.notes);
+  await b.waitForFunction(() => document.querySelector(".fincaSharedSyncButton")?.getAttribute("title") === "Hors connexion");
+  assert.equal(await b.evaluate((key) => JSON.parse(localStorage.getItem(key))["infra-Eau"], HOUSE_KEYS.notes), "VERSION_SERVEUR_CONFLIT_TEST");
+  await b.evaluate(() => { window.restoreHouseStorage(); dispatchEvent(new Event("focus")); });
+  await b.waitForFunction((key) => JSON.parse(localStorage.getItem(key))["infra-Eau"] === "NOTE_DISTANTE_APRES_QUOTA_TEST", HOUSE_KEYS.notes);
+  console.log("✓ Serveur : quota local signalé pendant la synchronisation, puis récupération de la version distante après nouvelle tentative");
   await b.evaluate((key) => { localStorage.setItem(key, "{invalid"); dispatchEvent(new Event("finca-maria-storage-updated")); dispatchEvent(new Event("focus")); }, HOUSE_KEYS.bookings);
   await b.waitForFunction(() => document.querySelector(".fincaSharedSyncButton")?.getAttribute("title") === "Hors connexion");
   assert.equal(await b.evaluate((key) => localStorage.getItem(key), HOUSE_KEYS.bookings), "{invalid");

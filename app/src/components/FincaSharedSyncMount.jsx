@@ -106,7 +106,7 @@ function houseView() {
 
 function shouldShow() {
   const params = new URLSearchParams(window.location.search);
-  return params.get("view") === "cortijo-maison"
+  return houseView()
     || (params.get("project") === "cortijo" && params.get("drop") === "1")
     || Boolean(document.querySelector(".fincaTwoWorlds"));
 }
@@ -312,8 +312,13 @@ export function FincaSharedSyncMount() {
     }
   }
 
-  function applyRemote(bootstrap) {
+  function applyRemote(bootstrap, preserveInitial = false) {
     const current = localSnapshot();
+    const persistRemote = (key, value) => {
+      const saved = storageSet(localStorage, key, JSON.stringify(value));
+      if (!saved && houseView()) throw new Error("Enregistrement local du partage impossible. Données du serveur conservées ; libérez de l’espace puis réessayez la synchronisation.");
+      return saved;
+    };
     const remoteShared = {};
     for (const key of SHARED_KEYS) {
       if (bootstrap.sharedState?.[key]) remoteShared[key] = bootstrap.sharedState[key].value;
@@ -331,28 +336,41 @@ export function FincaSharedSyncMount() {
     };
 
     if (houseView()) {
-      const remoteIds = new Set(remote.reservations.map((item) => item.id));
-      const missing = syncableHouseBookings(current.reservations).filter((item) => !remoteIds.has(item.id));
-      for (const booking of missing) {
+      const previous = previousRef.current;
+      const previousBookings = new Map((previous?.reservations || []).map((item) => [item?.id, item]));
+      const merged = mergeHouseBookings(current.reservations, remote.reservations);
+      const mergedBookings = new Map(merged.map((item) => [item?.id, item]));
+      for (const booking of syncableHouseBookings(current.reservations)) {
+        const next = mergedBookings.get(booking.id);
+        const localChanged = preserveInitial || !sameValue(booking, previousBookings.get(booking.id));
+        if (next && (!localChanged || sameValue(booking, next))) continue;
         if (!keepHouseRecovery(localStorage, { booking })) throw new Error("Sauvegarde de récupération impossible ; calendrier local conservé.");
       }
-
-      remote.reservations = mergeHouseBookings(current.reservations, remote.reservations);
+      // Un conflit peut interrompre l'envoi avant d'autres saisies locales.
+      // Les préserver toutes avant d'appliquer le serveur, même si elles ne sont
+      // pas la clé à l'origine du refus ou si c'est la première connexion.
+      for (const [key, value] of Object.entries(remote.shared)) {
+        const local = current.shared[key];
+        if (!Object.values(HOUSE_KEYS).includes(key) || local === undefined || sameValue(local, value)) continue;
+        if (!preserveInitial && sameValue(local, previous?.shared?.[key])) continue;
+        if (!keepHouseRecovery(localStorage, { stateKey: key, value: local })) throw new Error("Copie de récupération impossible : données locales conservées, partage suspendu.");
+      }
+      remote.reservations = merged;
     }
     let changed = false;
     if (!sameValue(current.reservations, remote.reservations)) {
-      changed = storageSet(localStorage, PRESENCES_KEY, JSON.stringify(remote.reservations)) || changed;
+      changed = persistRemote(PRESENCES_KEY, remote.reservations) || changed;
     }
     if (!sameValue(current.roomReady, remote.roomReady)) {
-      changed = storageSet(localStorage, READY_KEY, JSON.stringify(remote.roomReady)) || changed;
+      changed = persistRemote(READY_KEY, remote.roomReady) || changed;
     }
     for (const [key, value] of Object.entries(remote.shared)) {
       if (!sameValue(current.shared?.[key], value)) {
-        changed = storageSet(localStorage, key, JSON.stringify(value)) || changed;
+        changed = persistRemote(key, value) || changed;
       }
     }
+    persistRemote(SYNC_BASE_KEY, remote);
     previousRef.current = remote;
-    storageSet(localStorage, SYNC_BASE_KEY, JSON.stringify(remote));
     return changed;
   }
 
@@ -384,10 +402,6 @@ export function FincaSharedSyncMount() {
           await pushLocalChanges(activeSession, previousRef.current || current, current, bootstrap);
         } catch (error) {
           if (error.status === 409 && error.body?.conflict?.key) {
-            if (houseView()) {
-              const key = error.body.conflict.key;
-              if (Object.values(HOUSE_KEYS).includes(key) && !keepHouseRecovery(localStorage, { stateKey: key, value: current.shared[key] })) throw new Error("Copie de récupération impossible : données locales conservées, partage suspendu.");
-            }
             storageSet(
               sessionStorage,
               SYNC_NOTICE_KEY,
@@ -407,7 +421,7 @@ export function FincaSharedSyncMount() {
         bootstrap = await request("/api/bootstrap", {}, activeSession);
       }
 
-      const changed = applyRemote(bootstrap);
+      const changed = applyRemote(bootstrap, !initialized);
       setStatus(`Synchronisé · ${activeSession.name}`);
       setMessage((current) => current || "Les données de travail FINCA MARIA sont partagées entre les appareils connectés.");
       if (houseView() && storageGet(sessionStorage, SYNC_NOTICE_KEY)) {

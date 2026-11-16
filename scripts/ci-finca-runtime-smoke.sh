@@ -380,6 +380,8 @@ for (const key of Object.keys(payload.sharedState)) {
     'finca_maria_sejour_checklist_v1',
     'finca_maria_entretien_maison_v1',
     'finca_maria_couchages_plan_v1',
+    'finca_maria_reservations_corbeille_locale_v1',
+    'finca_maria_maison_depart_checklist_v1',
     'finca_maria_inventaire_maison_v1'
   ].includes(key), `clé non autorisée dans la vue héritiers: ${key}`);
 }
