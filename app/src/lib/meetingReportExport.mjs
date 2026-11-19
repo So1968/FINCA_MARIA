@@ -2,12 +2,14 @@ const CLASSIFICATIONS = {
   decision_confirmee: "Décision confirmée", action_confirmee: "Action confirmée",
   proposition: "Proposition", declaration: "Déclaration", a_valider: "À valider",
   a_verifier: "À vérifier", desaccord: "Désaccord", question_ouverte: "Question ouverte",
+  decision_reportee: "Décision reportée",
   document_evoque: "Document évoqué"
 };
 const GROUPS = [
   ["Décisions confirmées", ["decision_confirmee"]],
   ["Actions confirmées", ["action_confirmee"]],
   ["Désaccords", ["desaccord"]],
+  ["Décisions reportées", ["decision_reportee"]],
   ["Questions ouvertes", ["question_ouverte"]],
   ["Propositions, déclarations et points à valider", ["proposition", "declaration", "a_valider", "a_verifier"]],
   ["Documents évoqués", ["document_evoque"]],

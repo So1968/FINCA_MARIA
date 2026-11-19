@@ -3,6 +3,8 @@ import { deletePendingChunk, listPendingChunks, savePendingChunk } from "../lib/
 import "../meetings.css";
 import { useMeetingDraft } from "../lib/useMeetingDraft.js";
 import { downloadValidatedReport } from "../lib/meetingReportExport.mjs";
+import ArchiveReview from "./ArchiveReview.jsx";
+import ParticipationRegister from "./ParticipationRegister.jsx";
 import HistoricMeetingImport from "./HistoricMeetingImport.jsx";
 import MeetingDecisionRegister from "./MeetingDecisionRegister.jsx";
 
@@ -33,6 +35,7 @@ const CLASSIFICATIONS = [
   ["a_valider", "Reste à valider"],
   ["desaccord", "Désaccord"],
   ["question_ouverte", "Question ouverte"],
+  ["decision_reportee", "Décision reportée"],
   ["a_verifier", "À vérifier"],
   ["document_evoque", "Document évoqué"]
 ];
@@ -93,7 +96,7 @@ function emptyPreparation() {
     objective: "",
     agendaText: "",
     previousRecap: "",
-    participants: [{ id: crypto.randomUUID(), name: "", presence: "present", role: "", isFacilitator: true }]
+    participants: [{ id: crypto.randomUUID(), name: "", presence: "unknown", role: "", isFacilitator: true }]
   };
 }
 
@@ -117,12 +120,14 @@ function reportGroups(markers) {
     disagreements: [],
     questions: [],
     pending: [],
+    deferred: [],
     documents: []
   };
   for (const marker of markers || []) {
     if (marker.classification === "decision_confirmee") groups.decisions.push(marker);
     if (marker.classification === "action_confirmee") groups.actions.push(marker);
     if (marker.classification === "desaccord") groups.disagreements.push(marker);
+    if (marker.classification === "decision_reportee") groups.deferred.push(marker);
     if (marker.classification === "question_ouverte") groups.questions.push(marker);
     if (["a_valider", "a_verifier", "proposition"].includes(marker.classification)) groups.pending.push(marker);
     if (marker.classification === "document_evoque") groups.documents.push(marker);
@@ -150,9 +155,13 @@ export default function FincaMeetingsHub() {
   const [newMode, setNewMode] = useState(false);
   const [historicMode, setHistoricMode] = useState(false);
   const [registerMode, setRegisterMode] = useState(false);
+  const [archiveMode, setArchiveMode] = useState("");
+  const archiveOperation = useRef(false);
+  const setArchiveOperation = useCallback((value) => { archiveOperation.current = value; }, []);
   const [registerFilter, setRegisterFilter] = useState("all");
   const [registerSearch, setRegisterSearch] = useState("");
   const [registerPage, setRegisterPage] = useState(0);
+  const [registerCriteria, setRegisterCriteria] = useState({year:"",person:"",status:""});
   const [returnToRegister, setReturnToRegister] = useState(false);
   const [highlightedMarkerId, setHighlightedMarkerId] = useState("");
   const [busy, setBusy] = useState(false);
@@ -170,9 +179,9 @@ export default function FincaMeetingsHub() {
   const [elapsed, setElapsed] = useState(0);
   const [audioStatus, setAudioStatus] = useState("");
   const [pendingChunks, setPendingChunks] = useState(0);
-  const [newParticipant, setNewParticipant] = useState({ name: "", role: "", presence: "present" });
+  const [newParticipant, setNewParticipant] = useState({ name: "", role: "", presence: "unknown" });
   const [participantNames, setParticipantNames] = useState("");
-  const [bulkPresence, setBulkPresence] = useState("absent");
+  const [bulkPresence, setBulkPresence] = useState("unknown");
   const reportEditor = useMeetingDraft(() => ({ summary: "", subjects: "" }));
   const { value: reportDraft, edit: setReportDraft } = reportEditor;
   const [health, setHealth] = useState(null);
@@ -200,14 +209,15 @@ export default function FincaMeetingsHub() {
     if (dirty) childDrafts.current.add(id);
     else childDrafts.current.delete(id);
   }, []);
+  const archiveDirty = useCallback((dirty) => trackChildDraft("archive-review", dirty), [trackChildDraft]);
   const hasUnsavedChanges = useCallback(() => (
     preparationEditor.isDirty() || reportEditor.isDirty() || speakerEditor.isDirty() ||
-    childDrafts.current.size > 0 || Boolean(newMode && participantNames.trim()) || Boolean(newParticipant.name.trim() || newParticipant.role.trim() || newParticipant.presence !== "present")
+    childDrafts.current.size > 0 || Boolean(newMode && participantNames.trim()) || Boolean(newParticipant.name.trim() || newParticipant.role.trim() || newParticipant.presence !== "unknown")
   ), [preparationEditor.isDirty, reportEditor.isDirty, speakerEditor.isDirty, newParticipant, newMode, participantNames]);
 
   useEffect(() => {
     function protectUnsaved(event) {
-      if (!hasUnsavedChanges() && !recording && !audioOperationRef.current) return;
+      if (!hasUnsavedChanges() && !recording && !audioOperationRef.current && !archiveOperation.current) return;
       event.preventDefault();
       event.returnValue = "";
     }
@@ -238,6 +248,7 @@ export default function FincaMeetingsHub() {
   }
 
   function audioNavigationMessage() {
+    if (archiveOperation.current) return "Attendez la fin du traitement de l’archive avant de changer de vue.";
     if (audioOperationRef.current === "starting") return AUDIO_NAVIGATION_MESSAGES.starting;
     if (recording || recorderRef.current?.state === "recording") return AUDIO_NAVIGATION_MESSAGES.recording;
     if (audioOperationRef.current) return AUDIO_NAVIGATION_MESSAGES.saving;
@@ -411,7 +422,7 @@ export default function FincaMeetingsHub() {
       participants: [...current.participants, {
         id: crypto.randomUUID(),
         name: "",
-        presence: "present",
+        presence: "unknown",
         role: "",
         isFacilitator: false
       }]
@@ -547,7 +558,7 @@ export default function FincaMeetingsHub() {
       });
       if (!applyMeeting(payload.meeting)) return;
       preparationEditor.refresh(prepFromMeeting(payload.meeting));
-      setNewParticipant({ name: "", role: "", presence: "present" });
+      setNewParticipant({ name: "", role: "", presence: "unknown" });
     } catch (err) {
       setError(err.message);
     }
@@ -940,7 +951,7 @@ export default function FincaMeetingsHub() {
       reportEditor.refresh(meeting?.reportDraft || { summary: "", subjects: "" }, true);
       speakerEditor.refresh(meeting?.speakerOverrides || {}, true);
       childDrafts.current.clear();
-      setNewParticipant({ name: "", role: "", presence: "present" });
+      setNewParticipant({ name: "", role: "", presence: "unknown" });
     }
     setNotice("");
     setError("");
@@ -950,6 +961,7 @@ export default function FincaMeetingsHub() {
   function openMeeting(id, markerId = "") {
     if (id === selectedId && !newMode && !historicMode && !registerMode && !markerId) return;
     navigateWithoutLosingEdits(() => {
+      setArchiveMode("");
       setReturnToRegister(Boolean(markerId));
       setHighlightedMarkerId(markerId);
       activeMeetingId.current = id;
@@ -979,8 +991,9 @@ export default function FincaMeetingsHub() {
   }
 
   function startNew() {
+    setArchiveMode("");
     setParticipantNames("");
-    setBulkPresence("absent");
+    setBulkPresence("unknown");
     setReturnToRegister(false);
     setHighlightedMarkerId("");
     if (!newMode) previousMeetingId.current = selectedId;
@@ -1012,11 +1025,11 @@ export default function FincaMeetingsHub() {
               if (preparationEditor.isDirty() && !window.confirm("Remplacer les champs de préparation par l’exemple fictif ? Les participants sont conservés.")) return;
               setPreparation((current) => ({
                 ...current,
-                title: "DÉMONSTRATION — Situation de Marie-Jo et FINCA MARIA",
+                title: "DÉMONSTRATION — Organisation d’une journée d’entretien",
                 meetingType: "Conseil de famille",
-                theme: "Protection de Marie-Jo, succession et exploitation agricole",
-                objective: "Comprendre comment organiser les démarches familiales et la continuité de la finca. Ceci est un exemple fictif.",
-                agendaText: "Situation de Marie-Jo\nContinuité de l’exploitation agricole\nGestion de la succession\nProchaines démarches à examiner",
+                theme: "Organisation des travaux d’entretien du jardin",
+                objective: "Planifier les tâches et répartir les responsabilités. Ceci est un exemple fictif.",
+                agendaText: "État des lieux du jardin\nTravaux prioritaires\nRépartition des tâches\nProchaines étapes",
                 previousRecap: "EXEMPLE FICTIF — aucune décision précédente à considérer comme réelle."
               }));
               setNotice("Exemple fictif inséré dans le formulaire. Rien n’a été enregistré comme réunion.");
@@ -1043,7 +1056,7 @@ export default function FincaMeetingsHub() {
             {preparation.participants.map((participant) => (
               <div className="participantRow" key={participant.id}>
                 <label>Nom<input value={participant.name} onChange={(event) => updatePreparationParticipant(participant.id, "name", event.target.value)} /></label>
-                <label>Présence<select aria-label="Présence" value={participant.presence} onChange={(event) => updatePreparationParticipant(participant.id, "presence", event.target.value)}><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
+                <label>Présence<select aria-label="Présence" value={participant.presence} onChange={(event) => updatePreparationParticipant(participant.id, "presence", event.target.value)}><option value="unknown">Non renseigné</option><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
                 <MeetingRoleField value={participant.role} onChange={(value) => updatePreparationParticipant(participant.id, "role", value)} />
                 <label className="check"><input type="checkbox" checked={participant.isFacilitator} onChange={(event) => updatePreparationParticipant(participant.id, "isFacilitator", event.target.checked)} /> Anime</label>
               </div>
@@ -1054,7 +1067,7 @@ export default function FincaMeetingsHub() {
             <summary>Ajouter plusieurs participants en une fois</summary>
             <p className="meetingMuted">Collez les noms depuis une liste déjà vérifiée, un par ligne. Aucun nom n’est ajouté automatiquement à partir des comptes familiaux.</p>
             <label className="meetingField"><span>Noms à ajouter</span><textarea aria-label="Noms à ajouter" rows="4" value={participantNames} placeholder={"Un nom par ligne"} onChange={(event) => setParticipantNames(event.target.value)} /></label>
-            <label className="meetingField"><span>Présence initiale (modifiable ensuite)</span><select value={bulkPresence} onChange={(event) => setBulkPresence(event.target.value)}><option value="absent">Absent</option><option value="present">Présent</option><option value="excused">Excusé</option></select></label>
+            <label className="meetingField"><span>Présence initiale (modifiable ensuite)</span><select value={bulkPresence} onChange={(event) => setBulkPresence(event.target.value)}><option value="absent">Absent</option><option value="unknown">Non renseigné</option><option value="present">Présent</option><option value="excused">Excusé</option></select></label>
             <button type="button" className="meetingBtn" onClick={addParticipantsFromList} disabled={!participantNames.trim()}>Ajouter ces participants</button>
           </details>
         </div>
@@ -1076,8 +1089,10 @@ export default function FincaMeetingsHub() {
       <div className="meetingLayout">
         <aside className="meetingSidebar">
           <div className="meetingSidebarHead"><strong>Réunions</strong><button type="button" className="meetingBtn primary" disabled={Boolean(reportOperation)} onClick={() => navigateWithoutLosingEdits(() => { setHistoricMode(false); setRegisterMode(false); startNew(); })}>+ Nouvelle</button></div>
-          <button className="meetingBtn" type="button" disabled={Boolean(reportOperation)} onClick={() => navigateWithoutLosingEdits(() => { setHistoricMode(true); setRegisterMode(false); setNewMode(false); })} style={{ width: "100%", marginBottom: "1rem" }}>Importer des comptes rendus</button>
-          <button className="meetingBtn" type="button" disabled={Boolean(reportOperation)} onClick={() => navigateWithoutLosingEdits(() => { setRegisterMode(true); setHistoricMode(false); setNewMode(false); })} style={{ width: "100%", marginBottom: "1rem" }}>Registre des décisions</button>
+          <button className="meetingBtn" type="button" disabled={Boolean(reportOperation)} onClick={() => navigateWithoutLosingEdits(() => { setArchiveMode(""); setHistoricMode(true); setRegisterMode(false); setNewMode(false); })} style={{ width: "100%", marginBottom: "1rem" }}>Importer des comptes rendus</button>
+          <button className="meetingBtn" type="button" disabled={Boolean(reportOperation)} onClick={() => navigateWithoutLosingEdits(() => { setArchiveMode(""); setRegisterMode(true); setHistoricMode(false); setNewMode(false); })} style={{ width: "100%", marginBottom: "1rem" }}>Registre des décisions</button>
+          <button className="meetingBtn" type="button" onClick={() => navigateWithoutLosingEdits(() => { setArchiveMode("word"); setRegisterMode(false); setHistoricMode(false); setNewMode(false); })}>Importer un document Word</button>
+          <button className="meetingBtn" type="button" onClick={() => navigateWithoutLosingEdits(() => { setArchiveMode("participation"); setRegisterMode(false); setHistoricMode(false); setNewMode(false); })}>Participants et participation</button>
           <div className="meetingListFilters">
             <label className="meetingField"><span>Rechercher une réunion</span><input type="search" maxLength={200} value={meetingSearch} placeholder="Titre, thème, texte ou date…" onChange={(event) => updateListFilters(event.target.value, reportFilter)} /></label>
             <label className="meetingField"><span>Compte rendu</span><select aria-label="Filtrer les réunions par compte rendu" value={reportFilter} onChange={(event) => updateListFilters(meetingSearch, event.target.value)}><option value="all">Toutes les réunions</option><option value="validated">Avec compte rendu validé</option><option value="pending">Sans compte rendu validé</option></select></label>
@@ -1086,27 +1101,29 @@ export default function FincaMeetingsHub() {
             {listError && <p role="alert">{listError} <button type="button" className="meetingBtn" disabled={listLoading} onClick={() => loadList()}>Réessayer la recherche</button></p>}
           </div>
           <div className="meetingList" aria-busy={listLoading}>
-            {meetings.map((item) => (
-              <button type="button" key={item.id} disabled={Boolean(reportOperation)} className={selectedId === item.id && !newMode ? "isActive" : ""} onClick={() => openMeeting(item.id)}>
+            {[...new Set(meetings.map((item) => item.date.slice(0,4)))].sort().reverse().map((year) => <details className="meetingYear" key={year} open><summary>{year}</summary>{meetings.filter((item) => item.date.startsWith(year)).map((item) => (
+              <button type="button" key={item.id} aria-expanded={selectedId === item.id && !newMode && !archiveMode && !registerMode && !historicMode} aria-controls="meeting-panel" disabled={Boolean(reportOperation)} className={selectedId === item.id && !newMode ? "isActive" : ""} onClick={() => openMeeting(item.id)}>
                 <strong>{item.title}</strong>
-                <span>{item.date} · {item.meetingType}</span>
-                <small>{item.presentCount} présent(s) · {item.markerCount} repère(s){item.validatedVersion ? ` · CR v${item.validatedVersion}` : ""}</small>
+                <span>{item.date} · {item.meetingType}{item.reportDraft?.historicOriginal?.match(/(?:n[°ºo.]\s*|numéro\s+)(\d+)/iu)?.[1] ? ` · n° ${item.reportDraft.historicOriginal.match(/(?:n[°ºo.]\s*|numéro\s+)(\d+)/iu)[1]}` : ""}</span>
+                <span>Sujets : {item.theme || item.reportDraft?.subjects || item.agenda?.join(" · ") || "non renseignés"}</span>
+                <span>Synthèse : {item.reportDraft?.summary?.slice(0,180) || "non renseignée"}</span>
+                <small>{item.participantCount === 0 ? "Participants non renseignés" : `${item.presentCount ?? 0} présent(s)${item.unknownCount ? ` · ${item.unknownCount} présence(s) non renseignée(s)` : ""}`} · {item.markerCount === 0 && item.reportDraft?.historicOriginal ? "Repères à structurer" : `${item.markerCount ?? 0} repère(s)`}{item.validatedVersion ? ` · CR v${item.validatedVersion}` : ""}</small>
               </button>
-            ))}
+            ))}</details>)}
             {!meetings.length && !listLoading && !listError ? <span className="meetingMuted">{meetingSearch || reportFilter !== "all" ? "Aucune réunion ne correspond à ces filtres." : "Aucune réunion enregistrée."}</span> : null}
           </div>
           {hasMoreMeetings && <button type="button" className="meetingBtn" disabled={listLoading} onClick={() => loadList("", true)}>Afficher plus de réunions</button>}
         </aside>
 
-        <section className="meetingPanel">
+        <section className="meetingPanel" id="meeting-panel">
           {returnToRegister && !registerMode && !historicMode && !newMode && <button type="button" className="meetingBtn" disabled={Boolean(reportOperation)} onClick={backToRegister}>← Retour au registre des décisions</button>}
           {error ? <div className="meetingNotice error" role="alert">{error}</div> : null}
           {notice ? <div className="meetingNotice ok">{notice}</div> : null}
           {preparationEditor.dirty || reportEditor.dirty || speakerEditor.dirty ? <p role="status">Des modifications ne sont pas encore enregistrées. L’actualisation automatique les conserve.</p> : null}
           {reportOperation ? <p role="status">{reportOperation === "saving" ? "Enregistrement du brouillon en cours…" : "Validation du compte rendu en cours…"}</p> : null}
 
-          {registerMode ? (
-            <MeetingDecisionRegister onOpen={openMeeting} onClose={() => setRegisterMode(false)} filter={registerFilter} onFilterChange={setRegisterFilter} search={registerSearch} onSearchChange={setRegisterSearch} page={registerPage} onPageChange={setRegisterPage} />
+          {archiveMode === "participation" ? <ParticipationRegister onOpen={openMeeting} onClose={() => setArchiveMode("")} /> : archiveMode ? <ArchiveReview key={`${archiveMode}:${selectedId}`} meeting={meeting} meetings={meetings} word={archiveMode === "word"} onDirtyChange={archiveDirty} onOperationChange={setArchiveOperation} onClose={() => navigateWithoutLosingEdits(() => setArchiveMode(""))} onSaved={async (saved) => { setArchiveMode(""); setSelectedId(saved.id); activeMeetingId.current=saved.id; applyMeeting(saved); await loadList(saved.id); setNotice("Informations vérifiées enregistrées. Le texte original est conservé."); }} /> : registerMode ? (
+            <MeetingDecisionRegister onOpen={openMeeting} onClose={() => setRegisterMode(false)} filter={registerFilter} onFilterChange={setRegisterFilter} search={registerSearch} onSearchChange={setRegisterSearch} page={registerPage} onPageChange={setRegisterPage} criteria={registerCriteria} onCriteriaChange={setRegisterCriteria} />
           ) : historicMode ? (
             <HistoricMeetingImport onClose={() => setHistoricMode(false)} onImported={async (id) => { await loadList(id); }} />
           ) : newMode ? (
@@ -1116,7 +1133,7 @@ export default function FincaMeetingsHub() {
             </form>
           ) : meeting ? (
             <>
-              {meeting.reportDraft?.historicImport ? <section className="meetingSection"><h2>Compte rendu historique d’origine</h2><p className="meetingMuted">Document original conservé. Décisions proposées à vérifier dans les marqueurs ci-dessous.</p><pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontFamily: "inherit" }}>{meeting.reportDraft.historicOriginal}</pre></section> : null}
+              {meeting.reportDraft?.historicImport ? <p className="meetingMuted">Archive originale conservée · participants et repères à vérifier depuis la source.</p> : null}
               <section className="meetingSection">
                 <div className="meetingActions" style={{ justifyContent: "space-between", marginTop: 0 }}>
                   <div><h2 style={{ marginBottom: ".2rem" }}>{meeting.title}</h2><div className="meetingStatus"><strong>{meeting.date}</strong> · {meeting.meetingType} · état : {meeting.status}</div></div>
@@ -1139,12 +1156,18 @@ export default function FincaMeetingsHub() {
                 </div>
                 <div className="participantRow" style={{ marginTop: ".55rem" }}>
                   <label>Nouvel intervenant<input value={newParticipant.name} onChange={(event) => setNewParticipant({ ...newParticipant, name: event.target.value })} placeholder="Nom" /></label>
-                  <label>Présence<select aria-label="Présence" value={newParticipant.presence} onChange={(event) => setNewParticipant({ ...newParticipant, presence: event.target.value })}><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
+                  <label>Présence<select aria-label="Présence" value={newParticipant.presence} onChange={(event) => setNewParticipant({ ...newParticipant, presence: event.target.value })}><option value="unknown">Non renseigné</option><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
                   <MeetingRoleField value={newParticipant.role} onChange={(value) => setNewParticipant({ ...newParticipant, role: value })} />
                   <button type="button" className="meetingBtn" onClick={addParticipantDuringMeeting}>Ajouter</button>
                 </div>
               </section>
 
+              <section className="meetingSection">
+                <h3>Sources et reprise des archives</h3>
+                {meeting.reportDraft?.historicOriginal && <><details><summary>Lire le texte original conservé</summary><pre className="archiveOriginal">{meeting.reportDraft.historicOriginal}</pre></details><button type="button" className="meetingBtn" onClick={() => navigateWithoutLosingEdits(() => setArchiveMode("review"))}>Vérifier les participants et repères de cette archive</button></>}
+                <button type="button" className="meetingBtn" onClick={() => navigateWithoutLosingEdits(() => setArchiveMode("word"))}>Importer un Word pour cette réunion</button>
+                {(meeting.sources || []).map((source) => <p key={source.id}><a href={`/api/meetings/${meeting.id}/sources/${source.id}`}>Télécharger l’original Word : {source.name}</a></p>)}
+              </section>
               <section className="meetingSection">
                 <h3>2 · Trame de réunion</h3>
                 <p className="meetingMuted">Le rail guide sans bloquer : tu peux passer d’un point à l’autre à tout moment.</p>
@@ -1259,6 +1282,7 @@ export default function FincaMeetingsHub() {
                   <ReportGroup title="Actions confirmées" markers={groups.actions} action />
                   <ReportGroup title="Désaccords" markers={groups.disagreements} />
                   <ReportGroup title="Questions ouvertes" markers={groups.questions} />
+                  <ReportGroup title="Décisions reportées" markers={groups.deferred} />
                   <ReportGroup title="Propositions / à vérifier / à valider" markers={groups.pending} />
                   <ReportGroup title="Documents évoqués" markers={groups.documents} />
                 </div>
@@ -1295,7 +1319,7 @@ function ParticipantEditor({ participant, onSave, onDirtyChange }) {
   return (
     <div className="participantRow">
       <label>Nom<input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
-      <label>Présence<select aria-label="Présence" value={draft.presence} onChange={(event) => setDraft({ ...draft, presence: event.target.value })}><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
+      <label>Présence<select aria-label="Présence" value={draft.presence} onChange={(event) => setDraft({ ...draft, presence: event.target.value })}><option value="unknown">Non renseigné</option><option value="present">Présent</option><option value="absent">Absent</option><option value="excused">Excusé</option></select></label>
       <MeetingRoleField value={draft.role} onChange={(value) => setDraft({ ...draft, role: value })} />
       <label className="check"><input type="checkbox" checked={Boolean(draft.isFacilitator)} onChange={(event) => setDraft({ ...draft, isFacilitator: event.target.checked })} /> Anime</label>
       <button type="button" className="meetingBtn" onClick={save}>Enregistrer</button>

@@ -19,6 +19,7 @@ export const CLASSIFICATIONS = new Set([
   "a_valider",
   "desaccord",
   "question_ouverte",
+  "decision_reportee",
   "a_verifier",
   "document_evoque"
 ]);
