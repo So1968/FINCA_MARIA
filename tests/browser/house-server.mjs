@@ -28,7 +28,7 @@ async function eventually(operation, message) {
   }
   throw new Error(message);
 }
-async function login(route = "/?view=cortijo-maison", initialNotes, initialStorage = {}) {
+async function login(route = "/?view=cortijo-maison", initialNotes, initialStorage = {}, authenticatedContext) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: "fr-FR" }); contexts.push(context);
   if (Object.keys(initialStorage).length) await context.addInitScript(storage => {
     for (const [key, value] of Object.entries(storage)) if (localStorage.getItem(key) === null) localStorage.setItem(key, value);
@@ -36,8 +36,14 @@ async function login(route = "/?view=cortijo-maison", initialNotes, initialStora
   if (initialNotes) await context.addInitScript(({ key, value }) => {
     if (localStorage.getItem(key) === null) localStorage.setItem(key, JSON.stringify(value));
   }, { key: HOUSE_KEYS.notes, value: initialNotes });
-  const response = await context.request.post(`${origin}/api/auth/login`, { headers: { Origin: origin }, data: { email, password } });
-  assert.equal(response.status(), 200, "Connexion au compte de test");
+  if (authenticatedContext) {
+    // Profils locaux séparés, session de test déjà authentifiée : ne pas épuiser
+    // la limite de connexions avant les contrôles de rôles du runtime complet.
+    await context.addCookies(await authenticatedContext.cookies());
+  } else {
+    const response = await context.request.post(`${origin}/api/auth/login`, { headers: { Origin: origin }, data: { email, password } });
+    assert.equal(response.status(), 200, "Connexion au compte de test");
+  }
   const page = await context.newPage(); page.setDefaultTimeout(15000);
   const errors = []; page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(`${origin}${route}`);
@@ -172,12 +178,12 @@ try {
   await b.waitForFunction((key) => JSON.parse(localStorage.getItem(key))["infra-Eau"] === "NOTE_DISTANTE_APRES_QUOTA_TEST", HOUSE_KEYS.notes);
   console.log("✓ Serveur : quota local signalé pendant la synchronisation, puis récupération de la version distante après nouvelle tentative");
   const oldBooking = { id: `ancien-incomplet-test-${Date.now()}`, name: "Ancien séjour incomplet test", place: "Chambre ancienne test", note: "Dates à compléter", unknown: { keep: true } };
-  const fifth = await login("/", undefined, { [HOUSE_KEYS.bookings]: JSON.stringify([oldBooking]), azoth_finca_sync_initialized_v1: "1" });
+  const fifth = await login("/", undefined, { [HOUSE_KEYS.bookings]: JSON.stringify([oldBooking]), azoth_finca_sync_initialized_v1: "1" }, first.context);
   assert.deepEqual(await fifth.page.evaluate(({ key, id }) => JSON.parse(localStorage.getItem(key)).find(item => item.id === id), { key: HOUSE_KEYS.bookings, id: oldBooking.id }), oldBooking);
   assert.ok(!(await bootstrap(fifth.context)).reservations.some(item => item.id === oldBooking.id), "Un séjour incomplet reste local tant qu’il n’est pas corrigé.");
   await fifth.page.locator(".fincaAreaChoice--maison").click();
   await fifth.page.getByRole("heading", { name: oldBooking.name, exact: true }).waitFor();
-  const sixth = await login("/", { "infra-Eau": "NOTE_LOCALE_ACCUEIL_PREMIERE_CONNEXION_TEST" });
+  const sixth = await login("/", { "infra-Eau": "NOTE_LOCALE_ACCUEIL_PREMIERE_CONNEXION_TEST" }, {}, first.context);
   assert.ok(await sixth.page.evaluate(({ recovery, notes }) => JSON.parse(localStorage.getItem(recovery) || "[]").some(item => item.stateKey === notes && item.value?.["infra-Eau"] === "NOTE_LOCALE_ACCUEIL_PREMIERE_CONNEXION_TEST"), { recovery: HOUSE_KEYS.syncRecovery, notes: HOUSE_KEYS.notes }));
   console.log("✓ Serveur : accueil puis Maison, séjour incomplet conservé sans envoi au serveur et ancienne note locale récupérable dès la première connexion");
   await b.evaluate((key) => { localStorage.setItem(key, "{invalid"); dispatchEvent(new Event("finca-maria-storage-updated")); dispatchEvent(new Event("focus")); }, HOUSE_KEYS.bookings);
