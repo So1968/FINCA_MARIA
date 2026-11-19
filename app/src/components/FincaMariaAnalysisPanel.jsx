@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 const FAMILY_CHECK_STORAGE_KEY = "finca_maria_family_checks_v42_20260818";
 
 const proofLegend = [
-  ["[P] Prouvé", "Une pièce ou une confirmation documentaire établit le fait."],
+  ["[P] Documenté", "Une pièce est référencée dans le dossier pour ce fait précis ; sa portée et sa complétude restent à contrôler."],
   ["[D] Déclaré", "Une personne le rapporte ; on conserve le témoignage sans le transformer en preuve."],
-  ["[C] Calculé", "Le chiffre est reconstitué à partir de données documentées ; la formule reste visible."],
+  ["[CR] Compte rendu", "Un compte rendu familial rapporte le fait ; ce n'est pas un justificatif d'exécution ou de paiement."],
+  ["[C] Calculé", "La formule et ses hypothèses restent visibles. Un calcul conditionnel n'est pas un total certifié."],
   ["[H] Hypothèse", "C'est une piste de travail qui doit encore être vérifiée."],
 ];
 
@@ -17,8 +18,8 @@ const currentFindings = [
   },
   {
     status: "[C]",
-    title: "Les campagnes 2014/15 à 2017/18 montrent déjà une forte alternance",
-    text: "À partir des parts de 15 % documentées, les productions totales reconstituées sont d'environ 10,37 t ; 25,69 t ; 11,48 t ; 26,72 t. Une forte variation d'une campagne à l'autre existait donc avant la période récente.",
+    title: "Les reconstructions anciennes dépendent de l'hypothèse des 15 %",
+    text: "Les scénarios 2014/15 à 2017/18 donnent environ 10,37 t ; 25,69 t ; 11,48 t ; 26,72 t, uniquement si les kilos familiaux représentent exactement 15 % de tous les apports. La base 2015/16 présente notamment un groupe de 9 064 kg non résolu. Ces calculs ne sont pas des totaux officiels et ne prouvent pas à eux seuls une alternance agronomique.",
   },
   {
     status: "[P]",
@@ -32,23 +33,28 @@ const currentFindings = [
   },
   {
     status: "[P/D]",
-    title: "2025/26 : 7 943 kg récoltés sont distincts des 6 541 kg signalés comme restant au sol",
-    text: "Un premier ramassage de 7 943 kg est documenté dans le dossier, associé au reçu / ticket nº 6139 du 23/03/2026, parcela 27 recinto 3. Un compte rendu familial précise ensuite que 6 541 kg restaient à ramasser au sol. Ces 6 541 kg ne doivent donc pas être présentés comme un second apport coopérative ni additionnés automatiquement aux 7 943 kg comme olives livrées. Le total officiel de campagne reste à demander à San Juan.",
+    title: "2025/26 : deux repartos utilisent la même base de 18 210 kg",
+    text: "La synthèse mise à jour le 13/09/2026 référence les reçus n°1062 du 20/05 et n°1769 du 15/07 : 18 210 kg d'olives, 3 860,64 kg d'huile, rendement de 21,20 %. Ne pas additionner deux fois ces kilos. Les 7 943 kg rapportés par la famille, les 6 541 kg de nature discutée et la référence 6139 restent à rapprocher des originaux. La complétude des apports et l'éventuelle liquidation finale ne sont pas confirmées.",
   },
   {
     status: "[P]",
     title: "La PAC 2026 est déjà documentée",
-    text: "La déclaration ASAJA Málaga datée du 12/03/2026 est dans le corpus et les comptes rendus familiaux 2026 indiquent que la demande de subvention a été faite par ASAJA via / à la Coopérative San Juan. La question 'la PAC a-t-elle été faite ?' est fermée. Il faut maintenant extraire titulaire, parcelles, recintos, surfaces, cultures, références et compte de versement.",
+    text: "La déclaration ASAJA Málaga du 12/03/2026 est référencée et les comptes rendus familiaux rapportent une démarche ASAJA via la Coopérative San Juan. Les pages détaillées 2026 restent à récupérer pour vérifier titulaire, parcelles, recintos, surfaces, cultures et aides. Une déclaration ne prouve ni l'acceptation ni le versement des aides.",
   },
   {
-    status: "[P]",
+    status: "[P/CR]",
     title: "La facture Vitines n°378 existe et ses grands postes sont connus",
-    text: "La facture du 04/04/2026 s'élève à 5 445 € TTC. Les comptes rendus familiaux indiquent : 1 tratamiento foliar, 1 cuba de 3 000 litros, 8 horas de desbrozar et 2 cubas liquido al suelo. Ils indiquent aussi deux règlements : 2 500 € le 05/05/2026 et 2 945 € le 10/05/2026. Ce qu'il faut encore obtenir est le détail des produits, doses, parcelles et la ventilation du prix.",
+    text: "La facture du 04/04/2026 s'élève à 5 445 € TTC. Le C.R. familial rapporte un traitement foliaire, une cuve de 3 000 L, huit heures de débroussaillage et deux cuves de liquide au sol, sans dates individuelles confirmées. Il rapporte aussi 2 500 € réglés le 05/05 et 2 945 € le 10/05, dont les preuves bancaires restent à rapprocher. Demander dates réelles, produits, doses, parcelles et ventilation du prix.",
   },
   {
     status: "[P]",
     title: "La surface cadastrale totale ne doit pas être confondue avec la surface d'oliviers",
     text: "Le repère de 11,4951 ha concerne la superficie cadastrale totale. Il ne peut pas servir tel quel à calculer un rendement kg/ha de l'oliveraie. Il faut d'abord ventiler oliviers, céréales / tierra de calma et autres usages à partir de PAC / SIGPAC.",
+  },
+  {
+    status: "[À compléter]",
+    title: "Le bénéfice net des oliviers reste inconnu",
+    text: "Les recettes et toutes les charges doivent être rapprochées par campagne, sans doubles comptes et avec une même base HT ou TTC. Le solde coopérative de 6 437,10 € mêle plusieurs mouvements ; le résultat fiscal forfaitaire n'est pas une rentabilité réelle. Aucun de ces montants ne constitue le bénéfice net des oliviers.",
   },
   {
     status: "[H]",
@@ -61,7 +67,7 @@ const methodSteps = [
   {
     step: "1",
     title: "Lire les pièces avant de créer une question",
-    text: "Une question ne reste ouverte que si les documents déjà reçus ne permettent pas d'y répondre. À chaque nouvel import, FINCA MARIA doit rapprocher le document des questions existantes et proposer de fermer ou reformuler celles qui deviennent obsolètes.",
+    text: "À chaque nouvelle pièce, vérifier les questions existantes et noter celles auxquelles elle répond, avec sa référence et sa portée. Fermer ou reformuler une question après ce contrôle documentaire.",
   },
   {
     step: "2",
@@ -95,7 +101,7 @@ const sisterChecklist = [
   "As-tu une copie plus complète du dossier PAC 2026 avec les pages indiquant titulaire, parcelles, recintos et surfaces ?",
   "As-tu des archives ou mails de Peláez contenant des déclarations fiscales ou justificatifs agricoles anciens ?",
   "As-tu le détail de la facture Vitines n°378 : produits, doses, parcelles et ventilation du prix ?",
-  "Le chiffre de 6 541 kg mentionné comme olives restant au sol a-t-il ensuite donné lieu à un ramassage et à un ticket San Juan identifiable ?",
+  "Les originaux confirment-ils la nature des 6 541 kg et leur éventuel rattachement à un ramassage et à un ticket San Juan ?",
   "Y a-t-il une démarche déjà lancée auprès de San Juan, ASAJA, Peláez ou Vitines dont nous attendons encore une réponse ?",
 ];
 
@@ -159,15 +165,15 @@ export function FincaMariaAnalysisPanel() {
       <div className="cortijoPanelTitle">
         <span>AN</span>
         <div>
-          <h3>Analyse consolidée après relecture documentaire</h3>
-          <p>FINCA MARIA V42 — état du 18/08/2026. Les anciennes questions déjà résolues ont été retirées.</p>
+          <h3>Analyse documentaire — faits, calculs et points ouverts</h3>
+          <p>Revue des synthèses du dossier le 13/11/2026, incluant les compléments de septembre. Les originaux ne sont pas certifiés par cette revue.</p>
         </div>
       </div>
 
       <section className="cortijoFocusPanel">
         <div>
           <span className="cortijoEyebrow">Conclusion provisoire</span>
-          <h3>Le dossier est plus avancé qu'il n'y paraissait : plusieurs inconnues étaient déjà résolues par les pièces.</h3>
+          <h3>Les pièces référencées, les témoignages et les calculs doivent rester distincts.</h3>
         </div>
         <p>
           Le travail prioritaire n'est plus de redemander si la PAC existe, si la facture Vitines existe ou quel était le rôle général de Peláez. Il faut maintenant compléter les campagnes San Juan, extraire les détails PAC, ventiler la facture n°378, retrouver les archives fiscales et faire l'analyse agronomique.
@@ -186,9 +192,9 @@ export function FincaMariaAnalysisPanel() {
 
       <section className="cortijoWorkflow">
         <div>
-          <span className="cortijoEyebrow">Méthodologie V42</span>
+          <span className="cortijoEyebrow">Méthode de lecture</span>
           <h3>Lire, rapprocher, fermer les fausses questions, puis seulement enquêter</h3>
-          <p>Le logiciel doit appliquer cette logique automatiquement au fur et à mesure que le BAÚL reçoit de nouvelles pièces.</p>
+          <p>Ces étapes décrivent le contrôle documentaire à effectuer lors de l'ajout de pièces au BAÚL.</p>
         </div>
         <ol>
           {methodSteps.map((item) => (

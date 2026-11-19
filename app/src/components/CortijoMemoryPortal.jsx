@@ -156,10 +156,10 @@ const projectMemoryEntries = [
   {
     date: "2014/15 → 2017/18",
     type: "Production",
-    title: "Quatre productions totales de finca reconstituées à partir de la part contractuelle",
-    summary: "À partir des pièces correspondant à la part de 15 % prévue au bail, les productions totales reconstituées sont d'environ 10,37 t ; 25,69 t ; 11,48 t ; 26,72 t. Ici il s'agit bien d'un calcul de production totale, distinct des kilos bruts portés sur le compte de María.",
+    title: "Quatre scénarios de production à confirmer",
+    summary: "Les scénarios donnent environ 10,37 t ; 25,69 t ; 11,48 t ; 26,72 t uniquement si les kilos familiaux représentent exactement 15 % de tous les apports. Ce ne sont pas des totaux officiels. La base 2015/16 présente notamment un groupe de 9 064 kg non résolu.",
     location: "BAÚL privé — documents coopérative + contrat + calcul",
-    status: "[C] Calculé à partir des 15 %",
+    status: "[C conditionnel] Hypothèse des 15 %",
     actors: ["san-juan"]
   },
   {
