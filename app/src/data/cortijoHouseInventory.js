@@ -11,6 +11,8 @@ export const houseInventoryCategories = [
   "Décoration",
   "Équipement extérieur",
   "Produits d’entretien",
+  "Consommables",
+  "Équipements",
   "Matériel de sécurité",
   "Autre"
 ];
@@ -259,7 +261,7 @@ function checkMatchesItem(check, item) {
 }
 
 export function getHouseEssentialSummary(userInventory = []) {
-  const current = [...documentedHouseInventory, ...normalizeUserInventory(userInventory)];
+  const current = currentHouseInventory(userInventory);
   const checks = houseEssentialChecks.map((check) => {
     const matches = current.filter((item) => checkMatchesItem(check, item));
     return {
@@ -277,8 +279,7 @@ export function getHouseEssentialSummary(userInventory = []) {
 }
 
 export function getInventorySummary(userInventory = []) {
-  const user = normalizeUserInventory(userInventory);
-  const current = [...documentedHouseInventory, ...user];
+  const current = currentHouseInventory(userInventory);
   const knownQuantity = current.reduce((total, item) => {
     const quantity = Number(item.quantity);
     return Number.isFinite(quantity) && quantity > 0 ? total + quantity : total;
@@ -291,4 +292,13 @@ export function getInventorySummary(userInventory = []) {
     categoriesStarted: new Set(current.map((item) => item.category).filter(Boolean)).size,
     categoriesTotal: houseInventoryCategories.length
   };
+}
+
+function currentHouseInventory(value) {
+  const overrides = new Map(normalizeUserInventory(value).map((item) => [item.id, item]));
+  const documentedIds = new Set(documentedHouseInventory.map((item) => item.id));
+  return [
+    ...documentedHouseInventory.map((item) => ({ ...item, ...overrides.get(item.id) })),
+    ...normalizeUserInventory(value).filter((item) => !documentedIds.has(item.id))
+  ].filter((item) => !item.archivedAt);
 }
