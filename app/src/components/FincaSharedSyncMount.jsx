@@ -18,6 +18,7 @@ const SHARED_KEYS = [
   "finca_maria_lieux_vacanciers_v1",
   "finca_maria_sejour_checklist_v1",
   "finca_maria_entretien_maison_v1",
+  "finca_maria_entretien_terre_v1",
   "finca_maria_couchages_plan_v1",
   "finca_maria_reservations_corbeille_locale_v1",
   "finca_maria_maison_depart_checklist_v1",

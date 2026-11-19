@@ -5,6 +5,7 @@ import { actionScriptsFr as ACTION_SCRIPT_FR } from "../data/cortijoActionScript
 import { ACTION_FILTERS, actionFilter, actionsUrl, matchesActionFilter, summarizeActions, normalizeActionStatus as normalizeStatus } from "../lib/actionAssignments.mjs";
 import { useActionAssignments } from "../lib/useActionAssignments";
 import { ActionSaveStatus } from "./ActionSaveStatus";
+import { FincaEarthMaintenancePanel } from "./FincaEarthMaintenancePanel";
 const NAV_STORAGE_KEY = "finca_maria_navigation_v2";
 const ACTION_PLAN_DATE = "18/08/2026";
 const BACKUP_VERSION = 2;
@@ -26,6 +27,7 @@ const CONTACT_WITH_OPTIONS = ["San Juan", "ASAJA", "Peláez", "Agriculteur / Vit
 
 const EARTH_TABS = [
   { id: "gestion", label: "Journal", icon: "leaf", title: "Journal de l’exploitation" },
+  { id: "entretien", label: "Entretien", icon: "check", title: "Calendrier d’entretien de la terre" },
   { id: "analyse", label: "Analyse", icon: "search", title: "Analyse de la terre" },
   { id: "strategie", label: "Stratégie", icon: "compass", title: "Stratégie" },
   { id: "actions", label: "Actions", icon: "folder", title: "Dossiers & actions" }
@@ -210,7 +212,7 @@ export function FincaMariaDashboard() {
   const { assignments, updateAssignment, saveMessage, readError, canRetrySave, retrySave } = useActionAssignments();
   const [earthActionFilter, setEarthActionFilter] = useState(() => actionFilter(new URLSearchParams(window.location.search).get("filter")));
   const [area, setArea] = useState(() => new URLSearchParams(window.location.search).get("area") === "terre" ? "terre" : "home");
-  const [earthTab, setEarthTab] = useState(() => new URLSearchParams(window.location.search).get("tab") === "actions" ? "actions" : initialNavigation.earthTab || "gestion");
+  const [earthTab, setEarthTab] = useState(() => ["actions", "entretien"].includes(new URLSearchParams(window.location.search).get("tab")) ? new URLSearchParams(window.location.search).get("tab") : initialNavigation.earthTab || "gestion");
   const houseTab = initialNavigation.houseTab || "gerer";
   const importRef = useRef(null);
   const [openDossiers, setOpenDossiers] = useState(() => {
@@ -331,6 +333,7 @@ export function FincaMariaDashboard() {
 
       <div id="finca-maria-sections" className="fincaMariaSections" style={{ display: area === "terre" ? "block" : "none" }}>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "gestion" ? "block" : "none" }}><summary><h3>Journal de l’exploitation</h3></summary><div className="cortijoWorkflow"><ol>{managementTimeline.map((item) => <li key={`${item.period}-${item.title}`}><strong>{item.period}</strong><span><b>{item.title}</b><br />{item.text}</span></li>)}</ol></div></details>
+        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "entretien" ? "block" : "none" }}><summary><h3>Calendrier d’entretien de la terre</h3></summary><FincaEarthMaintenancePanel /></details>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "analyse" ? "block" : "none" }}>
           <summary><h3>Analyse</h3></summary>
           <p>Revue des synthèses du dossier le 13/11/2026. Les pièces originales et la complétude des campagnes restent à contrôler ; [C] désigne un calcul avec ses hypothèses.</p>
