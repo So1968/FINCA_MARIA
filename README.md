@@ -32,6 +32,9 @@ partagé ou téléchargé en HTML, sans les notes privées familiales.
 `npm run test:house:browser` vérifie ces parcours sur ordinateur et téléphone,
 avec un BAÚL et des profils de navigateur de test. Le test runtime CI ajoute
 une vérification réelle entre navigateurs, API et PostgreSQL, sans compte familial.
+`npm run test:house-sync:browser` vérifie aussi la protection des données MAISON
+dès l'accueil, avec des réponses API simulées (anciennes données, première
+connexion, stockage illisible et quota).
 L'audit et les limites sont détaillés dans
 [AUDIT_MAISON_2026-11-16.md](docs/AUDIT_MAISON_2026-11-16.md).
 

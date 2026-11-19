@@ -68,6 +68,9 @@ jobs:
       - name: Test Maison workflows and legacy data in Chromium
         run: npm run test:house:browser
 
+      - name: Test Maison synchronization protection from the homepage
+        run: npm run test:house-sync:browser
+
       - name: Save Maison browser captures
         if: always()
         uses: actions/upload-artifact@v4

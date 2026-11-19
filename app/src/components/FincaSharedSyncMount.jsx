@@ -10,6 +10,7 @@ const PRESENCES_KEY = "finca_maria_maison_presences_v1";
 const READY_KEY = "finca_maria_chambres_preparation_v1";
 const NAME_KEY = "finca_maria_reservation_prenom_v1";
 const SERVER_MODE = import.meta.env.VITE_FINCA_SERVER_MODE === "1";
+const HOUSE_STORAGE_KEYS = new Set(Object.values(HOUSE_KEYS));
 
 const SHARED_KEYS = [
   "finca_maria_maison_notes_v1",
@@ -224,10 +225,10 @@ export function FincaSharedSyncMount() {
   async function migrateLegacyLocal(activeSession, bootstrap) {
     const local = localSnapshot();
     let changed = false;
-    const uploadable = houseView() ? new Set(syncableHouseBookings(local.reservations)) : null;
+    const uploadable = new Set(syncableHouseBookings(local.reservations));
 
     for (const booking of local.reservations) {
-      if (uploadable && !uploadable.has(booking)) continue;
+      if (!uploadable.has(booking)) continue;
       const alreadyThere = bootstrap.reservations.some((remote) => remote.id === booking.id || bookingEquivalent(remote, booking));
       if (alreadyThere) continue;
       try {
@@ -261,13 +262,13 @@ export function FincaSharedSyncMount() {
   }
 
   async function pushLocalChanges(activeSession, previous, current, bootstrap) {
-    const currentUploadable = houseView() ? new Set(syncableHouseBookings(current.reservations || [])) : null;
-    const previousUploadable = houseView() ? new Set(syncableHouseBookings(previous.reservations || [])) : null;
+    const currentUploadable = new Set(syncableHouseBookings(current.reservations || []));
+    const previousUploadable = new Set(syncableHouseBookings(previous.reservations || []));
     const previousById = new Map((previous.reservations || []).map((item) => [item?.id, item]));
     const currentById = new Map((current.reservations || []).map((item) => [item?.id, item]));
 
     for (const booking of current.reservations || []) {
-      if (currentUploadable && !currentUploadable.has(booking)) continue;
+      if (!currentUploadable.has(booking)) continue;
       const before = previousById.get(booking.id);
       if (!before || !sameValue(before, booking)) {
         await request("/api/reservations", { method: "POST", body: JSON.stringify(booking) }, activeSession);
@@ -275,7 +276,7 @@ export function FincaSharedSyncMount() {
     }
 
     for (const booking of previous.reservations || []) {
-      if (previousUploadable && !previousUploadable.has(booking)) continue;
+      if (!previousUploadable.has(booking)) continue;
       if (!currentById.has(booking.id)) {
         await request(`/api/reservations/${encodeURIComponent(booking.id)}`, { method: "DELETE" }, activeSession);
       }
@@ -316,7 +317,7 @@ export function FincaSharedSyncMount() {
     const current = localSnapshot();
     const persistRemote = (key, value) => {
       const saved = storageSet(localStorage, key, JSON.stringify(value));
-      if (!saved && houseView()) throw new Error("Enregistrement local du partage impossible. Données du serveur conservées ; libérez de l’espace puis réessayez la synchronisation.");
+      if (!saved && (houseView() || HOUSE_STORAGE_KEYS.has(key) || key === SYNC_BASE_KEY)) throw new Error("Enregistrement local du partage impossible. Données du serveur conservées ; libérez de l’espace puis réessayez la synchronisation.");
       return saved;
     };
     const remoteShared = {};
@@ -335,28 +336,28 @@ export function FincaSharedSyncMount() {
       )
     };
 
-    if (houseView()) {
-      const previous = previousRef.current;
-      const previousBookings = new Map((previous?.reservations || []).map((item) => [item?.id, item]));
-      const merged = mergeHouseBookings(current.reservations, remote.reservations);
-      const mergedBookings = new Map(merged.map((item) => [item?.id, item]));
-      for (const booking of syncableHouseBookings(current.reservations)) {
-        const next = mergedBookings.get(booking.id);
-        const localChanged = preserveInitial || !sameValue(booking, previousBookings.get(booking.id));
-        if (next && (!localChanged || sameValue(booking, next))) continue;
-        if (!keepHouseRecovery(localStorage, { booking })) throw new Error("Sauvegarde de récupération impossible ; calendrier local conservé.");
-      }
-      // Un conflit peut interrompre l'envoi avant d'autres saisies locales.
-      // Les préserver toutes avant d'appliquer le serveur, même si elles ne sont
-      // pas la clé à l'origine du refus ou si c'est la première connexion.
-      for (const [key, value] of Object.entries(remote.shared)) {
-        const local = current.shared[key];
-        if (!Object.values(HOUSE_KEYS).includes(key) || local === undefined || sameValue(local, value)) continue;
-        if (!preserveInitial && sameValue(local, previous?.shared?.[key])) continue;
-        if (!keepHouseRecovery(localStorage, { stateKey: key, value: local })) throw new Error("Copie de récupération impossible : données locales conservées, partage suspendu.");
-      }
-      remote.reservations = merged;
+    // Le partage est monté aussi sur l'accueil et TERRE : protéger les données
+    // Maison indépendamment de l'écran affiché.
+    const previous = previousRef.current;
+    const previousBookings = new Map((previous?.reservations || []).map((item) => [item?.id, item]));
+    const merged = mergeHouseBookings(current.reservations, remote.reservations);
+    const mergedBookings = new Map(merged.map((item) => [item?.id, item]));
+    for (const booking of syncableHouseBookings(current.reservations)) {
+      const next = mergedBookings.get(booking.id);
+      const localChanged = preserveInitial || !sameValue(booking, previousBookings.get(booking.id));
+      if (next && (!localChanged || sameValue(booking, next))) continue;
+      if (!keepHouseRecovery(localStorage, { booking })) throw new Error("Sauvegarde de récupération impossible ; calendrier local conservé.");
     }
+    // Un conflit peut interrompre l'envoi avant d'autres saisies locales.
+    // Les préserver toutes avant d'appliquer le serveur, même si elles ne sont
+    // pas la clé à l'origine du refus ou si c'est la première connexion.
+    for (const [key, value] of Object.entries(remote.shared)) {
+      const local = current.shared[key];
+      if (!HOUSE_STORAGE_KEYS.has(key) || local === undefined || sameValue(local, value)) continue;
+      if (!preserveInitial && sameValue(local, previous?.shared?.[key])) continue;
+      if (!keepHouseRecovery(localStorage, { stateKey: key, value: local })) throw new Error("Copie de récupération impossible : données locales conservées, partage suspendu.");
+    }
+    remote.reservations = merged;
     let changed = false;
     if (!sameValue(current.reservations, remote.reservations)) {
       changed = persistRemote(PRESENCES_KEY, remote.reservations) || changed;
@@ -380,15 +381,13 @@ export function FincaSharedSyncMount() {
     syncingRef.current = true;
     setStatus("Synchronisation…");
     try {
-      if (houseView()) {
-        for (const key of Object.values(HOUSE_KEYS)) {
-          const raw = localStorage.getItem(key);
-          if (raw === null) continue;
-          let value;
-          try { value = JSON.parse(raw); } catch { throw new Error("Données Maison illisibles : synchronisation suspendue, données locales conservées."); }
-          const array = [HOUSE_KEYS.bookings, HOUSE_KEYS.inventory, HOUSE_KEYS.places, HOUSE_KEYS.maintenance, HOUSE_KEYS.bookingTrash, HOUSE_KEYS.syncRecovery].includes(key);
-          if (array ? !Array.isArray(value) : !value || typeof value !== "object" || Array.isArray(value)) throw new Error("Format Maison inattendu : synchronisation suspendue, données locales conservées.");
-        }
+      for (const key of HOUSE_STORAGE_KEYS) {
+        const raw = localStorage.getItem(key);
+        if (raw === null) continue;
+        let value;
+        try { value = JSON.parse(raw); } catch { throw new Error("Données Maison illisibles : synchronisation suspendue, données locales conservées."); }
+        const array = [HOUSE_KEYS.bookings, HOUSE_KEYS.inventory, HOUSE_KEYS.places, HOUSE_KEYS.maintenance, HOUSE_KEYS.bookingTrash, HOUSE_KEYS.syncRecovery].includes(key);
+        if (array ? !Array.isArray(value) : !value || typeof value !== "object" || Array.isArray(value)) throw new Error("Format Maison inattendu : synchronisation suspendue, données locales conservées.");
       }
       let bootstrap = await request("/api/bootstrap", {}, activeSession);
       const initialized = storageGet(localStorage, SYNC_INIT_KEY) === "1";

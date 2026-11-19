@@ -11,6 +11,7 @@ Sources inspectées :
 | S01 | `main`, commit `4ebb5e55686da16334e270d2b98d73c8cbabb66b` | Lecture des composants, des stockages et des points de montage. Les défauts initiaux ci-dessous sont établis par le code ; ils ne prétendent pas reproduire l'installation du poste familial. |
 | S02 | PR #32, commit `c6a41aba7d965ff51129cc96cf4c1397b8b0122b` | Comparaison du diff avec S01. Réemploi sélectif du modèle de contrôles de départ et des principes de résolution des anciens liens. Aucune fusion de cette branche. |
 | S03 | Branche `feat/maison-interface-unifiee` | Contrôles des modifications et essais sur des profils de navigateur isolés, avec données de test et anciens formats représentatifs. |
+| S04 | Même branche, commit `722e3696d950d6987b4fa78ab7776d2f14f0f07d`, relecture du 19 novembre 2026 | Reproduction des quatre défauts d'accueil ci-dessous avec le vrai composant de partage et des réponses API simulées. Les quatre scénarios échouaient avant correction. |
 
 Les données du poste de Sofia, les volumes de son installation et ses documents originaux ne sont pas accessibles dans cet environnement. Ils n'ont pas été modifiés. Les tests ne certifient pas leur contenu ni leur état réel.
 
@@ -32,6 +33,19 @@ Les données du poste de Sofia, les volumes de son installation et ses documents
 | M12 | Des fichiers source privés pouvaient rendre les images Docker inutilisables | Essai local avec fichiers en mode privé : erreur `EACCES /srv/src/server.js`, copie initiale appartenant à root et exécution par node | P1 : propriétaires explicites pour les sources API et les fichiers statiques Nginx. La correction conserve les utilisateurs d'exécution et l'authentification existants. |
 
 La priorité mesure l'impact sur la mission. Les constats de lecture du code ont une preuve forte pour ce comportement de code, sans extrapolation à une installation familiale non inspectée.
+
+## Recontrôle du 19 novembre 2026
+
+La synchronisation est aussi montée sur l'accueil et TERRE. Sur S04, les protections de MAISON dépendaient de `houseView()` dans `migrateLegacyLocal`, `pushLocalChanges`, `applyRemote` et `syncNow` (`FincaSharedSyncMount.jsx`). Le parcours restant à contrôler était donc une ouverture de l'accueil avant d'entrer dans MAISON.
+
+| ID | Défaut reproduit sur S04 | Priorité et impact | Correction et preuve de contrôle |
+|---|---|---|---|
+| M13 | Un séjour local sans dates, avec partage déjà initialisé, disparaissait de la liste locale lors de l'adoption du serveur depuis l'accueil | P1 : un ancien enregistrement conservé dans MAISON pouvait être écarté avant même d'y entrer | Filtrage des seuls séjours partageables et conservation des autres sur tous les écrans. Scénario « Accueil : ancien séjour incomplet » de `tests/browser/house-sync.mjs`, puis accueil → MAISON dans `house-server.mjs`. |
+| M14 | Le texte brut `{invalid` du stockage des réservations était remplacé depuis l'accueil | P1 : la copie locale illisible était perdue, contrairement à l'exigence de conservation | Validation des stockages MAISON avant le partage, indépendamment de l'écran ; suspension et conservation du texte brut. Scénario « Accueil : stockage Maison illisible », puis accueil et TERRE dans le test serveur. |
+| M15 | Une ancienne note locale différente de la note distante était remplacée à la première connexion depuis l'accueil, sans copie de récupération | P1 : le contenu local antérieur n'était plus récupérable par ce parcours | Copie avant adoption du serveur sur tous les écrans. Scénario « Accueil : première connexion », complété avec le serveur réel. |
+| M16 | Un quota simulé refusait l'écriture d'une note distante mais le bouton annonçait « Synchronisé » à l'accueil | P2 : les données restaient sur le serveur mais la confirmation de leur présence locale était fausse | Une écriture MAISON ou de sa base de comparaison refusée produit un état d'erreur, sur tous les écrans. Scénario « Accueil : quota pendant le partage ». |
+
+La preuve est forte pour ces scénarios de navigateur isolés. Les quatre contrôles échouaient sur S04 et réussissent après correction ; ils sont ajoutés à la CI. Les réponses simulées permettent de reproduire les fautes du client, tandis que `house-server.mjs` contrôle séparément les parcours avec API authentifiée et PostgreSQL. Aucune observation n'est extrapolée au poste familial.
 
 ## Organisation livrée
 
@@ -62,6 +76,7 @@ Avant l'application du serveur, les modifications locales refusées et les autre
 |---|---|---|
 | Données et règles | `npm test`, tests `house-data.test.mjs` | Liens anciens, chevauchements, dates impossibles, données inconnues, identifiants dupliqués, inventaire non doublé, récupération et guide échappé sans notes privées. |
 | Interface locale | `npm run test:house:browser` | Parcours sur 1280 × 900 et 390 × 900 ; profils séparés, anciennes données représentatives, création/modification, archivage/restauration, jardin et photo, guide, rechargement, stockage corrompu, quota et mises à jour entre onglets. |
+| Partage depuis l'accueil | `npm run test:house-sync:browser` | Vrai composant et routes API simulées : conservation d'un ancien séjour incomplet, stockage illisible, copie avant première connexion et erreur de quota. Aucun compte familial ni serveur réel utilisé pour ces quatre scénarios. |
 | Serveur réel | `tests/browser/house-server.mjs`, appelé dans le test runtime CI | Navigateur → API authentifiée → PostgreSQL → second navigateur ; contrôle de la conservation du formulaire lors d'une mise à jour, annulation partagée et restauration. Uniquement compte `@example.test` et hôte de boucle locale. |
 | Régressions adjacentes | CI FINCA MARIA existante | Actions, Réunions, préparation, recherche, registre, builds, séparation FAMILY, dépendances, configuration et pile Docker. Aucun de ces modules métier n'est refondu. |
 
@@ -73,5 +88,6 @@ Les captures de navigateur ne contiennent que des données de test. Les essais a
 - Les photos du jardin sont des copies d'affichage réduites ; conserver les fichiers originaux dans le BAÚL. Un import est refusé avec un message explicite avant de dépasser la taille partageable du dossier jardin.
 - Une donnée ancienne incomplète est conservée et peut être corrigée ; son absence du calendrier ne vaut pas disparition de son enregistrement.
 - Le partage entre appareils exige une session et un serveur disponibles. Les copies de récupération locales doivent être sauvegardées sur leur appareil.
+- Un stockage MAISON illisible suspend le partage global jusqu'à sa correction ; il est signalé et conservé, sans remise à zéro automatique, même depuis l'accueil ou TERRE.
 - Les informations documentaires sur la maison et les anciens conseils ne deviennent pas des faits de terrain vérifiés du seul fait de cette refonte.
 - La fusion, le rapprochement avec les fichiers privés du poste et le déploiement nécessitent la validation demandée. Cette branche ne déploie rien automatiquement.
