@@ -30,7 +30,7 @@ function StayChecklist() {
 }
 
 export function HouseMaintenance() {
-  const markDraft = useHouseDraft();
+  const { markDraft, confirmReplace } = useHouseDraft();
   const [showForm, setShowForm] = useState(false);
   const store = useHouseStorage(HOUSE_KEYS.maintenance, []);
   const [form, setForm] = useState(EMPTY);
@@ -43,6 +43,11 @@ export function HouseMaintenance() {
     .filter((item) => !query || searchable(`${item.title} ${item.zone} ${item.responsible || item.assignedTo} ${item.note}`).includes(searchable(query)))
     .sort((a, b) => String(a.dueAt || "9999").localeCompare(String(b.dueAt || "9999")));
   function patch(item, fields, action) { return store.update((current) => changeHouseRecord(current, item._key, historyChange(item, fields, action))); }
+  function edit(item) {
+    if (editing === item._key) { setShowForm(true); return; }
+    if (!confirmReplace()) return;
+    setShowForm(true); markDraft(false); setEditing(item._key); setForm({ ...EMPTY, ...item, responsible: item.responsible || item.assignedTo || "" });
+  }
   function submit(event) {
     event.preventDefault();
     if (editing && !records.some((item) => item._key === editing)) { setMessage("Ce travail n’est plus dans la liste. La saisie reste dans le formulaire ; vérifiez l’historique."); return; }
@@ -70,7 +75,7 @@ export function HouseMaintenance() {
     <div className="houseFilters"><label>Rechercher un travail<input aria-label="Rechercher un travail" type="search" value={query} onChange={(e) => setQuery(e.target.value)} /></label><label>Filtrer les travaux<select aria-label="Filtrer les travaux" value={filter} onChange={(e) => setFilter(e.target.value)}>{["Ouverts", "Faits", "Archivés", "Tous"].map((name) => <option key={name}>{name}</option>)}</select></label></div>
     <div className="houseCards">{visible.map((item) => <article key={item._key} className="houseCard"><h3>{item.title || "Ancien travail à compléter"}</h3><p>{item.zone} · {item.priority} · {item.status}</p><p>Responsable : {item.responsible || item.assignedTo || "À attribuer"} · Échéance : {dateLabel(item.dueAt)}</p>
       {item.dueAt && item.dueAt < localDay() && item.status !== "Fait" && <p>Échéance dépassée</p>}<p>{item.note}</p>
-      <div className="houseButtons"><button type="button" disabled={store.readError} onClick={() => { setShowForm(true); markDraft(false); setEditing(item._key); setForm({ ...EMPTY, ...item, responsible: item.responsible || item.assignedTo || "" }); }}>Modifier</button>
+      <div className="houseButtons"><button type="button" disabled={store.readError} onClick={() => edit(item)}>Modifier</button>
         <button type="button" disabled={store.readError} onClick={() => patch(item, { status: item.status === "Fait" ? "À faire" : "Fait" }, "Avancement modifié")}>{item.status === "Fait" ? "Rouvrir le travail" : "Marquer fait"}</button>
         <button type="button" disabled={store.readError} onClick={() => { if (item.archivedAt || window.confirm("Archiver ce travail en conservant son historique ?")) patch(item, { archivedAt: item.archivedAt ? null : new Date().toISOString() }, item.archivedAt ? "Restauré" : "Archivé"); }}>{item.archivedAt ? "Restaurer le travail" : "Archiver le travail"}</button>
       </div><HouseHistory item={item} /></article>)}</div>

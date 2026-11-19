@@ -12,6 +12,7 @@ Sources inspectées :
 | S02 | PR #32, commit `c6a41aba7d965ff51129cc96cf4c1397b8b0122b` | Comparaison du diff avec S01. Réemploi sélectif du modèle de contrôles de départ et des principes de résolution des anciens liens. Aucune fusion de cette branche. |
 | S03 | Branche `feat/maison-interface-unifiee` | Contrôles des modifications et essais sur des profils de navigateur isolés, avec données de test et anciens formats représentatifs. |
 | S04 | Même branche, commit `722e3696d950d6987b4fa78ab7776d2f14f0f07d`, relecture du 19 novembre 2026 | Reproduction des quatre défauts d'accueil ci-dessous avec le vrai composant de partage et des réponses API simulées. Les quatre scénarios échouaient avant correction. |
+| S05 | Même branche, commit `d519c3734365f793e7674fa9888cd07b35fd5ee5`, contrôle des formulaires du 19 novembre 2026 | Reproduction de M17 sur les cinq formulaires à 1280 px avant correction ; vérification après correction à 1280 et 390 px avec les vrais dialogues du navigateur. |
 
 Les données du poste de Sofia, les volumes de son installation et ses documents originaux ne sont pas accessibles dans cet environnement. Ils n'ont pas été modifiés. Les tests ne certifient pas leur contenu ni leur état réel.
 
@@ -46,6 +47,14 @@ La synchronisation est aussi montée sur l'accueil et TERRE. Sur S04, les protec
 | M16 | Un quota simulé refusait l'écriture d'une note distante mais le bouton annonçait « Synchronisé » à l'accueil | P2 : les données restaient sur le serveur mais la confirmation de leur présence locale était fausse | Une écriture MAISON ou de sa base de comparaison refusée produit un état d'erreur, sur tous les écrans. Scénario « Accueil : quota pendant le partage ». |
 
 La preuve est forte pour ces scénarios de navigateur isolés. Les quatre contrôles échouaient sur S04 et réussissent après correction ; ils sont ajoutés à la CI. Les réponses simulées permettent de reproduire les fautes du client, tandis que `house-server.mjs` contrôle séparément les parcours avec API authentifiée et PostgreSQL. Aucune observation n'est extrapolée au poste familial.
+
+## Protection des saisies en cours — contrôle complémentaire du 19 novembre
+
+**M17 — Remplacement silencieux d'un formulaire non enregistré (P2, preuve forte).** Le critère est la conservation des saisies demandée pour MAISON. Sur S05, cliquer sur « Modifier » d'une autre fiche remplaçait le contenu en cours sur les cinq formulaires : réservation, inventaire, entretien, intervention du jardin et sortie. Le calendrier pouvait aussi vider une nouvelle réservation en préparation. Les fonctions `edit` et les gestionnaires correspondants appelaient `markDraft(false)` puis remplaçaient le formulaire sans contrôle. Rouvrir la même fiche pouvait donc également effacer la saisie et retirer l'avertissement de fermeture. L'impact démontré concerne le travail non enregistré ; les fiches déjà stockées n'étaient pas modifiées par ces clics.
+
+La correction centralise le contrôle dans `useHouseDraft` (`HouseUI.jsx`). Ouvrir une autre fiche ou préparer une réservation depuis le calendrier demande confirmation si une saisie est en cours. Refuser conserve les champs. Rouvrir la même fiche préserve le formulaire sans confirmation ; ouvrir une fiche depuis un formulaire intact reste direct. Le bouton explicite « Abandonner la modification » conserve son rôle.
+
+`verifyDraftProtection` dans `tests/browser/house.mjs` reproduisait le défaut sur les cinq formulaires de S05. Après correction, dix parcours (cinq formulaires × deux largeurs) vérifient le refus et l'acceptation du remplacement, le retour de rubrique, la réouverture de la même fiche, le véritable dialogue `beforeunload`, l'absence d'écriture avant enregistrement, la sauvegarde explicite et la fermeture sans avertissement après sauvegarde. Ces essais utilisent uniquement des données de test isolées ; aucune sauvegarde automatique de brouillon n'est ajoutée.
 
 ## Organisation livrée
 
@@ -87,6 +96,7 @@ Les captures de navigateur ne contiennent que des données de test. Les essais a
 - Les tests portent sur le code et les formats représentatifs disponibles, pas sur une copie des données personnelles du poste familial.
 - Les photos du jardin sont des copies d'affichage réduites ; conserver les fichiers originaux dans le BAÚL. Un import est refusé avec un message explicite avant de dépasser la taille partageable du dossier jardin.
 - Une donnée ancienne incomplète est conservée et peut être corrigée ; son absence du calendrier ne vaut pas disparition de son enregistrement.
+- Les formulaires non enregistrés restent en mémoire pendant l'ouverture de la page. Leur conservation après fermeture exige un enregistrement explicite ; l'avertissement de fermeture ne constitue pas une sauvegarde de brouillon.
 - Le partage entre appareils exige une session et un serveur disponibles. Les copies de récupération locales doivent être sauvegardées sur leur appareil.
 - Un stockage MAISON illisible suspend le partage global jusqu'à sa correction ; il est signalé et conservé, sans remise à zéro automatique, même depuis l'accueil ou TERRE.
 - Les informations documentaires sur la maison et les anciens conseils ne deviennent pas des faits de terrain vérifiés du seul fait de cette refonte.

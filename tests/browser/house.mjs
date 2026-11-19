@@ -46,6 +46,84 @@ const panel = (page, name) => page.getByRole("region", { name, exact: true });
 async function noOverflow(page, step) {
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `Débordement : ${step}`);
 }
+async function verifyDraftProtection(width) {
+  const failures = [];
+  const draftFixture = {
+    ...fixture,
+    [HOUSE_KEYS.bookings]: [
+      { id: "draft-booking-a", name: "Séjour A test", place: "La Hera", arrival: "2027-01-02", departure: "2027-01-04" },
+      { id: "draft-booking-b", name: "Séjour B test", place: "La Golondrina", arrival: "2027-01-05", departure: "2027-01-07" }
+    ],
+    [HOUSE_KEYS.inventory]: [{ id: "draft-item-a", object: "Objet A test", category: "Meubles", quantity: 1 }, { id: "draft-item-b", object: "Objet B test", category: "Meubles", quantity: 2 }],
+    [HOUSE_KEYS.maintenance]: [{ id: "draft-work-a", title: "Travail A test", status: "À faire", priority: "P2" }, { id: "draft-work-b", title: "Travail B test", status: "À faire", priority: "P2" }],
+    [HOUSE_KEYS.garden]: { "laurier-central": { interventions: [{ id: "draft-garden-a", work: "Intervention A test", date: "2027-01-10" }, { id: "draft-garden-b", work: "Intervention B test", date: "2027-01-12" }] } },
+    [HOUSE_KEYS.places]: [{ id: "draft-place-a", name: "Lieu A test", status: "À conseiller" }, { id: "draft-place-b", name: "Lieu B test", status: "À conseiller" }]
+  };
+  const cases = [
+    { section: "Calendrier et réservations", form: "Réservation", field: "Occupant", a: "Séjour A test", b: "Séjour B test", key: HOUSE_KEYS.bookings, property: "name", submit: "Enregistrer les modifications" },
+    { section: "Inventaire", form: "Fiche inventaire", field: "Objet", a: "Objet A test", b: "Objet B test", summary: "Ajouter un objet ou modifier une fiche", key: HOUSE_KEYS.inventory, property: "object", submit: "Enregistrer l’objet" },
+    { section: "Entretien", form: "Travail ou réparation", field: "Travail / réparation", a: "Travail A test", b: "Travail B test", summary: "Ajouter un travail ou une réparation", key: HOUSE_KEYS.maintenance, property: "title", submit: "Enregistrer le travail" },
+    { section: "Jardin", form: "Intervention jardin", field: "Intervention", a: "Intervention A test", b: "Intervention B test", key: HOUSE_KEYS.garden, property: "work", submit: "Enregistrer l’intervention" },
+    { section: "Sorties", form: "Fiche sortie", field: "Lieu", a: "Lieu A test", b: "Lieu B test", summary: "Ajouter un lieu ou modifier une fiche", key: HOUSE_KEYS.places, property: "name", submit: "Enregistrer le lieu" }
+  ];
+  for (const item of cases) {
+    const context = await browser.newContext({ viewport: { width, height: 900 }, locale: "fr-FR" });
+    await seed(context, draftFixture);
+    const page = await context.newPage(); activePage = page; page.setDefaultTimeout(10000);
+    const dialogs = []; let accept = false; let decision = Promise.resolve();
+    page.on("dialog", dialog => { dialogs.push({ type: dialog.type(), message: dialog.message() }); decision = accept ? dialog.accept() : dialog.dismiss(); });
+    const edit = name => item.section === "Jardin"
+      ? page.getByRole("button", { name: `Modifier l’intervention — ${name}`, exact: true })
+      : panel(page, item.section).getByRole("article").filter({ has: page.getByRole("heading", { name, exact: true }) }).getByRole("button", { name: "Modifier", exact: true });
+    try {
+      await page.goto(`${origin}/?view=cortijo-maison`); await go(page, item.section);
+      if (item.section === "Calendrier et réservations") await page.getByLabel("Toutes les dates, y compris les anciens séjours").check();
+      if (item.summary) await panel(page, item.section).locator("summary").filter({ hasText: item.summary }).click();
+      const form = page.getByRole("form", { name: item.form, exact: true });
+      const field = form.getByLabel(item.field, { exact: true });
+      const before = await page.evaluate(keys => Object.fromEntries(keys.map(key => [key, localStorage.getItem(key)])), Object.values(HOUSE_KEYS));
+      await field.fill(`Brouillon ${item.section} test`);
+      await edit(item.a).click();
+      assert.equal(await field.inputValue(), `Brouillon ${item.section} test`, "Refuser le remplacement doit conserver le brouillon.");
+      assert.equal(dialogs.at(-1)?.type, "confirm");
+      if (item.section === "Calendrier et réservations") {
+        await page.locator(".houseDayPick").first().click();
+        assert.equal(await field.inputValue(), `Brouillon ${item.section} test`, "Un jour du calendrier ne doit pas vider la saisie.");
+      }
+      accept = true; await edit(item.a).click(); accept = false;
+      assert.equal(await field.inputValue(), item.a);
+      await field.fill(`Modification A ${width} test`);
+      await go(page, item.section === "Sorties" ? "Inventaire" : "Sorties"); await go(page, item.section);
+      const sameCount = dialogs.length;
+      await edit(item.a).click();
+      assert.equal(await field.inputValue(), `Modification A ${width} test`, "Rouvrir la même fiche doit garder la saisie.");
+      assert.equal(dialogs.length, sameCount, "Aucune demande de remplacement pour la même fiche.");
+      await edit(item.b).click();
+      assert.equal(await field.inputValue(), `Modification A ${width} test`);
+      accept = true; await edit(item.b).click(); accept = false;
+      assert.equal(await field.inputValue(), item.b);
+      const edited = `Modification B ${item.section} ${width} test`;
+      await field.fill(edited);
+      const leaving = page.waitForEvent("dialog", { predicate: dialog => dialog.type() === "beforeunload" });
+      await page.close({ runBeforeUnload: true }); await leaving; await decision;
+      assert.equal(page.isClosed(), false); assert.equal(await field.inputValue(), edited);
+      assert.deepEqual(await page.evaluate(keys => Object.fromEntries(keys.map(key => [key, localStorage.getItem(key)])), Object.values(HOUSE_KEYS)), before, "Aucune écriture avant enregistrement explicite.");
+      await form.getByRole("button", { name: item.submit, exact: true }).click();
+      const saved = await stored(page, item.key);
+      const records = item.section === "Jardin" ? saved["laurier-central"].interventions : saved;
+      assert.ok(records.some(record => record[item.property] === edited));
+      const cleanCount = dialogs.length;
+      await edit(item.a).click();
+      assert.equal(dialogs.length, cleanCount, "Aucune confirmation après sauvegarde réussie.");
+      const closed = page.waitForEvent("close"); await page.close({ runBeforeUnload: true }); await closed;
+      assert.equal(dialogs.length, cleanCount, "Un formulaire intact ne doit pas empêcher la fermeture.");
+      console.log(`✓ ${width}px : brouillons ${item.section}, refus/acceptation, même fiche, retour de rubrique, fermeture protégée et sauvegarde`);
+    } catch (error) {
+      failures.push(item.section); console.error(`✗ Brouillon ${item.section} ${width}px : ${error.stack}`);
+    } finally { await context.close(); }
+  }
+  assert.deepEqual(failures, [], "Les cinq formulaires doivent protéger les saisies en cours.");
+}
 try {
   for (let i = 0; i < 100; i++) {
     try { const r = await fetch(`${origin}/api/finca/local-identity`); if ((await r.json()).checkout === path.join(root, "app")) break; } catch {}
@@ -92,6 +170,7 @@ try {
     await reservations.getByRole("status").filter({ hasText: "Conflit" }).waitFor();
     assert.equal((await stored(page, HOUSE_KEYS.bookings)).length, 3);
     const stays = panel(page, "Liste des séjours");
+    page.once("dialog", dialog => dialog.accept());
     await stays.getByRole("article").filter({ hasText: "Occupant test" }).getByRole("button", { name: "Modifier", exact: true }).click();
     await bookingForm.getByLabel("Occupant", { exact: true }).fill("Occupant corrigé test");
     await bookingForm.getByLabel("Départ", { exact: true }).fill("2027-01-14");
@@ -229,6 +308,7 @@ try {
     console.log(`✓ ${width}px : carnet, copie et fichier du guide sans notes privées, aperçu sans écriture, anciens liens et sentinelles TERRE/RÉUNIONS préservés`);
     await context.close();
   }
+  for (const width of [1280, 390]) await verifyDraftProtection(width);
   const corrupt = await browser.newContext(); await seed(corrupt); const broken = await corrupt.newPage(); activePage = broken;
   await broken.goto(`${origin}/?view=cortijo-maison`);
   await broken.evaluate((key) => { localStorage.setItem(key, "{invalid"); dispatchEvent(new Event("finca-maria-storage-updated")); }, HOUSE_KEYS.bookings);

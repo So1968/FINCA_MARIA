@@ -30,7 +30,7 @@ export function HouseVisitorGuide() {
   </main>;
 }
 export function HouseOutings() {
-  const markDraft = useHouseDraft();
+  const { markDraft, confirmReplace } = useHouseDraft();
   const [showForm, setShowForm] = useState(false);
   const store = useHouseStorage(HOUSE_KEYS.places, defaultTouristPlaces);
   const [query, setQuery] = useState(""); const [status, setStatus] = useState("Tous"); const [category, setCategory] = useState("Tous");
@@ -42,6 +42,11 @@ export function HouseOutings() {
     .filter((item) => status === "Tous" || item.status === status).filter((item) => category === "Tous" || item.category === category)
     .filter((item) => !query || searchable(`${item.name} ${item.zone} ${item.category} ${item.note} ${item.familyNote}`).includes(searchable(query)));
   function patch(item, changes, action) { return store.update((current) => changeHouseRecord(current, item._key, historyChange(item, changes, action))); }
+  function edit(item) {
+    if (editing === item._key) { setShowForm(true); return; }
+    if (!confirmReplace()) return;
+    setShowForm(true); markDraft(false); setEditing(item._key); setForm({ ...EMPTY, ...item });
+  }
   function submit(event) {
     event.preventDefault();
     if (editing && !records.some((item) => item._key === editing)) { setMessage("Ce lieu a changé sur un autre écran. La saisie reste dans le formulaire ; vérifiez le carnet."); return; }
@@ -64,7 +69,7 @@ export function HouseOutings() {
     <div className="houseFilters"><label>Rechercher une sortie<input aria-label="Rechercher une sortie" type="search" value={query} onChange={(e) => setQuery(e.target.value)} /></label><label>Filtrer les avis<select aria-label="Filtrer les avis" value={status} onChange={(e) => setStatus(e.target.value)}><option>Tous</option>{Object.keys(STATUS_ORDER).map((name) => <option key={name}>{name}</option>)}</select></label><label>Filtrer les types<select aria-label="Filtrer les types" value={category} onChange={(e) => setCategory(e.target.value)}><option>Tous</option>{categories.map((name) => <option key={name}>{name}</option>)}</select></label></div>
     <label className="houseCheck"><input type="checkbox" checked={archives} onChange={(e) => setArchives(e.target.checked)} />Afficher les lieux archivés</label>
     <div className="houseCards">{visible.map((item) => <article className="houseCard" key={item._key}><h3>{item.name || "Ancien lieu à compléter"}</h3><p>{item.zone} · {item.category} · {item.duration}</p><p>{item.status}</p><p>{item.note}</p>{item.familyNote && <p>Note privée : {item.familyNote}</p>}
-      <div className="houseButtons">{safeWebUrl(item.mapUrl) && <a href={safeWebUrl(item.mapUrl)} target="_blank" rel="noreferrer">Carte</a>}<button type="button" disabled={store.readError} onClick={() => { setShowForm(true); markDraft(false); setEditing(item._key); setForm({ ...EMPTY, ...item }); }}>Modifier</button><button type="button" disabled={store.readError} onClick={() => { if (item.archivedAt || window.confirm(`Archiver « ${item.name} » en conservant sa fiche ?`)) patch(item, { archivedAt: item.archivedAt ? null : new Date().toISOString() }, item.archivedAt ? "Restauré" : "Archivé"); }}>{item.archivedAt ? "Restaurer le lieu" : "Archiver le lieu"}</button></div><HouseHistory item={item} /></article>)}</div>
+      <div className="houseButtons">{safeWebUrl(item.mapUrl) && <a href={safeWebUrl(item.mapUrl)} target="_blank" rel="noreferrer">Carte</a>}<button type="button" disabled={store.readError} onClick={() => edit(item)}>Modifier</button><button type="button" disabled={store.readError} onClick={() => { if (item.archivedAt || window.confirm(`Archiver « ${item.name} » en conservant sa fiche ?`)) patch(item, { archivedAt: item.archivedAt ? null : new Date().toISOString() }, item.archivedAt ? "Restauré" : "Archivé"); }}>{item.archivedAt ? "Restaurer le lieu" : "Archiver le lieu"}</button></div><HouseHistory item={item} /></article>)}</div>
     {!visible.length && <EmptyHouse>Aucun lieu ne correspond aux filtres.</EmptyHouse>}
   </>;
 }

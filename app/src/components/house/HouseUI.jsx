@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useHouseStorage } from "../../lib/useHouseStorage";
 import { HOUSE_KEYS, dateLabel, houseRecords } from "../../lib/houseData.mjs";
 
@@ -26,13 +26,19 @@ export function HouseHistory({ item }) {
 export function EmptyHouse({ children }) { return <p className="houseEmpty">{children}</p>; }
 export function useHouseDraft() {
   const [dirty, setDirty] = useState(false);
+  const dirtyRef = useRef(false);
+  const markDraft = useCallback(value => {
+    dirtyRef.current = Boolean(value);
+    setDirty(Boolean(value));
+  }, []);
+  const confirmReplace = useCallback((message = "Une saisie est en cours dans ce formulaire. La remplacer par une autre fiche ?") => !dirtyRef.current || window.confirm(message), []);
   useEffect(() => {
     if (!dirty) return;
     const warn = (event) => { event.preventDefault(); event.returnValue = ""; };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
-  return setDirty;
+  return { markDraft, confirmReplace };
 }
 export function HouseRecovery() {
   const store = useHouseStorage(HOUSE_KEYS.syncRecovery, []);

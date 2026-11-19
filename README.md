@@ -28,6 +28,9 @@ regroupe **Calendrier et réservations**, **Inventaire**, **Entretien**, **Jardi
 Les séjours annulés et les fiches archivées restent consultables ; aucune remise
 à zéro des données n'est nécessaire. Le guide des sorties peut être copié,
 partagé ou téléchargé en HTML, sans les notes privées familiales.
+Une saisie en cours est conservée lors du retour d'une rubrique. Remplacer son
+formulaire par une autre fiche demande confirmation ; rouvrir la même fiche
+conserve les champs sans les réinitialiser.
 
 `npm run test:house:browser` vérifie ces parcours sur ordinateur et téléphone,
 avec un BAÚL et des profils de navigateur de test. Le test runtime CI ajoute

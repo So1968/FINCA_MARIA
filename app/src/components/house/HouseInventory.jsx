@@ -6,7 +6,7 @@ import { EmptyHouse, HouseHistory, HouseNote, HouseSaveState, useHouseDraft } fr
 
 const EMPTY = { object: "", category: "Meubles", room: "", quantity: "", status: "Présent", note: "" };
 export function HouseInventory() {
-  const markDraft = useHouseDraft();
+  const { markDraft, confirmReplace } = useHouseDraft();
   const [showForm, setShowForm] = useState(false);
   const store = useHouseStorage(HOUSE_KEYS.inventory, []);
   const [query, setQuery] = useState("");
@@ -26,7 +26,11 @@ export function HouseInventory() {
     .filter((item) => category === "Toutes" || item.category === category)
     .filter((item) => status === "Tous" || item.status === status)
     .filter((item) => !query || searchable(`${item.object} ${item.room} ${item.note}`).includes(searchable(query)));
-  function edit(item) { setShowForm(true); markDraft(false); setEditing(item._key); setForm({ ...EMPTY, ...item, quantity: item.quantity ?? "" }); }
+  function edit(item) {
+    if (editing === item._key) { setShowForm(true); return; }
+    if (!confirmReplace()) return;
+    setShowForm(true); markDraft(false); setEditing(item._key); setForm({ ...EMPTY, ...item, quantity: item.quantity ?? "" });
+  }
   function patch(item, changes, action) {
     const patch = historyChange(item, changes, action);
     return store.update((current) => houseRecords(current).some((row) => row._key === item._key)

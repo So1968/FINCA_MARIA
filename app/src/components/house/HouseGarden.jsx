@@ -18,7 +18,7 @@ async function housePhoto(file) {
   } finally { URL.revokeObjectURL(url); }
 }
 export function HouseGarden() {
-  const markDraft = useHouseDraft();
+  const { markDraft, confirmReplace } = useHouseDraft();
   const store = useHouseStorage(HOUSE_KEYS.garden, {});
   const [month, setMonth] = useState("");
   const [form, setForm] = useState({ tree: "laurier-central", work: "", date: "", responsible: "" });
@@ -26,6 +26,11 @@ export function HouseGarden() {
   const [uploading, setUploading] = useState(false);
   const [editing, setEditing] = useState("");
   const [showArchived, setShowArchived] = useState(false);
+  function edit(item) {
+    if (editing === item.id && form.tree === item.treeId) return;
+    if (!confirmReplace()) return;
+    setEditing(item.id); markDraft(false); setForm({ tree: item.treeId, work: item.work, date: item.date, responsible: item.responsible || "" });
+  }
   function updateTree(id, patch) {
     return store.update((current) => ({ ...current, [id]: { ...(current[id] || {}), ...patch, updatedAt: new Date().toISOString() } }));
   }
@@ -79,7 +84,7 @@ export function HouseGarden() {
       <label className="houseCheck"><input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />Inclure les interventions archivées</label>
       {calendar.map((item, index) => <article key={item.id || `${item.tree}-${index}`}><h4>{dateLabel(item.date)} · {item.tree}</h4><p>{item.work} · {item.kind}{item.responsible ? ` · ${item.responsible}` : ""}</p>
         {item.id && <div className="houseButtons">
-          <button type="button" disabled={store.readError} onClick={() => { setEditing(item.id); markDraft(false); setForm({ tree: item.treeId, work: item.work, date: item.date, responsible: item.responsible || "" }); }}>Modifier l’intervention — {item.work}</button>
+          <button type="button" disabled={store.readError} onClick={() => edit(item)}>Modifier l’intervention — {item.work}</button>
           <button type="button" disabled={store.readError} onClick={() => changeIntervention(item, { doneAt: item.doneAt ? null : localDay() }, "Réalisation modifiée")}>{item.doneAt ? "Rouvrir" : "Marquer réalisée"} — {item.work}</button>
           <button type="button" disabled={store.readError} onClick={() => { if (item.archivedAt || window.confirm("Archiver cette intervention en conservant sa trace ?")) changeIntervention(item, { archivedAt: item.archivedAt ? null : new Date().toISOString() }, item.archivedAt ? "Restaurée" : "Archivée"); }}>{item.archivedAt ? "Restaurer" : "Archiver"} l’intervention — {item.work}</button>
         </div>}

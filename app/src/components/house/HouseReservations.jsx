@@ -5,7 +5,7 @@ import { EmptyHouse, HouseSaveState, useHouseDraft } from "./HouseUI";
 
 const EMPTY = { name: "", place: HOUSE_ROOMS[0], arrival: "", departure: "", note: "" };
 export function HouseReservations() {
-  const markDraft = useHouseDraft();
+  const { markDraft, confirmReplace } = useHouseDraft();
   const bookings = useHouseStorage(HOUSE_KEYS.bookings, []);
   const trash = useHouseStorage(HOUSE_KEYS.bookingTrash, []);
   const ready = useHouseStorage(HOUSE_KEYS.ready, {});
@@ -31,7 +31,10 @@ export function HouseReservations() {
     .sort((a, b) => String(a.arrival || "").localeCompare(String(b.arrival || "")));
 
   function shift(delta) { setMonth(localDay(new Date(year, number - 1 + delta, 1, 12)).slice(0, 7)); }
-  function edit(item) { markDraft(false);
+  function edit(item) {
+    if (editing === item._key) { nameRef.current?.focus(); return; }
+    if (!confirmReplace()) return;
+    markDraft(false);
     setEditing(item._key);
     setForm({ ...EMPTY, ...item, name: item.name || "", place: item.place || "", arrival: item.arrival || "", departure: item.departure || "", note: item.note || "" });
     if (validHouseDate(item.arrival)) setMonth(item.arrival.slice(0, 7));
@@ -94,7 +97,7 @@ export function HouseReservations() {
         {Array.from({ length: offset }, (_, i) => <span key={`offset-${i}`} />)}
         {days.map((date) => <div key={date} className={`houseDay ${date === localDay() ? "isToday" : ""}`}>
           <button type="button" className="houseDayPick" aria-label={`Réserver le ${dateLabel(date)}`} disabled={bookings.readError}
-            onClick={() => { markDraft(false); setEditing(""); setForm({ ...EMPTY, arrival: date, departure: addHouseDays(date, 1), place: room === "Toutes les chambres" ? HOUSE_ROOMS[0] : room }); nameRef.current?.focus(); }}>{Number(date.slice(-2))}</button>
+            onClick={() => { if (!confirmReplace("Une saisie est en cours dans ce formulaire. La remplacer par une nouvelle réservation ?")) return; markDraft(false); setEditing(""); setForm({ ...EMPTY, arrival: date, departure: addHouseDays(date, 1), place: room === "Toutes les chambres" ? HOUSE_ROOMS[0] : room }); nameRef.current?.focus(); }}>{Number(date.slice(-2))}</button>
           {visible.filter((item) => item.arrival <= date && item.departure > date).map((item) => <button type="button" key={item._key} className="houseBookingChip" title={`${item.name} — ${item.place}`} onClick={() => edit(item)}>{item.name}</button>)}
         </div>)}
       </div>
