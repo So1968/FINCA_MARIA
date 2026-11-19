@@ -6,6 +6,7 @@ import { ACTION_FILTERS, actionFilter, actionsUrl, matchesActionFilter, summariz
 import { useActionAssignments } from "../lib/useActionAssignments";
 import { ActionSaveStatus } from "./ActionSaveStatus";
 import { FincaEarthMaintenancePanel } from "./FincaEarthMaintenancePanel";
+import { earthTab as resolveEarthTab, earthUrl } from "../lib/fincaNavigation.mjs";
 const NAV_STORAGE_KEY = "finca_maria_navigation_v2";
 const ACTION_PLAN_DATE = "18/08/2026";
 const BACKUP_VERSION = 2;
@@ -212,7 +213,7 @@ export function FincaMariaDashboard() {
   const { assignments, updateAssignment, saveMessage, readError, canRetrySave, retrySave } = useActionAssignments();
   const [earthActionFilter, setEarthActionFilter] = useState(() => actionFilter(new URLSearchParams(window.location.search).get("filter")));
   const [area, setArea] = useState(() => new URLSearchParams(window.location.search).get("area") === "terre" ? "terre" : "home");
-  const [earthTab, setEarthTab] = useState(() => ["actions", "entretien"].includes(new URLSearchParams(window.location.search).get("tab")) ? new URLSearchParams(window.location.search).get("tab") : initialNavigation.earthTab || "gestion");
+  const [earthTab, setEarthTab] = useState(() => resolveEarthTab(new URLSearchParams(window.location.search).get("tab"), initialNavigation.earthTab));
   const houseTab = initialNavigation.houseTab || "gerer";
   const importRef = useRef(null);
   const [openDossiers, setOpenDossiers] = useState(() => {
@@ -254,6 +255,25 @@ export function FincaMariaDashboard() {
   }
 
   const currentEarth = EARTH_TABS.find((tab) => tab.id === earthTab) || EARTH_TABS[0];
+  function selectEarthTab(tab) {
+    const next = resolveEarthTab(tab);
+    setArea("terre"); setEarthTab(next);
+    window.history.pushState(null, "", earthUrl(window.location.href, next, { filter: earthActionFilter, contact: new URLSearchParams(window.location.search).get("contact") }));
+    window.dispatchEvent(new Event("finca:navigation"));
+  }
+  function dashboardHome() {
+    setArea("home"); window.history.pushState(null, "", window.location.pathname);
+    window.dispatchEvent(new Event("finca:navigation"));
+  }
+  useEffect(() => {
+    const onBack = () => {
+      const params = new URLSearchParams(window.location.search);
+      setArea(params.get("area") === "terre" ? "terre" : "home");
+      if (params.get("area") === "terre") { setEarthTab(resolveEarthTab(params.get("tab"))); setEarthActionFilter(actionFilter(params.get("filter"))); }
+    };
+    window.addEventListener("popstate", onBack);
+    return () => window.removeEventListener("popstate", onBack);
+  }, []);
 
   return (
     <section className="cortijoDashboard fincaMariaShell fincaTwoWorlds" aria-label="FINCA MARIA">
@@ -282,7 +302,7 @@ export function FincaMariaDashboard() {
 
       <div style={{ display: area === "home" ? "block" : "none" }}>
         <div className="fincaAreaGrid">
-          <AreaChoice area="terre" title="TERRE" subtitle="Exploitation agricole" stats={`${actionSummary.todo} action${actionSummary.todo > 1 ? "s" : ""} à compléter · année-test 2022/23`} icon="leaf" onClick={() => { setArea("terre"); setEarthTab(earthTab || "gestion"); }} />
+          <AreaChoice area="terre" title="TERRE" subtitle="Exploitation agricole" stats={`${actionSummary.todo} action${actionSummary.todo > 1 ? "s" : ""} à compléter · année-test 2022/23`} icon="leaf" onClick={() => selectEarthTab(earthTab)} />
           <AreaChoice area="maison" title="MAISON" subtitle="Maison familiale" stats="Séjours · jardin · guide vacanciers" icon="home" onClick={openHouse} />
           <a href={appViewUrl("reunions")} className="fincaMainMeetingTile" aria-label="Ouvrir les réunions et conseils de famille"><span className="fincaMeetingIcon" aria-hidden="true">🎙️</span><span><strong>RÉUNIONS</strong><small>Conseils de famille · comptes rendus</small></span><span aria-hidden="true">→</span></a>
         </div>
@@ -329,7 +349,7 @@ export function FincaMariaDashboard() {
         </div>
       </div>
 
-      <div style={{ display: area === "terre" ? "block" : "none" }}><div className="fincaAreaHeader"><button type="button" className="fincaBack" onClick={() => setArea("home")}>← Accueil</button><div><h2>TERRE</h2><p>Exploitation agricole</p></div></div><SubNav items={EARTH_TABS} active={earthTab} onChange={setEarthTab} label="Terre" /><div className="fincaPanelIntro"><strong>{currentEarth.title}</strong><span>Une rubrique à la fois</span></div></div>
+      <div style={{ display: area === "terre" ? "block" : "none" }}><div className="fincaAreaHeader"><button type="button" className="fincaBack" onClick={dashboardHome}>← Accueil</button><div><h2>TERRE</h2><p>Exploitation agricole</p></div></div><SubNav items={EARTH_TABS} active={earthTab} onChange={selectEarthTab} label="Terre" /><div className="fincaPanelIntro"><strong>{currentEarth.title}</strong><span>Une rubrique à la fois</span></div></div>
 
       <div id="finca-maria-sections" className="fincaMariaSections" style={{ display: area === "terre" ? "block" : "none" }}>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "gestion" ? "block" : "none" }}><summary><h3>Journal de l’exploitation</h3></summary><div className="cortijoWorkflow"><ol>{managementTimeline.map((item) => <li key={`${item.period}-${item.title}`}><strong>{item.period}</strong><span><b>{item.title}</b><br />{item.text}</span></li>)}</ol></div></details>

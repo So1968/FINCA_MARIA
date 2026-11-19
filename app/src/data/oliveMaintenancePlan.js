@@ -33,7 +33,7 @@ export const oliveMaintenancePlan = [
     vitines: "Quels travaux ont déjà été réalisés, quand, où et avec quels justificatifs ? Quels besoins observe-t-il actuellement ?",
     validation: "Visite indépendante indispensable avant d'arrêter le calendrier, les doses et les travaux lourds.",
     evidence: "Date de visite, nom du technicien, photos par parcelle et rapport.",
-    sources: "Action ASAJA déjà inscrite dans FINCA MARIA ; analyse agronomique familiale."
+    sources: "Demande de visite inscrite dans FINCA MARIA ; interlocuteur et disponibilité à confirmer. Analyse agronomique familiale à vérifier sur place."
   },
   {
     id: "recolte",

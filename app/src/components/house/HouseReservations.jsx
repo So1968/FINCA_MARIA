@@ -4,8 +4,9 @@ import { useHouseStorage } from "../../lib/useHouseStorage";
 import { EmptyHouse, HouseSaveState, useHouseDraft } from "./HouseUI";
 
 const EMPTY = { name: "", place: HOUSE_ROOMS[0], arrival: "", departure: "", note: "" };
+const formValues = item => Object.fromEntries(Object.keys(EMPTY).map(key => [key, item[key] || ""]));
 export function HouseReservations() {
-  const { markDraft, confirmReplace } = useHouseDraft();
+  const { markDraft, confirmReplace, remember, prepareSave } = useHouseDraft();
   const bookings = useHouseStorage(HOUSE_KEYS.bookings, []);
   const trash = useHouseStorage(HOUSE_KEYS.bookingTrash, []);
   const ready = useHouseStorage(HOUSE_KEYS.ready, {});
@@ -35,6 +36,7 @@ export function HouseReservations() {
     if (editing === item._key) { nameRef.current?.focus(); return; }
     if (!confirmReplace()) return;
     markDraft(false);
+    remember(formValues(item));
     setEditing(item._key);
     setForm({ ...EMPTY, ...item, name: item.name || "", place: item.place || "", arrival: item.arrival || "", departure: item.departure || "", note: item.note || "" });
     if (validHouseDate(item.arrival)) setMonth(item.arrival.slice(0, 7));
@@ -51,17 +53,26 @@ export function HouseReservations() {
     }
     const latest = readHouseData(localStorage, HOUSE_KEYS.bookings, []);
     if (latest.error) { setMessage("Stockage illisible : réservation non modifiée."); return; }
-    const conflict = bookingConflict(latest.value, form, editing);
+    const previous = houseRecords(latest.value).find(item => item._key === editing && !item.cancelledAt);
+    if (editing && !previous) { setMessage("Ce séjour n’est plus actif. Votre saisie est conservée."); return; }
+    let fields = { ...formValues(form), name: form.name.trim(), place: form.place.trim() };
+    if (editing) { fields = prepareSave(formValues(previous), fields); if (!fields) { setMessage("Conflit conservé : votre saisie reste dans le formulaire."); return; } }
+    const proposed = { ...previous, ...fields };
+    if (!validHouseDate(proposed.arrival) || !validHouseDate(proposed.departure) || proposed.departure <= proposed.arrival) {
+      setMessage("Les dates ont changé ailleurs. Vérifiez l’arrivée et le départ ; votre saisie est conservée."); return;
+    }
+    const conflict = bookingConflict(latest.value, proposed, editing);
     if (conflict) { setMessage(`Conflit : ${conflict.name || "un autre séjour"} occupe déjà ${form.place} sur cette période.`); return; }
-    const { _key, history, ...fields } = form;
     const duplicateId = form.id && latest.value.filter((item) => item?.id === form.id).length > 1;
     const oldIdNeedsRepair = typeof form.id === "string" && (!form.id.trim() || form.id !== form.id.trim());
     const id = duplicateId || oldIdNeedsRepair ? newHouseId("presence") : form.id || newHouseId("presence");
-    const patch = { ...fields, id, name: form.name.trim(), place: form.place.trim() };
+    const patch = { ...fields, id };
     setForm((current) => ({ ...current, id }));
-    const previous = records.find((item) => item._key === editing);
-    const saved = bookings.update((current) => editing ? changeHouseRecord(current, editing, historyChange(previous, patch, "Réservation modifiée"))
-      : current.some((item) => item?.id === id) ? changeHouseRecord(current, id, patch) : [...current, patch]);
+    const saved = bookings.update((current) => {
+      const fresh = houseRecords(current).find(item => item._key === editing && !item.cancelledAt);
+      return editing ? fresh ? changeHouseRecord(current, editing, historyChange(fresh, patch, "Réservation modifiée")) : current
+        : current.some((item) => item?.id === id) ? changeHouseRecord(current, id, patch) : [...current, patch];
+    });
     if (saved) { markDraft(false); setMonth(form.arrival.slice(0, 7)); setForm(EMPTY); setEditing(""); setMessage("Réservation enregistrée."); }
   }
   function cancel(item) {

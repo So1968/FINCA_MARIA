@@ -113,7 +113,11 @@ pass "archives : reprise, présences, statistiques et Word testés avec PostgreS
 if [ "${FINCA_HOUSE_RUNTIME_BROWSER:-0}" = "1" ]; then
   FINCA_HOUSE_RUNTIME_TEST=1 node tests/browser/house-server.mjs
   pass "Maison : interface, API et PostgreSQL entre plusieurs navigateurs"
+  FINCA_RUNTIME_TEST=1 FINCA_TEST_URL="$BASE_URL" FINCA_TEST_COOKIE="$COOKIE" node tests/browser/earth-server.mjs
+  pass "Terre : suivi mobile partagé et brouillons conservés entre navigateurs"
 fi
+FINCA_RUNTIME_TEST=1 FINCA_TEST_URL="$BASE_URL" FINCA_TEST_COOKIE="$COOKIE" node tests/integration/reservations-concurrency.mjs
+pass "réservations : créations et modifications concurrentes protégées"
 
 # Parcours Réunions et conseils de famille.
 

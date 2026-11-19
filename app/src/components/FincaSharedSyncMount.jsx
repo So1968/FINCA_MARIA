@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HOUSE_KEYS, keepHouseRecovery, mergeHouseBookings, syncableHouseBookings } from "../lib/houseData.mjs";
+import { EARTH_MAINTENANCE_KEY, validEarthTracking } from "../lib/earthMaintenance.mjs";
 
 const API_URL_KEY = "azoth_finca_api_url_v1";
 const SESSION_KEY = "azoth_finca_family_session_v1";
@@ -11,6 +12,7 @@ const READY_KEY = "finca_maria_chambres_preparation_v1";
 const NAME_KEY = "finca_maria_reservation_prenom_v1";
 const SERVER_MODE = import.meta.env.VITE_FINCA_SERVER_MODE === "1";
 const HOUSE_STORAGE_KEYS = new Set(Object.values(HOUSE_KEYS));
+const PROTECTED_KEYS = new Set([...HOUSE_STORAGE_KEYS, EARTH_MAINTENANCE_KEY]);
 
 const SHARED_KEYS = [
   "finca_maria_maison_notes_v1",
@@ -67,6 +69,9 @@ function sameValue(a, b) {
 function bookingEquivalent(a, b) {
   return a?.name === b?.name && a?.place === b?.place && a?.arrival === b?.arrival && a?.departure === b?.departure;
 }
+function reservationExpectation(booking) {
+  return Object.fromEntries(["name", "place", "arrival", "departure", "note"].map(field => [field, booking[field] ?? ""]));
+}
 
 function localSnapshot() {
   const shared = {};
@@ -105,6 +110,7 @@ function houseView() {
   const params = new URLSearchParams(window.location.search);
   return params.get("view") === "cortijo-maison" || params.get("area") === "maison";
 }
+function liveView() { return houseView() || Boolean(document.querySelector(".fincaEarthMaintenance")); }
 
 function shouldShow() {
   const params = new URLSearchParams(window.location.search);
@@ -233,7 +239,7 @@ export function FincaSharedSyncMount() {
       const alreadyThere = bootstrap.reservations.some((remote) => remote.id === booking.id || bookingEquivalent(remote, booking));
       if (alreadyThere) continue;
       try {
-        await request("/api/reservations", { method: "POST", body: JSON.stringify(booking) }, activeSession);
+        await request("/api/reservations", { method: "POST", body: JSON.stringify({ ...booking, expected: null }) }, activeSession);
         changed = true;
       } catch (error) {
         if (error.status !== 409) throw error;
@@ -272,7 +278,7 @@ export function FincaSharedSyncMount() {
       if (!currentUploadable.has(booking)) continue;
       const before = previousById.get(booking.id);
       if (!before || !sameValue(before, booking)) {
-        await request("/api/reservations", { method: "POST", body: JSON.stringify(booking) }, activeSession);
+        await request("/api/reservations", { method: "POST", body: JSON.stringify({ ...booking, expected: before && previousUploadable.has(before) ? reservationExpectation(before) : null }) }, activeSession);
       }
     }
 
@@ -318,7 +324,7 @@ export function FincaSharedSyncMount() {
     const current = localSnapshot();
     const persistRemote = (key, value) => {
       const saved = storageSet(localStorage, key, JSON.stringify(value));
-      if (!saved && (houseView() || HOUSE_STORAGE_KEYS.has(key) || key === SYNC_BASE_KEY)) throw new Error("Enregistrement local du partage impossible. Données du serveur conservées ; libérez de l’espace puis réessayez la synchronisation.");
+      if (!saved && (liveView() || PROTECTED_KEYS.has(key) || key === SYNC_BASE_KEY)) throw new Error("Enregistrement local du partage impossible. Données du serveur conservées ; libérez de l’espace puis réessayez la synchronisation.");
       return saved;
     };
     const remoteShared = {};
@@ -354,7 +360,7 @@ export function FincaSharedSyncMount() {
     // pas la clé à l'origine du refus ou si c'est la première connexion.
     for (const [key, value] of Object.entries(remote.shared)) {
       const local = current.shared[key];
-      if (!HOUSE_STORAGE_KEYS.has(key) || local === undefined || sameValue(local, value)) continue;
+      if (!PROTECTED_KEYS.has(key) || local === undefined || sameValue(local, value)) continue;
       if (!preserveInitial && sameValue(local, previous?.shared?.[key])) continue;
       if (!keepHouseRecovery(localStorage, { stateKey: key, value: local })) throw new Error("Copie de récupération impossible : données locales conservées, partage suspendu.");
     }
@@ -382,6 +388,12 @@ export function FincaSharedSyncMount() {
     syncingRef.current = true;
     setStatus("Synchronisation…");
     try {
+      const earthRaw = localStorage.getItem(EARTH_MAINTENANCE_KEY);
+      if (earthRaw !== null) {
+        let earth;
+        try { earth = JSON.parse(earthRaw); } catch { throw new Error("Suivi TERRE illisible : synchronisation suspendue, données locales conservées."); }
+        if (!validEarthTracking(earth)) throw new Error("Format du suivi TERRE inattendu : données locales conservées, partage suspendu.");
+      }
       for (const key of HOUSE_STORAGE_KEYS) {
         const raw = localStorage.getItem(key);
         if (raw === null) continue;
@@ -407,6 +419,8 @@ export function FincaSharedSyncMount() {
               SYNC_NOTICE_KEY,
               "Une autre personne a modifié ces données entre-temps. La version la plus récente du serveur a été conservée pour éviter d’écraser son travail."
             );
+          } else if (error.status === 409 && error.body?.code === "RESERVATION_CHANGED") {
+            storageSet(sessionStorage, SYNC_NOTICE_KEY, "Le séjour a été modifié ailleurs. La version du serveur et votre copie locale sont conservées pour permettre le rapprochement.");
           } else if (error.status === 409) {
             const who = error.body?.conflict?.name;
             storageSet(
@@ -424,16 +438,16 @@ export function FincaSharedSyncMount() {
       const changed = applyRemote(bootstrap, !initialized);
       setStatus(`Synchronisé · ${activeSession.name}`);
       setMessage((current) => current || "Les données de travail FINCA MARIA sont partagées entre les appareils connectés.");
-      if (houseView() && storageGet(sessionStorage, SYNC_NOTICE_KEY)) {
+      if (liveView() && storageGet(sessionStorage, SYNC_NOTICE_KEY)) {
         setMessage(`${storageGet(sessionStorage, SYNC_NOTICE_KEY)} Une copie locale est conservée en cas de conflit.`);
         storageRemove(sessionStorage, SYNC_NOTICE_KEY);
       }
       if (changed && document.visibilityState === "visible") {
-        if (houseView()) window.dispatchEvent(new Event("finca-maria-storage-updated"));
+        if (liveView()) window.dispatchEvent(new Event("finca-maria-storage-updated"));
         else window.setTimeout(() => window.location.reload(), 120);
       }
     } catch (error) {
-      if (houseView()) window.dispatchEvent(new Event("finca-maria-storage-updated"));
+      if (liveView()) window.dispatchEvent(new Event("finca-maria-storage-updated"));
       setStatus(error.status === 401 ? "À reconnecter" : "Hors connexion");
       setMessage(error.message || "Synchronisation momentanément indisponible.");
     } finally {

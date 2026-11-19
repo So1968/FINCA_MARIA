@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HOUSE_KEYS, changeHouseRecord, dateLabel, historyChange, houseRecords, localDay, newHouseId, searchable } from "../../lib/houseData.mjs";
+import { HOUSE_KEYS, changeHouseRecord, dateLabel, historyChange, houseRecords, localDay, newHouseId, readHouseData, searchable } from "../../lib/houseData.mjs";
 import { useHouseStorage } from "../../lib/useHouseStorage";
 import { STAY_GROUPS } from "../../data/houseContent.mjs";
 import { HOUSE_DEPARTURE_TASKS, normalizeDepartureChecks } from "../../lib/houseDepartureChecklist.mjs";
@@ -29,8 +29,9 @@ function StayChecklist() {
   </details>;
 }
 
+const formValues = item => Object.fromEntries(Object.keys(EMPTY).map(key => [key, key === "responsible" ? item.responsible || item.assignedTo || "" : item[key] ?? EMPTY[key]]));
 export function HouseMaintenance() {
-  const { markDraft, confirmReplace } = useHouseDraft();
+  const { markDraft, confirmReplace, remember, prepareSave } = useHouseDraft();
   const [showForm, setShowForm] = useState(false);
   const store = useHouseStorage(HOUSE_KEYS.maintenance, []);
   const [form, setForm] = useState(EMPTY);
@@ -42,20 +43,27 @@ export function HouseMaintenance() {
   const visible = records.filter((item) => filter === "Tous" || (filter === "Archivés" ? item.archivedAt : !item.archivedAt && (filter === "Faits" ? item.status === "Fait" : item.status !== "Fait")))
     .filter((item) => !query || searchable(`${item.title} ${item.zone} ${item.responsible || item.assignedTo} ${item.note}`).includes(searchable(query)))
     .sort((a, b) => String(a.dueAt || "9999").localeCompare(String(b.dueAt || "9999")));
-  function patch(item, fields, action) { return store.update((current) => changeHouseRecord(current, item._key, historyChange(item, fields, action))); }
+  function patch(item, changes, action) { return store.update(current => {
+    const latest = houseRecords(current).find(row => row._key === item._key);
+    return latest ? changeHouseRecord(current, item._key, historyChange(latest, changes, action)) : current;
+  }); }
   function edit(item) {
     if (editing === item._key) { setShowForm(true); return; }
     if (!confirmReplace()) return;
-    setShowForm(true); markDraft(false); setEditing(item._key); setForm({ ...EMPTY, ...item, responsible: item.responsible || item.assignedTo || "" });
+    setShowForm(true); markDraft(false); setEditing(item._key); remember(formValues(item)); setForm({ ...item, ...formValues(item) });
   }
   function submit(event) {
     event.preventDefault();
-    if (editing && !records.some((item) => item._key === editing)) { setMessage("Ce travail n’est plus dans la liste. La saisie reste dans le formulaire ; vérifiez l’historique."); return; }
+    const latest = readHouseData(localStorage, HOUSE_KEYS.maintenance, []);
+    if (latest.error) { setMessage("Stockage illisible : fiche non modifiée."); return; }
+    const previous = houseRecords(latest.value).find(item => item._key === editing);
+    if (editing && !previous) { setMessage("Ce travail n’est plus dans la liste. La saisie reste dans le formulaire ; vérifiez l’historique."); return; }
     if (!form.title.trim()) return;
-    const { _key, history, ...fields } = form;
+    let fields = formValues(form);
+    if (editing) { fields = prepareSave(formValues(previous), fields); if (!fields) { setMessage("Conflit conservé : votre saisie reste dans le formulaire."); return; } }
     const id = form.id || newHouseId("entretien");
     if (!editing) setForm((current) => ({ ...current, id }));
-    const saved = editing ? patch(records.find((item) => item._key === editing), fields, "Travail modifié")
+    const saved = editing ? patch({ ...previous, _key: editing }, fields, "Travail modifié")
       : store.update((current) => current.some((item) => item?.id === id) ? changeHouseRecord(current, id, fields) : [{ ...fields, id, date: localDay(), createdAt: new Date().toISOString() }, ...current]);
     if (saved) { setShowForm(false); markDraft(false); setEditing(""); setForm(EMPTY); setMessage("Travail enregistré."); }
   }

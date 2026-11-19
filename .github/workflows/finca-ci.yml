@@ -10,6 +10,7 @@ on:
       - "scripts/check-coolify-config.sh"
       - "scripts/snapshot-meetings-installation.sh"
       - "scripts/recover-finca-account.py"
+      - "scripts/audit-finca-backups.mjs"
       - "docker-compose.finca.yml"
       - "docker-compose.coolify.yml"
       - "docker-compose.coolify.ci.yml"
@@ -25,6 +26,7 @@ on:
       - "scripts/check-coolify-config.sh"
       - "scripts/snapshot-meetings-installation.sh"
       - "scripts/recover-finca-account.py"
+      - "scripts/audit-finca-backups.mjs"
       - "docker-compose.finca.yml"
       - "docker-compose.coolify.yml"
       - "docker-compose.coolify.ci.yml"
@@ -78,12 +80,20 @@ jobs:
       - name: Test Maison synchronization protection from the homepage
         run: npm run test:house-sync:browser
 
+      - name: Test integrated Terre navigation, persistence and concurrent edits
+        run: npm run test:integration:browser
+
+      - name: Test concurrent Maison edits without losing family data
+        run: npm run test:house-concurrency:browser
+
       - name: Save Maison browser captures
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: maison-browser-captures
-          path: /tmp/finca-maison-qa/
+          path: |
+            /tmp/finca-maison-qa/
+            /tmp/finca-integration-qa/
           if-no-files-found: ignore
           retention-days: 7
 

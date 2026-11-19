@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { patioTrees } from "../../data/houseContent.mjs";
-import { HOUSE_KEYS, dateLabel, historyChange, localDay, newHouseId } from "../../lib/houseData.mjs";
+import { HOUSE_KEYS, dateLabel, historyChange, localDay, newHouseId, readHouseData } from "../../lib/houseData.mjs";
 import { useHouseStorage } from "../../lib/useHouseStorage";
 import { EmptyHouse, HouseHistory, HouseSaveState, useHouseDraft } from "./HouseUI";
 
@@ -17,8 +17,9 @@ async function housePhoto(file) {
     return { id: newHouseId("photo"), name: file.name, dataUrl: canvas.toDataURL("image/jpeg", 0.76), at: new Date().toISOString() };
   } finally { URL.revokeObjectURL(url); }
 }
+const formValues = item => ({ work: item.work || "", date: item.date || "", responsible: item.responsible || "" });
 export function HouseGarden() {
-  const { markDraft, confirmReplace } = useHouseDraft();
+  const { markDraft, confirmReplace, remember, prepareSave } = useHouseDraft();
   const store = useHouseStorage(HOUSE_KEYS.garden, {});
   const [month, setMonth] = useState("");
   const [form, setForm] = useState({ tree: "laurier-central", work: "", date: "", responsible: "" });
@@ -29,18 +30,28 @@ export function HouseGarden() {
   function edit(item) {
     if (editing === item.id && form.tree === item.treeId) return;
     if (!confirmReplace()) return;
-    setEditing(item.id); markDraft(false); setForm({ tree: item.treeId, work: item.work, date: item.date, responsible: item.responsible || "" });
+    setEditing(item.id); markDraft(false); remember(formValues(item)); setForm({ tree: item.treeId, ...formValues(item) });
   }
   function updateTree(id, patch) {
     return store.update((current) => ({ ...current, [id]: { ...(current[id] || {}), ...patch, updatedAt: new Date().toISOString() } }));
   }
   function plan(event) {
     event.preventDefault();
-    const item = { id: editing || form.id || newHouseId("intervention"), work: form.work.trim(), date: form.date, responsible: form.responsible };
+    let item = { id: editing || form.id || newHouseId("intervention"), work: form.work.trim(), date: form.date, responsible: form.responsible };
     if (!item.work || !item.date) return;
+    const latest = readHouseData(localStorage, HOUSE_KEYS.garden, {});
+    if (latest.error) { setMessage("Stockage illisible : intervention non modifiée."); return; }
+    const matches = (latest.value[form.tree]?.interventions || []).filter(entry => entry.id === editing);
+    if (editing && matches.length !== 1) { setMessage("Cette intervention a changé ailleurs. Votre saisie est conservée ; vérifiez l’historique."); return; }
+    if (editing) {
+      const fields = prepareSave(formValues(matches[0]), formValues(item));
+      if (!fields) { setMessage("Conflit conservé : votre saisie reste dans le formulaire."); return; }
+      item = { ...fields, id: editing };
+    }
     if (!editing) setForm((current) => ({ ...current, id: item.id }));
     if (store.update((current) => {
       const previous = Array.isArray(current[form.tree]?.interventions) ? current[form.tree].interventions : [];
+      if (editing && previous.filter(entry => entry.id === item.id).length !== 1) return current;
       const next = previous.some((entry) => entry.id === item.id) ? previous.map((entry) => entry.id === item.id ? { ...entry, ...historyChange(entry, item, "Intervention modifiée") } : entry) : [...previous, { ...item, createdAt: new Date().toISOString() }];
       return { ...current, [form.tree]: { ...current[form.tree], interventions: next } };
     })) {

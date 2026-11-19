@@ -22,6 +22,9 @@
     "test:house-sync:browser": "node tests/browser/house-sync.mjs",
     "test:meeting-archives:browser": "node tests/browser/meeting-archives.mjs",
     "test:meeting-archives:api": "node tests/integration/run-meeting-archives.mjs",
-    "test:account-recovery:api": "node tests/integration/account-recovery.mjs"
+    "test:account-recovery:api": "node tests/integration/account-recovery.mjs",
+    "test:integration:browser": "node tests/browser/integration-navigation.mjs",
+    "test:house-concurrency:browser": "node tests/browser/house-concurrency.mjs",
+    "test:integration:api": "node tests/integration/run-consolidated.mjs"
   }
 }

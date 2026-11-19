@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useHouseStorage } from "../../lib/useHouseStorage";
-import { HOUSE_KEYS, dateLabel, houseRecords } from "../../lib/houseData.mjs";
+import { HOUSE_KEYS, dateLabel, houseRecords, mergeEditedFields } from "../../lib/houseData.mjs";
 
 export function HouseSaveState({ store }) {
   return <div className="houseSave" role={store.readError || store.saveError ? "alert" : "status"}>
@@ -27,18 +27,26 @@ export function EmptyHouse({ children }) { return <p className="houseEmpty">{chi
 export function useHouseDraft() {
   const [dirty, setDirty] = useState(false);
   const dirtyRef = useRef(false);
+  const baseline = useRef(null);
   const markDraft = useCallback(value => {
     dirtyRef.current = Boolean(value);
     setDirty(Boolean(value));
+    if (!value) baseline.current = null;
   }, []);
   const confirmReplace = useCallback((message = "Une saisie est en cours dans ce formulaire. La remplacer par une autre fiche ?") => !dirtyRef.current || window.confirm(message), []);
+  const remember = useCallback(value => { baseline.current = structuredClone(value); }, []);
+  const prepareSave = useCallback((current, edited) => {
+    const result = mergeEditedFields(baseline.current, current, edited);
+    if (result.conflicts.length && !window.confirm("Cette fiche a été modifiée ailleurs sur les mêmes champs. Remplacer ces champs par votre saisie ? La version précédente sera conservée dans l’historique.")) return null;
+    return result.patch;
+  }, []);
   useEffect(() => {
     if (!dirty) return;
     const warn = (event) => { event.preventDefault(); event.returnValue = ""; };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
-  return { markDraft, confirmReplace };
+  return { markDraft, confirmReplace, remember, prepareSave };
 }
 export function HouseRecovery() {
   const store = useHouseStorage(HOUSE_KEYS.syncRecovery, []);

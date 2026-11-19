@@ -127,6 +127,17 @@ export function historyChange(item, patch, action = "Modification") {
   const at = new Date().toISOString();
   return { ...patch, updatedAt: at, history: [...(Array.isArray(history) ? history : []), { at, action, before }] };
 }
+export function mergeEditedFields(initial, current, edited) {
+  if (!initial) return { patch: { ...edited }, conflicts: [] };
+  const same = (a, b) => JSON.stringify(a ?? "") === JSON.stringify(b ?? "");
+  const patch = {}, conflicts = [];
+  for (const [field, value] of Object.entries(edited)) {
+    if (same(value, initial[field])) continue;
+    patch[field] = value;
+    if (!same(current[field], initial[field]) && !same(current[field], value)) conflicts.push(field);
+  }
+  return { patch, conflicts };
+}
 export const safeWebUrl = (value) => {
   try { const url = new URL(value); return ["https:", "http:"].includes(url.protocol) ? url.href : ""; } catch { return ""; }
 };

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { defaultTouristPlaces, STATUS_ORDER } from "../../data/houseContent.mjs";
-import { HOUSE_KEYS, changeHouseRecord, historyChange, houseRecords, houseUrl, newHouseId, safeWebUrl, searchable } from "../../lib/houseData.mjs";
+import { HOUSE_KEYS, changeHouseRecord, historyChange, houseRecords, houseUrl, newHouseId, readHouseData, safeWebUrl, searchable } from "../../lib/houseData.mjs";
 import { copyHouseText, downloadHouseGuide, houseGuideText, publicHousePlaces } from "../../lib/houseGuide.mjs";
 import { useHouseStorage } from "../../lib/useHouseStorage";
 import { EmptyHouse, HouseHistory, HouseSaveState, useHouseDraft } from "./HouseUI";
@@ -29,8 +29,9 @@ export function HouseVisitorGuide() {
     {!places.length && <EmptyHouse>Aucun lieu n’est encore sélectionné pour le guide.</EmptyHouse>}
   </main>;
 }
+const formValues = item => Object.fromEntries(Object.keys(EMPTY).map(key => [key, item[key] ?? EMPTY[key]]));
 export function HouseOutings() {
-  const { markDraft, confirmReplace } = useHouseDraft();
+  const { markDraft, confirmReplace, remember, prepareSave } = useHouseDraft();
   const [showForm, setShowForm] = useState(false);
   const store = useHouseStorage(HOUSE_KEYS.places, defaultTouristPlaces);
   const [query, setQuery] = useState(""); const [status, setStatus] = useState("Tous"); const [category, setCategory] = useState("Tous");
@@ -41,20 +42,27 @@ export function HouseOutings() {
   const visible = records.filter((item) => Boolean(item.archivedAt) === archives)
     .filter((item) => status === "Tous" || item.status === status).filter((item) => category === "Tous" || item.category === category)
     .filter((item) => !query || searchable(`${item.name} ${item.zone} ${item.category} ${item.note} ${item.familyNote}`).includes(searchable(query)));
-  function patch(item, changes, action) { return store.update((current) => changeHouseRecord(current, item._key, historyChange(item, changes, action))); }
+  function patch(item, changes, action) { return store.update(current => {
+    const latest = houseRecords(current).find(row => row._key === item._key);
+    return latest ? changeHouseRecord(current, item._key, historyChange(latest, changes, action)) : current;
+  }); }
   function edit(item) {
     if (editing === item._key) { setShowForm(true); return; }
     if (!confirmReplace()) return;
-    setShowForm(true); markDraft(false); setEditing(item._key); setForm({ ...EMPTY, ...item });
+    setShowForm(true); markDraft(false); setEditing(item._key); remember(formValues(item)); setForm({ ...item, ...formValues(item) });
   }
   function submit(event) {
     event.preventDefault();
-    if (editing && !records.some((item) => item._key === editing)) { setMessage("Ce lieu a changé sur un autre écran. La saisie reste dans le formulaire ; vérifiez le carnet."); return; }
+    const latest = readHouseData(localStorage, HOUSE_KEYS.places, defaultTouristPlaces);
+    if (latest.error) { setMessage("Stockage illisible : fiche non modifiée."); return; }
+    const previous = houseRecords(latest.value).find(item => item._key === editing);
+    if (editing && !previous) { setMessage("Ce lieu a changé sur un autre écran. La saisie reste dans le formulaire ; vérifiez le carnet."); return; }
     if (!form.name.trim()) return;
-    const { _key, history, ...fields } = form;
+    let fields = formValues(form);
+    if (editing) { fields = prepareSave(formValues(previous), fields); if (!fields) { setMessage("Conflit conservé : votre saisie reste dans le formulaire."); return; } }
     const id = form.id || newHouseId("lieu");
     if (!editing) setForm((current) => ({ ...current, id }));
-    const saved = editing ? patch(records.find((item) => item._key === editing), fields, "Lieu modifié") : store.update((current) => current.some((item) => item?.id === id) ? changeHouseRecord(current, id, fields) : [{ ...fields, id }, ...current]);
+    const saved = editing ? patch({ ...previous, _key: editing }, fields, "Lieu modifié") : store.update((current) => current.some((item) => item?.id === id) ? changeHouseRecord(current, id, fields) : [{ ...fields, id }, ...current]);
     if (saved) { setShowForm(false); markDraft(false); setEditing(""); setForm(EMPTY); }
   }
   return <><HouseSaveState store={store} /><GuideTools places={store.value} disabled={store.readError} />

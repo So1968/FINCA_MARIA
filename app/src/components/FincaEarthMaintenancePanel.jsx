@@ -1,17 +1,14 @@
 import { useMemo, useState } from "react";
 import { maintenanceSources, oliveMaintenancePlan } from "../data/oliveMaintenancePlan.js";
+import { actionsUrl } from "../lib/actionAssignments.mjs";
+import { EARTH_MAINTENANCE_KEY as STORAGE_KEY, changeEarthField, earthConflicts, emptyEarthTracking, hasEarthChanges, mergeEarthChanges, validEarthTracking } from "../lib/earthMaintenance.mjs";
+import { readHouseData } from "../lib/houseData.mjs";
+import { HOUSE_STORAGE_EVENT, useHouseStorage } from "../lib/useHouseStorage";
+import { HouseHistory, HouseRecovery, HouseSaveState, useHouseDraft } from "./house/HouseUI";
 
-const STORAGE_KEY = "finca_maria_entretien_terre_v1";
 const STATUSES = ["À demander", "À décider après diagnostic", "Prévu", "Fait déclaré", "Prouvé par justificatif", "Sans intervention"];
 const PARCELS = ["À préciser", "25", "27", "25 et 27", "Autres cultures"];
 
-function loadTracking() {
-  try {
-    const value = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "null");
-    if (value && typeof value === "object" && !Array.isArray(value) && value.campaigns && typeof value.campaigns === "object") return value;
-  } catch { /* Document encore absent ou stockage indisponible. */ }
-  return { campaigns: {} };
-}
 
 function campaignYears() {
   const now = new Date();
@@ -19,52 +16,46 @@ function campaignYears() {
   return [first - 1, first, first + 1];
 }
 
-function actionsUrl() {
-  const url = new URL(window.location.href);
-  url.searchParams.set("area", "terre");
-  url.searchParams.set("tab", "actions");
-  url.searchParams.set("contact", "asaja");
-  return url.toString();
-}
 
 export function FincaEarthMaintenancePanel() {
   const years = useMemo(campaignYears, []);
-  const [year, setYear] = useState(years[1]);
-  const [saved, setSaved] = useState(loadTracking);
-  const [draft, setDraft] = useState(loadTracking);
+  const [season, setSeason] = useState(`${years[1]}/${years[1] + 1}`);
+  const store = useHouseStorage(STORAGE_KEY, emptyEarthTracking());
+  const { markDraft } = useHouseDraft();
+  const [changes, setChanges] = useState({});
+  const [saveError, setSaveError] = useState(false);
+  const readError = store.readError || !validEarthTracking(store.value);
+  const source = readError ? emptyEarthTracking() : store.value;
+  const draft = mergeEarthChanges(source, changes);
   const [message, setMessage] = useState("");
   const [category, setCategory] = useState("Tout");
-  const season = `${year}/${year + 1}`;
   const entries = draft.campaigns?.[season] || {};
-  const pending = JSON.stringify(draft) !== JSON.stringify(saved);
+  const pending = hasEarthChanges(changes);
+  const campaignOptions = [...new Set([...years.map(item => `${item}/${item + 1}`), ...Object.keys(source.campaigns)])].sort();
   const categories = ["Tout", ...new Set(oliveMaintenancePlan.map((item) => item.category))];
   const visible = category === "Tout" ? oliveMaintenancePlan : oliveMaintenancePlan.filter((item) => item.category === category);
   const documented = Object.values(entries).filter((item) => item?.status === "Prouvé par justificatif").length;
+  const knownIds = new Set(oliveMaintenancePlan.map(item => item.id));
+  const legacy = Object.entries(entries).filter(([id]) => !knownIds.has(id));
 
   function patch(id, field, value) {
-    setDraft((current) => ({
-      ...current,
-      campaigns: {
-        ...current.campaigns,
-        [season]: {
-          ...(current.campaigns?.[season] || {}),
-          [id]: {
-            ...(current.campaigns?.[season]?.[id] || {}),
-            [field]: value,
-            updatedAt: new Date().toISOString()
-          }
-        }
-      }
-    }));
+    if (readError) return;
+    const next = changeEarthField(source, changes, season, id, field, value);
+    setChanges(next); markDraft(hasEarthChanges(next));
     setMessage("Modifications non enregistrées : appuyer sur Enregistrer.");
   }
 
   function persist() {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
-      setSaved(draft);
+      const latest = readHouseData(localStorage, STORAGE_KEY, emptyEarthTracking());
+      if (latest.error || !validEarthTracking(latest.value)) { setMessage("Lecture impossible : suivi conservé, enregistrement bloqué."); return; }
+      if (earthConflicts(latest.value, changes).length && !window.confirm("Une autre personne a modifié les mêmes champs. Conserver votre saisie à leur place ? La version précédente restera dans l’historique.")) { setMessage("Votre saisie est conservée dans le formulaire ; la version reçue n’a pas été remplacée."); return; }
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(mergeEarthChanges(latest.value, changes, true)));
+      setChanges({}); markDraft(false); setSaveError(false);
+      window.dispatchEvent(new Event(HOUSE_STORAGE_EVENT));
       setMessage("Suivi enregistré sur cet appareil. Synchronisation familiale selon la connexion FINCA MARIA.");
     } catch {
+      setSaveError(true);
       setMessage("Échec de l'enregistrement. Conservez la page et vérifiez le stockage.");
     }
   }
@@ -103,22 +94,24 @@ export function FincaEarthMaintenancePanel() {
         <h4>Entretien des oliviers — programme provisoire</h4>
         <p>Parcelles 25 et 27, polygone 185, Villanueva del Rosario. Le calendrier indique <strong>quand poser les questions à Vitines</strong> et ce que l'ingénieur agronome doit confirmer sur place. Il ne prouve aucune intervention passée et ne prescrit aucun produit ni dosage.</p>
         <p><strong>Étape préalable :</strong> visite technique indépendante, photos datées, recommandations écrites sur les 12 prochains mois.</p>
-        <a href={actionsUrl()} className="cta">Ouvrir le dossier de visite technique ASAJA</a>
+        <a href={actionsUrl(window.location.href, { contact: "asaja", filter: "all", dossier: true })} className="cta">Préparer la demande de visite — interlocuteur à confirmer</a>
       </div>
+
+      <HouseSaveState store={{ ...store, readError, saveError, retry: persist }} />
 
       <div className="tools">
         <label>Campagne
-          <select value={year} onChange={(event) => setYear(Number(event.target.value))}>
-            {years.map((item) => <option value={item} key={item}>{item}/{item + 1}</option>)}
+          <select aria-label="Campagne" value={season} onChange={event => setSeason(event.target.value)}>
+            {campaignOptions.map(item => <option value={item} key={item}>{item}</option>)}
           </select>
         </label>
         <label>Thème
-          <select value={category} onChange={(event) => setCategory(event.target.value)}>
+          <select aria-label="Thème" value={category} onChange={(event) => setCategory(event.target.value)}>
             {categories.map((item) => <option key={item}>{item}</option>)}
           </select>
         </label>
         <span className="status">{documented} travail{documented > 1 ? "aux" : ""} avec justificatif sur cette campagne</span>
-        <button type="button" onClick={persist} disabled={!pending}>Enregistrer mon suivi</button>
+        <button type="button" onClick={persist} disabled={readError || (!pending && !saveError)}>Enregistrer mon suivi</button>
       </div>
       {message && <p className="status" role="status">{message}</p>}
       <div className="tasks">
@@ -135,15 +128,15 @@ export function FincaEarthMaintenancePanel() {
                 <p><strong>À demander à Vitines :</strong> {item.vitines}</p>
                 <p><strong>Validation de l'ingénieur :</strong> {item.validation}</p>
                 <p><strong>Preuve attendue :</strong> {item.evidence}</p>
-                <div className="formGrid">
+                <fieldset className="formGrid" disabled={readError} style={{ border: 0, padding: 0, margin: 0 }}>
                   <label>Statut
                     <select value={record.status || "À demander"} onChange={(event) => patch(item.id, "status", event.target.value)}>
-                      {STATUSES.map((status) => <option key={status}>{status}</option>)}
+                      {[...new Set([...STATUSES, record.status].filter(Boolean))].map((status) => <option key={status}>{status}</option>)}
                     </select>
                   </label>
                   <label>Parcelle ou zone
                     <select value={record.parcel || "À préciser"} onChange={(event) => patch(item.id, "parcel", event.target.value)}>
-                      {PARCELS.map((parcel) => <option key={parcel}>{parcel}</option>)}
+                      {[...new Set([...PARCELS, record.parcel].filter(Boolean))].map((parcel) => <option key={parcel}>{parcel}</option>)}
                     </select>
                   </label>
                   <label>Date réelle de l'intervention
@@ -164,14 +157,19 @@ export function FincaEarthMaintenancePanel() {
                   <label>Produits, doses, quantités ou remarques
                     <textarea rows="3" value={record.notes || ""} onChange={(event) => patch(item.id, "notes", event.target.value)} placeholder="Ne reporter que les informations reçues ou vérifiées…" />
                   </label>
-                </div>
+                </fieldset>
+                <HouseHistory item={record} />
                 <small>Base documentaire : {item.sources}. « Fait déclaré » ne vaut jamais « Prouvé par justificatif ».</small>
               </div>
             </details>
           );
         })}
       </div>
-      <button type="button" onClick={persist} disabled={!pending}>Enregistrer mon suivi</button>
+      <button type="button" onClick={persist} disabled={readError || (!pending && !saveError)}>Enregistrer mon suivi</button>
+      <HouseRecovery />
+      {legacy.length > 0 && <details><summary>Autres suivis conservés pour cette campagne ({legacy.length})</summary>
+        {legacy.map(([id, record]) => <article key={id}><h5>{id}</h5><dl>{Object.entries(record).map(([field, value]) => <div key={field}><dt>{field}</dt><dd>{typeof value === "string" ? value : JSON.stringify(value)}</dd></div>)}</dl></article>)}
+      </details>}
       <p className="status">Les réponses des prestataires, avis techniques et preuves sont à enregistrer sur chaque campagne. La synchronisation entre appareils n'est effective que lorsque FINCA MARIA est connectée et synchronisée.</p>
       <details><summary>Sources techniques officielles (IFAPA / RAIF)</summary><ul>{maintenanceSources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.label}</a></li>)}</ul></details>
     </section>

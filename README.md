@@ -41,6 +41,20 @@ connexion, stockage illisible et quota).
 L'audit et les limites sont détaillés dans
 [AUDIT_MAISON_2026-11-16.md](docs/AUDIT_MAISON_2026-11-16.md).
 
+## Évolutions rapprochées pour validation
+
+La branche `feat/integration-finca-verifiee` regroupe les propositions MAISON,
+TERRE, archives, récupération de compte et contrôle des sauvegardes. Le
+[bilan des branches et corrections](docs/INTEGRATION_BRANCHES_2026-11-19.md)
+précise les versions examinées, les incompatibilités corrigées et les limites
+avant installation. Cette proposition ne déploie pas l’application familiale.
+
+`npm run test:house-concurrency:browser` vérifie les modifications d’une même
+fiche dans deux onglets. `npm run test:integration:browser` vérifie les cinq
+onglets TERRE, leurs retours et la conservation du suivi. Avec Docker,
+`npm run test:integration:api` vérifie les réservations concurrentes et le suivi
+TERRE avec PostgreSQL et deux navigateurs isolés, sans données familiales.
+
 ## Organisation
 
 - `app/` : interface FINCA MARIA et interface familiale isolée.

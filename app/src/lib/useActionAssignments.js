@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ASSIGNMENTS_STORAGE_KEY, mergeAssignmentChanges, readAssignments, writeAssignments } from "./actionAssignments.mjs";
+import { HOUSE_STORAGE_EVENT } from "./useHouseStorage";
 
 const READ_ERROR = "Attention : lecture des actions impossible. Les données existantes sont conservées ; rechargez la page avant de modifier.";
 const SAVE_ERROR = "Attention : modifications non enregistrées. Gardez cette page ouverte et vérifiez le stockage du navigateur.";
@@ -27,17 +28,20 @@ export function useActionAssignments() {
       }
       const unsaved = Object.keys(pending.current).length > 0;
       setState({ assignments: mergeAssignmentChanges(loaded.assignments, pending.current), error: false });
-      setSaveMessage(unsaved ? SAVE_ERROR : "Modifications reçues depuis un autre onglet sur cet appareil.");
+      setSaveMessage(unsaved ? SAVE_ERROR : "Mise à jour reçue ; les autres champs sont conservés.");
     }
     function guardUnsaved(event) {
       if (Object.keys(pending.current).length === 0) return;
       event.preventDefault();
       event.returnValue = "";
     }
+    const sharedRefresh = () => { try { refresh({ key: ASSIGNMENTS_STORAGE_KEY, storageArea: window.localStorage }); } catch {} };
     window.addEventListener("storage", refresh);
+    window.addEventListener(HOUSE_STORAGE_EVENT, sharedRefresh);
     window.addEventListener("beforeunload", guardUnsaved);
     return () => {
       window.removeEventListener("storage", refresh);
+      window.removeEventListener(HOUSE_STORAGE_EVENT, sharedRefresh);
       window.removeEventListener("beforeunload", guardUnsaved);
     };
   }, []);

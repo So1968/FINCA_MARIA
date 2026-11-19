@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { documentedHouseInventory, historicalHouseInventoryToVerify, houseEquipmentClues, houseInventoryCategories, houseInventoryStatuses, getHouseEssentialSummary } from "../../data/cortijoHouseInventory";
-import { HOUSE_KEYS, changeHouseRecord, historyChange, houseRecords, newHouseId, searchable } from "../../lib/houseData.mjs";
+import { HOUSE_KEYS, changeHouseRecord, historyChange, houseRecords, newHouseId, readHouseData, searchable } from "../../lib/houseData.mjs";
 import { useHouseStorage } from "../../lib/useHouseStorage";
 import { EmptyHouse, HouseHistory, HouseNote, HouseSaveState, useHouseDraft } from "./HouseUI";
 
 const EMPTY = { object: "", category: "Meubles", room: "", quantity: "", status: "Présent", note: "" };
+const formValues = item => ({ ...EMPTY, ...Object.fromEntries(Object.keys(EMPTY).map(key => [key, item[key] ?? EMPTY[key]])) });
 export function HouseInventory() {
-  const { markDraft, confirmReplace } = useHouseDraft();
+  const { markDraft, confirmReplace, remember, prepareSave } = useHouseDraft();
   const [showForm, setShowForm] = useState(false);
   const store = useHouseStorage(HOUSE_KEYS.inventory, []);
   const [query, setQuery] = useState("");
@@ -29,23 +30,31 @@ export function HouseInventory() {
   function edit(item) {
     if (editing === item._key) { setShowForm(true); return; }
     if (!confirmReplace()) return;
-    setShowForm(true); markDraft(false); setEditing(item._key); setForm({ ...EMPTY, ...item, quantity: item.quantity ?? "" });
+    setShowForm(true); markDraft(false); setEditing(item._key); remember(formValues(item)); setForm({ ...item, ...formValues(item) });
   }
   function patch(item, changes, action) {
-    const patch = historyChange(item, changes, action);
-    return store.update((current) => houseRecords(current).some((row) => row._key === item._key)
-      ? changeHouseRecord(current, item._key, patch)
-      : [...current, { ...documentedHouseInventory.find((row) => row.id === item.id), ...patch }]);
+    return store.update((current) => {
+      const latest = houseRecords(current).find(row => row._key === item._key);
+      const original = latest || documentedHouseInventory.find(row => row.id === item.id);
+      if (!original) return current;
+      const changesWithHistory = historyChange(original, changes, action);
+      return latest ? changeHouseRecord(current, item._key, changesWithHistory) : [...current, { ...original, ...changesWithHistory }];
+    });
   }
+
   function submit(event) {
     event.preventDefault();
-    if (editing && !items.some((item) => item._key === editing)) { setMessage("Cette fiche a changé sur un autre écran. La saisie reste dans le formulaire ; vérifiez les données avant de poursuivre."); return; }
+    const latest = readHouseData(localStorage, HOUSE_KEYS.inventory, []);
+    if (latest.error) { setMessage("Stockage illisible : fiche non modifiée."); return; }
+    const previous = houseRecords(latest.value).find(item => item._key === editing) || documentedHouseInventory.find(item => item.id === editing);
+    if (editing && !previous) { setMessage("Cette fiche a changé sur un autre écran. La saisie reste dans le formulaire ; vérifiez les données avant de poursuivre."); return; }
     const quantity = form.quantity === "" ? null : Number(form.quantity);
     if (!form.object.trim() || (quantity !== null && (!Number.isFinite(quantity) || quantity < 0))) return;
-    const fields = { object: form.object.trim(), category: form.category, room: form.room.trim(), quantity, status: form.status, note: form.note, updatedAt: new Date().toISOString() };
+    let fields = { object: form.object.trim(), category: form.category, room: form.room.trim(), quantity, status: form.status, note: form.note };
+    if (editing) { fields = prepareSave(formValues(previous), fields); if (!fields) { setMessage("Conflit conservé : votre saisie reste dans le formulaire."); return; } }
     const id = form.id || newHouseId("maison-inventaire");
     if (!editing) setForm((current) => ({ ...current, id }));
-    const saved = editing ? patch(items.find((item) => item._key === editing), fields, "Inventaire modifié")
+    const saved = editing ? patch({ ...previous, _key: editing }, fields, "Inventaire modifié")
       : store.update((current) => current.some((item) => item?.id === id) ? changeHouseRecord(current, id, fields) : [...current, { ...fields, id, evidenceStatus: "Saisie Maison" }]);
     if (saved) { setShowForm(false); markDraft(false); setEditing(""); setForm(EMPTY); setMessage("Inventaire enregistré."); }
   }

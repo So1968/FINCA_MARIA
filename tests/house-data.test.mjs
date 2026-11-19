@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { HOUSE_KEYS, bookingConflict, changeHouseRecord, houseRecords, houseSection, keepHouseRecovery, mergeHouseBookings, readHouseData, removeHouseRecord, syncableHouseBooking, syncableHouseBookings, validHouseDate } from "../app/src/lib/houseData.mjs";
+import { HOUSE_KEYS, bookingConflict, changeHouseRecord, houseRecords, houseSection, keepHouseRecovery, mergeHouseBookings, mergeEditedFields, readHouseData, removeHouseRecord, syncableHouseBooking, syncableHouseBookings, validHouseDate } from "../app/src/lib/houseData.mjs";
 import { documentedHouseInventory, getInventorySummary } from "../app/src/data/cortijoHouseInventory.js";
 import { houseGuideHtml, houseGuideText, publicHousePlaces } from "../app/src/lib/houseGuide.mjs";
 
@@ -84,4 +84,14 @@ test("le guide partageable exclut notes privées, archives et protocoles dangere
   }
   assert.ok(!houseGuideHtml(places).includes("<img"));
   assert.ok(houseGuideHtml(places).includes("&lt;img"));
+});
+
+test("une saisie ne remplace que ses champs modifiés et signale les modifications concurrentes", () => {
+  const initial = { name: "Avant", note: "Ancienne note", quantity: 0 };
+  const latest = { ...initial, note: "Note reçue", unknown: true };
+  assert.deepEqual(mergeEditedFields(initial, latest, { ...initial, name: "Après" }), { patch: { name: "Après" }, conflicts: [] });
+  assert.deepEqual(mergeEditedFields(initial, latest, { ...initial, note: "Ma note" }), { patch: { note: "Ma note" }, conflicts: ["note"] });
+  assert.deepEqual(mergeEditedFields(initial, latest, { ...initial, note: "Note reçue" }).conflicts, []);
+  assert.deepEqual(mergeEditedFields({ note: null }, {}, { note: "" }).patch, {});
+  assert.deepEqual(mergeEditedFields(initial, latest, { ...initial, quantity: 1 }).patch, { quantity: 1 });
 });
