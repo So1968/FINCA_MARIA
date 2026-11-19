@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 
 const history = [
   {
@@ -39,39 +37,7 @@ const history = [
   }
 ];
 
-function hosts() {
-  if (new URLSearchParams(window.location.search).get("mode") === "vacanciers") return {};
-  const main = document.querySelector(".cortijoExportApp");
-  const nav = main?.querySelector(".fincaHouseJump");
-  const footer = main?.querySelector(".cortijoExportRule");
-  if (!main || !nav || !footer) return {};
-  let navHost = document.getElementById("finca-rules-nav-host");
-  if (!navHost) {
-    navHost = document.createElement("span");
-    navHost.id = "finca-rules-nav-host";
-    navHost.style.display = "contents";
-    nav.appendChild(navHost);
-  }
-  let sectionHost = document.getElementById("finca-rules-section-host");
-  if (!sectionHost) {
-    sectionHost = document.createElement("div");
-    sectionHost.id = "finca-rules-section-host";
-    main.insertBefore(sectionHost, footer);
-  }
-  return { nav: navHost, section: sectionHost };
-}
-
-function openRules() {
-  const target = document.getElementById("reglements");
-  if (target instanceof HTMLDetailsElement) target.open = true;
-  window.history.replaceState(null, "", "/?view=cortijo-maison#reglements");
-  target?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function HistoryPanel() {
-  useEffect(() => {
-    if (window.location.hash === "#reglements") requestAnimationFrame(openRules);
-  }, []);
+export function HouseRulesHistory() {
   return (
     <details id="reglements" className="cortijoView">
       <summary className="cortijoPanelTitle"><span>08</span><div><h3>Règlements intérieurs — historique</h3><p>Les versions familiales retrouvées, sans les confondre avec les règles actuelles.</p></div><small className="cortijoSummaryBadge">5 jalons</small></summary>
@@ -100,15 +66,5 @@ function HistoryPanel() {
   );
 }
 
-export function FincaHouseRulesHistoryMount() {
-  const [targets, setTargets] = useState({});
-  useEffect(() => {
-    const resolve = () => setTargets(hosts());
-    resolve();
-    const observer = new MutationObserver(resolve);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, []);
-  if (!targets.nav && !targets.section) return null;
-  return <>{targets.nav && createPortal(<button type="button" onClick={openRules}>Règlements</button>, targets.nav)}{targets.section && createPortal(<HistoryPanel />, targets.section)}</>;
-}
+// L’historique est désormais rendu directement dans Fonctionnement.
+export function FincaHouseRulesHistoryMount() { return null; }

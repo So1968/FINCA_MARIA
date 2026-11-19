@@ -65,6 +65,21 @@ jobs:
       - name: Test Actions save and return flow in Chromium
         run: npm run test:actions:browser
 
+      - name: Test Maison workflows and legacy data in Chromium
+        run: npm run test:house:browser
+
+      - name: Test Maison synchronization protection from the homepage
+        run: npm run test:house-sync:browser
+
+      - name: Save Maison browser captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maison-browser-captures
+          path: /tmp/finca-maison-qa/
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Test report save and validation failures in Chromium
         run: npm run test:meetings:browser
 
@@ -138,4 +153,5 @@ jobs:
           SESSION_HOURS: "1"
           BACKUP_INTERVAL_SECONDS: "3600"
           BACKUP_RETENTION_DAYS: "1"
+          FINCA_HOUSE_RUNTIME_BROWSER: "1"
         run: sh scripts/ci-finca-runtime-smoke.sh
