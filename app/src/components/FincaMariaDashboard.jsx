@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cortijoActionDesk } from "../data/cortijoActionDesk";
+import { actionScriptsFr as ACTION_SCRIPT_FR } from "../data/cortijoActionScriptsFr.mjs";
 
 import { ACTION_FILTERS, actionFilter, actionsUrl, matchesActionFilter, summarizeActions, normalizeActionStatus as normalizeStatus } from "../lib/actionAssignments.mjs";
 import { useActionAssignments } from "../lib/useActionAssignments";
 import { ActionSaveStatus } from "./ActionSaveStatus";
+import { FincaEarthMaintenancePanel } from "./FincaEarthMaintenancePanel";
+import { earthTab as resolveEarthTab, earthUrl } from "../lib/fincaNavigation.mjs";
 const NAV_STORAGE_KEY = "finca_maria_navigation_v2";
 const ACTION_PLAN_DATE = "18/08/2026";
 const BACKUP_VERSION = 2;
@@ -25,48 +28,36 @@ const CONTACT_WITH_OPTIONS = ["San Juan", "ASAJA", "Peláez", "Agriculteur / Vit
 
 const EARTH_TABS = [
   { id: "gestion", label: "Journal", icon: "leaf", title: "Journal de l’exploitation" },
+  { id: "entretien", label: "Entretien", icon: "check", title: "Calendrier d’entretien de la terre" },
   { id: "analyse", label: "Analyse", icon: "search", title: "Analyse de la terre" },
   { id: "strategie", label: "Stratégie", icon: "compass", title: "Stratégie" },
   { id: "actions", label: "Actions", icon: "folder", title: "Dossiers & actions" }
 ];
 
-const HOUSE_TABS = [
-  { id: "gerer", label: "Gérer", icon: "home", title: "Gérer la maison" },
-  { id: "afaire", label: "À faire", icon: "check", title: "À faire pendant un séjour" },
-  { id: "presences", label: "Présences", icon: "people", title: "Présences & couchages" },
-  { id: "inventaire", label: "Inventaire", icon: "box", title: "Inventaire & besoins" },
-  { id: "jardin", label: "Jardin", icon: "leaf", title: "Patio & jardin" },
-  { id: "sorties", label: "Sorties", icon: "compass", title: "Guide des vacanciers" }
-];
 
-const ACTION_SCRIPT_FR = {
-  "san-juan-historique": "Bonjour. Nous reconstituons la production de la finca campagne par campagne. Nous avons déjà de nombreux documents anciens, y compris depuis 2007. Nous avons aussi des états de factures San Juan de 2019, 2020, 2021 et 2022, mais ils ne permettent pas à eux seuls de connaître les kilos d'olives ni la production totale de chaque campagne. Pour 2025/26, deux reçus de répartition utilisent la même base de 18 210 kg d'olives, 3 860,64 kg d'huile et un rendement de 21,20 % : ces kilos ne doivent donc pas être additionnés deux fois. Nous avons besoin de la liste complète des vales ou apports, des dates et kilos de chaque apport, de rattacher le premier ramassage de 7 943 kg à cette base, de clarifier la nature des 6 541 kg et de la référence 6139, puis de confirmer si 18 210 kg correspond bien au total des apports de la campagne. Nous devons aussi savoir s'il existe un troisième reparto ou une liquidation finale. Pour 2019/20 à 2022/23, il reste à récupérer l'historique complet de production et à confirmer que le relevé fourni couvre tous les apports enregistrés.",
-  "asaja-pac-2026-copie": "Bonjour. Nous avons la preuve que la PAC 2026 de notre finca a été déposée le 12 mars 2026. Nous avons déjà vérifié nos documents et nous avons le dossier détaillé de 2024, mais il nous manque les pages détaillées de 2026. Pourriez-vous nous fournir une copie complète de la Demande unique PAC 2026 et du justificatif de dépôt, avec les parcelles, recintos, surfaces, cultures et aides déclarées ? Nous n'avons pas besoin de vérifier à nouveau si la PAC a été déposée ; nous avons uniquement besoin de la copie complète du dossier 2026 qui manque dans nos archives.",
-  "pelaez-role-fiscal": "Bonjour. Nous mettons en ordre le dossier fiscal de la finca et nous ne voulons pas vous demander des documents que nous avons déjà. Dans nos archives figurent déjà les déclarations Modelo 100 des exercices 2017, 2018, 2019 et 2022. Nos comptes rendus familiaux de 2026 indiquent également que la déclaration d'impôts devait être gérée avec vous. Ce dont nous avons besoin maintenant, c'est uniquement de compléter ce qui manque : quels exercices fiscaux conservez-vous et qui ne figurent pas déjà dans notre liste, en particulier 2020, 2021 et ceux postérieurs à 2022 ? Si vous les avez, pourriez-vous nous remettre une copie de ces déclarations et des justificatifs agricoles utilisés pour les préparer, tels que liquidations ou certificats San Juan, subventions ou documents PAC, factures ou dépenses agricoles ? Nous n'avons pas besoin de données bancaires ; nous cherchons seulement à reconstituer le dossier fiscal et agricole année par année.",
-  "vitines-378-detail": "Nous avons la facture n° 378 du 4 avril 2026 pour 5 445 euros. Dans nos notes figurent déjà trois interventions ultérieures : le 22 avril, un traitement foliaire avec une cuve de 3 000 litres ; le 29 avril, huit heures de débroussaillage ; et le 1er mai, deux cuves de liquide au sol. Nous ne voulons pas que vous nous répétiez ce que nous savons déjà. Nous avons besoin de confirmer ou corriger ces dates et de compléter le détail : quel produit et quelle matière active ont été utilisés pour chaque traitement, quelle dose, sur quelles parcelles ou zones, si les produits ont été fournis par Vitines ou achetés séparément, et comment se répartit exactement le montant de 5 445 euros entre la récolte des olives, le traitement foliaire, le débroussaillage, le traitement au sol, les produits et tout autre travail.",
-  "asaja-visite-technique": "Bonjour. Nous sommes adhérents à ASAJA et nous avons une finca d'oliveraie traditionnelle à Villanueva del Rosario. Nous souhaitons demander la visite d'un technicien afin de faire un diagnostic de l'état actuel de l'exploitation, d'évaluer son potentiel productif et de savoir quels travaux devraient être réalisés au cours des douze prochains mois. Nous aimerions, si possible, disposer ensuite d'un bref rapport écrit. Ce service est-il inclus pour les adhérents et comment pouvons-nous demander la visite ?"
-};
+
 
 const compactChipStyle = { display: "inline-flex", alignItems: "center", gap: ".28rem", width: "auto", minWidth: 0, minHeight: "34px", margin: 0, padding: ".22rem .46rem", borderRadius: "999px", whiteSpace: "nowrap" };
 const compactLabelStyle = { fontSize: ".65rem", lineHeight: 1, letterSpacing: ".25px", whiteSpace: "nowrap" };
 const compactControlStyle = { width: "auto", minWidth: 0, minHeight: "26px", padding: "0 .1rem", fontSize: ".84rem", lineHeight: 1.1 };
 
 const managementTimeline = [
-  { period: "2023/24 → aujourd'hui", title: "Exploitation directe avec prestations facturées", text: "La famille pilote directement l'exploitation. José n'est plus titulaire d'une part de 85 % : les travaux doivent désormais être suivis comme prestations, avec dates, parcelles, produits, coûts et résultat obtenu." },
-  { period: "Environ 2023/24", title: "Refus du nouveau contrat", text: "Gloria confirme à José qu'il n'y aura pas de nouveau bail. Cette date constitue la rupture analytique utile pour comparer l'ancien fonctionnement à 15 % et la gestion directe." },
-  { period: "11/03/2020 → environ 2023/24", title: "Fin du bail écrit mais continuité du fonctionnement à 15 %", text: "Le deuxième bail écrit se termine en mars 2020. Selon la famille, José continue néanmoins à exploiter pendant la période de renégociation sur le même principe économique jusqu'à la rupture autour de 2023/24. Cette continuité doit être documentée campagne par campagne." },
+  { period: "2023/24 → 2025/26", title: "Prestations facturées à la famille", text: "La facture n°336 du 03/05/2024 constitue un indice de passage aux prestations ; les pièces 2024/25 et 2025/26 étayent ce fonctionnement. Elles ne fixent pas à elles seules la date de fin effective des 15 % ni l'ensemble des droits contractuels." },
+  { period: "Autour de 2023/24 — à dater", title: "Non-renouvellement rapporté par la famille", text: "Le suivi familial rapporte la décision de ne pas signer un nouveau bail et de payer les travaux à la prestation. L'échange daté et la date de changement du calcul chez San Juan restent à retrouver. Aucun changement de comportement individuel n'est daté par ces seuls éléments." },
+  { period: "11/03/2020 → environ 2023/24", title: "Fin du bail écrit ; continuité des 15 % rapportée", text: "Le deuxième bail écrit se termine en mars 2020. La famille rapporte une poursuite du fonctionnement à 15 % pendant la renégociation ; aucun nouveau bail signé n'est identifié dans les synthèses consultées. Cette continuité reste à confirmer campagne par campagne." },
   { period: "2019", title: "Décès de María et transition administrative", text: "Les démarches passent progressivement au nom de María Josefa, sans mettre fin au bail en cours. Le changement de sociétaire à San Juan ne doit pas être confondu avec un changement de mode de gestion." },
   { period: "12/03/2014 → 11/03/2020", title: "Deuxième bail écrit", text: "José López Gallego exploite la finca ; la propriétaire reçoit 15 % de la production d'olives et les frais d'exploitation sont supportés par le fermier." },
   { period: "12/02/2007 → 11/02/2013", title: "Premier bail écrit", text: "Premier cadre écrit retrouvé : María reçoit 15 % de la production d'olives. Cette règle sert de base aux reconstitutions quand les kilos du compte propriétaire sont clairement identifiés." }
 ];
 
 const analysisFindings = [
-  { status: "[P/C]", title: "Jusqu'à 2022/23, les kilos San Juan ne doivent pas être lus comme la production totale", text: "Le récapitulatif donne la part portée au compte de la famille. Sur la base du fonctionnement à 15 %, on reconstitue le total par kilos famille ÷ 0,15, tant que San Juan n'a pas confirmé définitivement le périmètre." },
-  { status: "[C]", title: "La série reconstituée montre une alternance très forte", text: "2017/18 ≈ 26,72 t ; 2018/19 ≈ 10,60 t ; 2019/20 ≈ 35,73 t ; 2020/21 ≈ 8,17 t ; 2021/22 ≈ 25,74 t ; 2022/23 ≈ 4,56 t. Les années hautes démontrent que l'oliveraie conservait encore un fort potentiel sous l'ancien système." },
-  { status: "[!]", title: "2022/23 est l'année-test prioritaire", text: "Les 684 kg correspondent à environ 4,56 t reconstituées si la règle des 15 % s'applique. C'est extrêmement bas par rapport aux années hautes et même aux anciennes années basses. La sécheresse et l'alternance peuvent l'expliquer en partie, mais il faut distinguer olives présentes, olives ramassées et olives réellement livrées." },
+  { status: "[P/D/C]", title: "La conversion des kilos San Juan en production totale reste conditionnelle", text: "La formule kilos au compte familial ÷ 0,15 n'est valable que si ces kilos représentent exactement la quote-part de 15 % de tous les apports. La règle figure dans les baux écrits ; sa poursuite après mars 2020 est seulement rapportée. San Juan doit confirmer le périmètre avant toute extrapolation." },
+  { status: "[C conditionnel]", title: "Des scénarios de production, pas des totaux officiels", text: "Avec l'hypothèse des 15 % : 2017/18 ≈ 26,72 t ; 2018/19 ≈ 10,60 t ; 2019/20 ≈ 35,73 t ; 2020/21 ≈ 8,17 t ; 2021/22 ≈ 25,74 t ; 2022/23 ≈ 4,56 t. Ces calculs ne prouvent ni la complétude des apports, ni la cause des variations, ni le potentiel actuel de l'oliveraie." },
+  { status: "[À confirmer]", title: "2022/23 : qualifier les 684 kg avant de conclure", text: "Le récapitulatif indique 684 kg. Le scénario à 15 % donnerait 4,56 t ; ce total est conditionnel. Il faut vérifier les apports et distinguer olives présentes, ramassées et livrées avant d'évaluer le climat, l'alternance ou les pratiques agricoles." },
   { status: "[P/D]", title: "2023/24 est une campagne charnière, pas une année à multiplier automatiquement par 100/15", text: "Le récapitulatif donne 2 294 kg, mais cette campagne se situe au moment de la rupture du mode de gestion. Il faut verrouiller la date exacte de fin pratique du 15 % avant toute reconstitution." },
-  { status: "[P/C]", title: "2025/26 : une seule base physique de 18 210 kg", text: "Les deux repartos documentés utilisent la même base de 18 210 kg d’olives, 3 860,64 kg d’huile et 21,20 % de rendement : ils ne doivent pas être additionnés en kilos. Le ramassage de 7 943 kg est un apport partiel à rattacher à cette base. Les 6 541 kg restent de nature non verrouillée et ne s’ajoutent pas séparément sans pièce source. L’existence d’un éventuel troisième reparto ou d’une liquidation finale reste à confirmer." },
-  { status: "[H]", title: "L'hypothèse d'un effet du non-renouvellement doit être testée par des faits", text: "La famille envisage qu'après le refus du nouveau contrat José ait pu avoir intérêt à ce que la finca paraisse moins productive. Ce n'est pas une conclusion : on la teste par les travaux réellement réalisés, les dates de récolte, les olives laissées au sol, les tickets, les traitements, la taille et la comparaison avant/après 2023/24." }
+  { status: "[P/C]", title: "2025/26 : une seule base physique de 18 210 kg", text: "Les deux repartos documentés utilisent la même base de 18 210 kg d’olives, 3 860,64 kg d’huile et 21,20 % de rendement : ils ne doivent pas être additionnés en kilos. Le repère familial de 7 943 kg reste à rapprocher des apports de cette base. Les 6 541 kg restent de nature non verrouillée et ne s’ajoutent pas séparément sans pièce source. L’existence d’un éventuel troisième reparto ou d’une liquidation finale reste à confirmer." },
+  { status: "[À compléter]", title: "La rentabilité nette des oliviers n'est pas établie", text: "Il manque un rapprochement complet par campagne des recettes, charges, paiements et parcelles, avec une base HT ou TTC cohérente. Les 6 437,10 € correspondent à un solde de compte coopérative comprenant plusieurs mouvements ; ce n'est pas le bénéfice des oliviers. Le résultat fiscal forfaitaire n'est pas non plus une marge réelle." },
+  { status: "[H]", title: "Comparer les faits de gestion sans attribuer d'intention", text: "Rapprocher les travaux, récoltes, tickets et paiements avant et après la transition, une fois celle-ci datée. Les pièces citées ne permettent pas d'attribuer une intention à une personne ni d'affirmer qu'un changement de contrat explique les écarts de production." }
 ];
 
 const strategy = [
@@ -76,12 +67,12 @@ const strategy = [
   "Climat : comparer chaque campagne à la météo locale Antequera / Villanueva del Rosario et aux résultats de Málaga, sans utiliser la sécheresse comme explication automatique.",
   "Économie : compléter le bilan famille / agriculteur par les céréales, PAC/subventions, frais d'exploitation et liquidations manquantes afin d'obtenir un total par contrat.",
   "Après 2023/24 : rapprocher chaque facture/prestation de la date, du travail réellement exécuté, de la parcelle et de la production obtenue.",
-  "ASAJA : obtenir une visite technique indépendante pour disposer d'un état agronomique actuel et d'un potentiel de production extérieur au conflit de gestion."
+  "Visite technique : demander d'abord à San Juan quel conseil agronomique est proposé, puis à ASAJA ou à un agronome si nécessaire. Confirmer le service, les qualifications, les liens avec les prestataires, le coût et le compte rendu avant de fixer la visite. L'indépendance et la disponibilité ne sont pas établies."
 ];
 
 const interlocutors = [
   { id: "san-juan", label: "San Juan", subtitle: "Coopérative / campagnes / liquidations", actionIds: ["san-juan-historique"] },
-  { id: "asaja", label: "ASAJA", subtitle: "PAC / SIGPAC / surfaces / aides", actionIds: ["asaja-visite-technique"] },
+  { id: "asaja", label: "ASAJA / visite à confirmer", subtitle: "PAC · orientation technique à confirmer", actionIds: ["asaja-visite-technique"] },
   { id: "pelaez", label: "Peláez", subtitle: "Fiscalité / déclarations / archives", actionIds: ["pelaez-role-fiscal"] },
   { id: "agriculteur", label: "Agriculteur / Vitines", subtitle: "Travaux / récolte / traitements / factures", actionIds: ["vitines-378-detail"] }
 ];
@@ -222,8 +213,8 @@ export function FincaMariaDashboard() {
   const { assignments, updateAssignment, saveMessage, readError, canRetrySave, retrySave } = useActionAssignments();
   const [earthActionFilter, setEarthActionFilter] = useState(() => actionFilter(new URLSearchParams(window.location.search).get("filter")));
   const [area, setArea] = useState(() => new URLSearchParams(window.location.search).get("area") === "terre" ? "terre" : "home");
-  const [earthTab, setEarthTab] = useState(() => new URLSearchParams(window.location.search).get("tab") === "actions" ? "actions" : initialNavigation.earthTab || "gestion");
-  const [houseTab, setHouseTab] = useState(initialNavigation.houseTab || "gerer");
+  const [earthTab, setEarthTab] = useState(() => resolveEarthTab(new URLSearchParams(window.location.search).get("tab"), initialNavigation.earthTab));
+  const houseTab = initialNavigation.houseTab || "gerer";
   const importRef = useRef(null);
   const [openDossiers, setOpenDossiers] = useState(() => {
     const contact = new URLSearchParams(window.location.search).get("contact");
@@ -264,7 +255,25 @@ export function FincaMariaDashboard() {
   }
 
   const currentEarth = EARTH_TABS.find((tab) => tab.id === earthTab) || EARTH_TABS[0];
-  const currentHouse = HOUSE_TABS.find((tab) => tab.id === houseTab) || HOUSE_TABS[0];
+  function selectEarthTab(tab) {
+    const next = resolveEarthTab(tab);
+    setArea("terre"); setEarthTab(next);
+    window.history.pushState(null, "", earthUrl(window.location.href, next, { filter: earthActionFilter, contact: new URLSearchParams(window.location.search).get("contact") }));
+    window.dispatchEvent(new Event("finca:navigation"));
+  }
+  function dashboardHome() {
+    setArea("home"); window.history.pushState(null, "", window.location.pathname);
+    window.dispatchEvent(new Event("finca:navigation"));
+  }
+  useEffect(() => {
+    const onBack = () => {
+      const params = new URLSearchParams(window.location.search);
+      setArea(params.get("area") === "terre" ? "terre" : "home");
+      if (params.get("area") === "terre") { setEarthTab(resolveEarthTab(params.get("tab"))); setEarthActionFilter(actionFilter(params.get("filter"))); }
+    };
+    window.addEventListener("popstate", onBack);
+    return () => window.removeEventListener("popstate", onBack);
+  }, []);
 
   return (
     <section className="cortijoDashboard fincaMariaShell fincaTwoWorlds" aria-label="FINCA MARIA">
@@ -293,8 +302,8 @@ export function FincaMariaDashboard() {
 
       <div style={{ display: area === "home" ? "block" : "none" }}>
         <div className="fincaAreaGrid">
-          <AreaChoice area="terre" title="TERRE" subtitle="Exploitation agricole" stats={`${actionSummary.todo} action${actionSummary.todo > 1 ? "s" : ""} à compléter · année-test 2022/23`} icon="leaf" onClick={() => { setArea("terre"); setEarthTab(earthTab || "gestion"); }} />
-          <AreaChoice area="maison" title="MAISON" subtitle="Maison familiale" stats="Séjours · jardin · guide vacanciers" icon="home" onClick={() => { setArea("maison"); setHouseTab(houseTab || "gerer"); }} />
+          <AreaChoice area="terre" title="TERRE" subtitle="Exploitation agricole" stats={`${actionSummary.todo} action${actionSummary.todo > 1 ? "s" : ""} à compléter · année-test 2022/23`} icon="leaf" onClick={() => selectEarthTab(earthTab)} />
+          <AreaChoice area="maison" title="MAISON" subtitle="Maison familiale" stats="Séjours · jardin · guide vacanciers" icon="home" onClick={openHouse} />
           <a href={appViewUrl("reunions")} className="fincaMainMeetingTile" aria-label="Ouvrir les réunions et conseils de famille"><span className="fincaMeetingIcon" aria-hidden="true">🎙️</span><span><strong>RÉUNIONS</strong><small>Conseils de famille · comptes rendus</small></span><span aria-hidden="true">→</span></a>
         </div>
         <style>{`
@@ -340,27 +349,55 @@ export function FincaMariaDashboard() {
         </div>
       </div>
 
-      <div style={{ display: area === "terre" ? "block" : "none" }}><div className="fincaAreaHeader"><button type="button" className="fincaBack" onClick={() => setArea("home")}>← Accueil</button><div><h2>TERRE</h2><p>Exploitation agricole</p></div></div><SubNav items={EARTH_TABS} active={earthTab} onChange={setEarthTab} label="Terre" /><div className="fincaPanelIntro"><strong>{currentEarth.title}</strong><span>Une rubrique à la fois</span></div></div>
+      <div style={{ display: area === "terre" ? "block" : "none" }}><div className="fincaAreaHeader"><button type="button" className="fincaBack" onClick={dashboardHome}>← Accueil</button><div><h2>TERRE</h2><p>Exploitation agricole</p></div></div><SubNav items={EARTH_TABS} active={earthTab} onChange={selectEarthTab} label="Terre" /><div className="fincaPanelIntro"><strong>{currentEarth.title}</strong><span>Une rubrique à la fois</span></div></div>
 
       <div id="finca-maria-sections" className="fincaMariaSections" style={{ display: area === "terre" ? "block" : "none" }}>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "gestion" ? "block" : "none" }}><summary><h3>Journal de l’exploitation</h3></summary><div className="cortijoWorkflow"><ol>{managementTimeline.map((item) => <li key={`${item.period}-${item.title}`}><strong>{item.period}</strong><span><b>{item.title}</b><br />{item.text}</span></li>)}</ol></div></details>
-        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "analyse" ? "block" : "none" }}><summary><h3>Analyse</h3></summary><div className="cortijoList">{analysisFindings.map((item) => <article className="cortijoCard" key={item.title}><div className="cortijoCardTop"><span className="cortijoPill">{item.status}</span></div><h4>{item.title}</h4><p>{item.text}</p></article>)}</div></details>
-        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "strategie" ? "block" : "none" }}><summary><h3>Stratégie</h3></summary><div className="cortijoWorkflow"><ol>{strategy.map((item, index) => <li key={item}><strong>{index + 1}</strong><span>{item}</span></li>)}</ol></div></details>
+        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "entretien" ? "block" : "none" }}><summary><h3>Calendrier d’entretien de la terre</h3></summary><FincaEarthMaintenancePanel /></details>
+        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "analyse" ? "block" : "none" }}>
+          <summary><h3>Analyse</h3></summary>
+          <p>Revue des synthèses du dossier le 13/11/2026. Les pièces originales et la complétude des campagnes restent à contrôler ; [C] désigne un calcul avec ses hypothèses.</p>
+          <div className="cortijoCard" style={{ marginBottom: ".8rem" }}>
+            <h4 style={{ marginTop: 0 }}>À retenir</h4>
+            <p>Les campagnes ne sont pas toutes comparables : il faut distinguer la part familiale, la récolte totale et les quantités réellement livrées. La transition autour de 2023/24 reste à documenter.</p>
+            <p style={{ marginBottom: 0 }}>Ouvrez chaque constat pour consulter le détail et son degré de certitude. Les hypothèses ne sont pas des conclusions.</p>
+          </div>
+          <div className="cortijoList">
+            {analysisFindings.map((item) => (
+              <details className="cortijoCard" key={item.title}>
+                <summary style={{ cursor: "pointer", display: "flex", alignItems: "flex-start", gap: ".7rem" }}>
+                  <span className="cortijoPill" title="Repère de provenance / niveau de certitude">{item.status}</span>
+                  <strong style={{ flex: 1 }}>{item.title}</strong>
+                  <span aria-hidden="true">▾</span>
+                </summary>
+                <p style={{ marginTop: ".75rem" }}>{item.text}</p>
+              </details>
+            ))}
+          </div>
+        </details>
+        <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "strategie" ? "block" : "none" }}>
+          <summary><h3>Stratégie</h3></summary>
+          <div className="cortijoCard" style={{ marginBottom: ".8rem" }}>
+            <h4 style={{ marginTop: 0 }}>Priorité : rassembler les preuves avant de conclure</h4>
+            <p style={{ marginBottom: 0 }}>Clarifier les apports San Juan, comparer les campagnes sur des bases identiques et demander une expertise indépendante. Les démarches ci-dessous sont des pistes de travail, pas des décisions familiales validées.</p>
+          </div>
+          <div className="cortijoList">
+            {strategy.map((item, index) => (
+              <details className="cortijoCard" key={item}>
+                <summary style={{ cursor: "pointer", display: "flex", gap: ".7rem", alignItems: "baseline" }}>
+                  <span className="cortijoPill">{index + 1}</span>
+                  <strong style={{ flex: 1 }}>{item.split(" : ")[0]}{item.includes(" : ") ? "" : " — Point à approfondir"}</strong>
+                  <span aria-hidden="true">▾</span>
+                </summary>
+                <p style={{ marginTop: ".75rem" }}>{item}</p>
+              </details>
+            ))}
+          </div>
+        </details>
         <details className="cortijoView fincaEarthSection" open style={{ display: earthTab === "actions" ? "block" : "none" }}><summary><h3>Dossiers & actions</h3></summary><div className="fincaActionBuckets" aria-label="Afficher les actions">{ACTION_FILTERS.map((filter) => <button type="button" key={filter.id} aria-pressed={earthActionFilter === filter.id} className={earthActionFilter === filter.id ? "isActive" : ""} onClick={() => selectEarthFilter(filter.id)}><span>{filter.label}</span><strong>{actionSummary[filter.id]}</strong></button>)}</div><ActionSaveStatus message={saveMessage} canRetry={canRetrySave} onRetry={retrySave} /><div className="fincaDossierStack">{interlocutors.map((item) => { const dossierActions = filteredActionsFor(item); return <details className="fincaDossierCard" key={item.id} open={Boolean(openDossiers[item.id])} onToggle={(event) => { const open = event.currentTarget.open; setOpenDossiers((current) => current[item.id] === open ? current : { ...current, [item.id]: open }); }}><summary className="fincaDossierSummary"><div><span className="cortijoPill">{item.label}</span><h4>{item.subtitle}</h4></div><span className="fincaDossierCount">{dossierActions.length} action{dossierActions.length > 1 ? "s" : ""}</span></summary><div className="fincaDossierBody"><fieldset disabled={readError} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}><div className="cortijoList fincaActionList">{dossierActions.length === 0 && <p>Aucune action dans cette rubrique pour ce dossier.</p>}{dossierActions.map((action) => <DossierAction key={action.id} action={action} dossierLabel={item.label} assignment={assignments[action.id] || {}} onUpdate={updateAssignment} />)}</div></fieldset><button type="button" className="fincaDossierOpen" onClick={() => openDossier(item.id, earthActionFilter)}>Ouvrir le dossier — {item.label}</button></div></details>; })}</div></details>
       </div>
 
-      <div style={{ display: area === "maison" ? "block" : "none" }}>
-        <div className="fincaAreaHeader"><button type="button" className="fincaBack" onClick={() => setArea("home")}>← Accueil</button><div><h2>MAISON</h2><p>Maison familiale</p></div></div>
-        <SubNav items={HOUSE_TABS} active={houseTab} onChange={setHouseTab} label="Maison" />
-        <div className="fincaPanelIntro"><strong>{currentHouse.title}</strong><span>Accès direct aux outils utiles pendant un séjour</span></div>
 
-        <div style={{ display: houseTab === "gerer" ? "block" : "none" }}><div className="fincaHouseGrid"><article className="fincaHouseCard"><h4>Fonctionnement</h4><p>Clés, compteurs, eau, électricité, équipements et consignes utiles.</p></article><article className="fincaHouseCard"><h4>Ménage</h4><p>Ce qu’il faut préparer, nettoyer et laisser prêt avant un départ.</p></article><article className="fincaHouseCard"><h4>Couchages</h4><p>Qui dort où, combien de places et ce qu’il faut prévoir.</p></article><article className="fincaHouseCard"><h4>Tout le module Maison</h4><p>Visite, fonctionnement, ménage, présences, inventaire, jardin et sorties.</p><button type="button" className="fincaHouseOpen" onClick={() => openHouse()}>Ouvrir le module Maison</button></article></div></div>
-        <div style={{ display: houseTab === "afaire" ? "block" : "none" }}><div className="fincaHouseGrid"><article className="fincaHouseCard"><h4>Avant l’arrivée</h4><ul><li>Vérifier eau et électricité</li><li>Préparer les couchages</li><li>Contrôler les produits indispensables</li></ul></article><article className="fincaHouseCard"><h4>Pendant le séjour</h4><ul><li>Noter les réparations à faire</li><li>Mettre à jour les besoins</li><li>Signaler tout problème de fonctionnement</li></ul></article><article className="fincaHouseCard"><h4>Avant de partir</h4><ul><li>Ménage et linge</li><li>Fermeture eau, fenêtres et accès</li><li>Rangement des clés et vérification finale</li></ul></article></div></div>
-        <div style={{ display: houseTab === "presences" ? "block" : "none" }}><article className="fincaHouseCard"><h4>Planning familial</h4><p>Voir les arrivées, départs, couchages et remarques de séjour.</p><button type="button" className="fincaHouseOpen" onClick={() => openHouse("presences")}>Ouvrir les présences</button></article></div>
-        <div style={{ display: houseTab === "inventaire" ? "block" : "none" }}><article className="fincaHouseCard"><h4>Inventaire de la maison</h4><p>Mobilier, linge, vaisselle, appareils, consommables, réparations et achats.</p><button type="button" className="fincaHouseOpen" onClick={() => openHouse("inventaire")}>Ouvrir l’inventaire</button></article></div>
-        <div style={{ display: houseTab === "jardin" ? "block" : "none" }}><div className="fincaHouseGrid"><article className="fincaHouseCard"><h4>Patio & arbres</h4><p>Suivi du laurier, du cerisier et du citronnier : intervention, photos avant/après et réaction de l’arbre.</p><button type="button" className="fincaHouseOpen" onClick={() => openHouse("patio-jardin")}>Ouvrir le suivi du jardin</button></article><article className="fincaHouseCard"><h4>Point actuel</h4><p>Taille progressive, pas de rabattage brutal ; priorité au puits de lumière du citronnier et à la réduction du volume côté voiture.</p></article></div></div>
-        <div style={{ display: houseTab === "sorties" ? "block" : "none" }}><div className="fincaHouseGrid"><article className="fincaHouseCard"><h4>Carnet des bonnes adresses</h4><p>Plages, villages, balades et excursions réellement conseillés par la famille, avec parking, meilleur moment et notes personnelles.</p><button type="button" className="fincaHouseOpen" onClick={() => openHouse("sorties")}>Gérer les lieux</button></article><article className="fincaHouseCard"><h4>Guide vacanciers</h4><p>Une vue simple à montrer ou imprimer, sans les informations privées de gestion de la maison.</p><button type="button" className="fincaHouseOpen" onClick={openVisitorGuide}>Ouvrir le guide vacanciers</button></article></div></div>
-      </div>
     </section>
   );
 }

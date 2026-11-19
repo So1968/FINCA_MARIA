@@ -20,6 +20,41 @@ Le BAÚL local est conservé dans `~/Documents/FINCA_MARIA/BAUL_PRIVE`, ou dans 
 Les clés de stockage du navigateur sont conservées pour retrouver les données existantes à la même adresse.
 Les originaux du BAÚL et les sauvegardes personnelles restent hors Git.
 
+## Maison
+
+L'entrée **MAISON** ouvre directement le calendrier mensuel. La même interface
+regroupe **Calendrier et réservations**, **Inventaire**, **Entretien**, **Jardin**,
+**Fonctionnement** et **Sorties**. Les anciens liens restent compatibles.
+Les séjours annulés et les fiches archivées restent consultables ; aucune remise
+à zéro des données n'est nécessaire. Le guide des sorties peut être copié,
+partagé ou téléchargé en HTML, sans les notes privées familiales.
+Une saisie en cours est conservée lors du retour d'une rubrique. Remplacer son
+formulaire par une autre fiche demande confirmation ; rouvrir la même fiche
+conserve les champs sans les réinitialiser.
+
+`npm run test:house:browser` vérifie ces parcours sur ordinateur et téléphone,
+avec un BAÚL et des profils de navigateur de test. Le test runtime CI ajoute
+une vérification réelle entre navigateurs, API et PostgreSQL, sans compte familial.
+`npm run test:house-sync:browser` vérifie aussi la protection des données MAISON
+dès l'accueil, avec des réponses API simulées (anciennes données, première
+connexion, stockage illisible et quota).
+L'audit et les limites sont détaillés dans
+[AUDIT_MAISON_2026-11-16.md](docs/AUDIT_MAISON_2026-11-16.md).
+
+## Évolutions rapprochées pour validation
+
+La branche `feat/integration-finca-verifiee` regroupe les propositions MAISON,
+TERRE, archives, récupération de compte et contrôle des sauvegardes. Le
+[bilan des branches et corrections](docs/INTEGRATION_BRANCHES_2026-11-19.md)
+précise les versions examinées, les incompatibilités corrigées et les limites
+avant installation. Cette proposition ne déploie pas l’application familiale.
+
+`npm run test:house-concurrency:browser` vérifie les modifications d’une même
+fiche dans deux onglets. `npm run test:integration:browser` vérifie les cinq
+onglets TERRE, leurs retours et la conservation du suivi. Avec Docker,
+`npm run test:integration:api` vérifie les réservations concurrentes et le suivi
+TERRE avec PostgreSQL et deux navigateurs isolés, sans données familiales.
+
 ## Organisation
 
 - `app/` : interface FINCA MARIA et interface familiale isolée.
@@ -107,16 +142,45 @@ L’export reprend la copie figée à sa validation, avec sa date, son numéro d
 version et ses références. Les propositions restent distinctes des décisions
 confirmées. Exporter ne sauvegarde ni ne valide le brouillon actuellement saisi.
 
-Le registre des décisions propose une recherche par mots dans les notes, responsables,
-titres, types et dates des réunions, sans distinction de casse ou d’accents.
-La recherche porte sur les 5 000 derniers repères renvoyés par le serveur.
-Les résultats sont affichés par pages de 25 éléments. Une nouvelle recherche ou
-un changement de filtre revient à la première page.
-Il conserve sa page, sa recherche et son filtre lorsqu’on ouvre un compte rendu
-d’origine puis qu’on utilise « Retour au registre des décisions ». Le repère choisi
-est mis en évidence dans la réunion. Une indisponibilité du registre peut être
-retentée sans être confondue avec une liste vide. Le parcours est vérifié par
-`npm run test:decision-register:browser` (port 5229, modifiable par `FINCA_REGISTER_E2E_PORT`).
+Le module Réunions dispose d’archives dépliables par année, d’un registre des
+participants et d’un calculateur de participation par période. Les présences non
+renseignées sont explicites et ne sont jamais comptées comme absences.
+
+Le registre des décisions sépare décisions adoptées, propositions/votes non aboutis,
+actions, questions et reports. La recherche traverse les réunions côté serveur,
+avec année, sujet, responsable et statut. Les pages de 25 conservent leur contexte
+au retour du compte rendu. Un plafond de 5 000 résultats invite à affiner les filtres.
+
+Les archives déjà importées peuvent être reprises depuis leur texte original avec
+un aperçu corrigible et une validation humaine. Aucun réimport des cinq archives
+n’est nécessaire. Les futurs documents Word `.docx` peuvent créer une réunion ou
+être rattachés à une fiche existante ; l’original reste téléchargeable. L’extraction
+conservatrice n’est pas une analyse exhaustive et ne confirme jamais une décision.
+
+Voir [la procédure Pop!_OS et les limites](docs/REUNIONS_ARCHIVES_POP_OS.md) avant
+installation : sauvegarde privée, rapprochement des trois fichiers locaux et
+préservation des volumes. Cette PR ne modifie pas l’ordinateur familial.
+
+Vérifications : `npm test`, `npm run test:meeting-archives:browser` (port 5231,
+variable `FINCA_ARCHIVES_E2E_PORT`), `npm run test:meeting-archives:api` (Docker
+PostgreSQL éphémère). Les parcours existants du registre restent couverts par
+`npm run test:decision-register:browser` (port 5229).
+
+
+
+Pour effectuer **le test des archives avec Firefox plutôt que Chromium** :
+
+```bash
+cd app && npx playwright install firefox && cd ..
+FINCA_TEST_BROWSER=firefox npm run test:meeting-archives:browser
+```
+
+Cette installation concerne la version Firefox pilotée par Playwright, indépendante
+du navigateur quotidien. Il est aussi possible d'essayer le Firefox système avec
+`FINCA_TEST_BROWSER=firefox FINCA_FIREFOX_PATH=/chemin/vers/firefox`, mais les
+versions distribuées avec le système ne sont pas garanties compatibles avec Playwright.
+Aucun Chromium n'est requis pour ce test en mode Firefox. Les autres tests navigateur
+restent configurés pour Chromium tant qu'ils n'ont pas été adaptés.
 
 Les deux vues Actions proposent les mêmes filtres : à faire, à compléter,
 en cours / attente, accomplies et toutes. Le filtre reste dans le lien lors

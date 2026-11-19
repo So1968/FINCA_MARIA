@@ -88,6 +88,9 @@ export function createTrashRouter({ pool, requireAdmin, requireFamilyUser, audit
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
+      // Même verrou que saveReservation : une restauration ne doit pas
+      // chevaucher une réservation créée simultanément dans une chambre vide.
+      if (kind === "reservation") await client.query("SELECT pg_advisory_xact_lock(7231943)");
       const found = await client.query(`SELECT * FROM ${spec.table} WHERE id=$1 FOR UPDATE`, [id]);
       if (!found.rowCount) {
         await client.query("ROLLBACK");

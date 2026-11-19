@@ -141,7 +141,7 @@ export const cortijoProofs=[
     type:'Compte rendu',
     date:'2026-05-08',
     linkedTo:'Facture Vitines n°378',
-    source:'C.R. familial approuvé : facture 5 445 €, ramassage, traitement foliaire, cuve 3 000 L, 8 h de débroussaillage et 2 cuves de liquide au sol ; pièces primaires d’exécution à relier. Les dates secondaires 22/04, 29/04 et 01/05/2026 sont postérieures à la facture du 04/04/2026 et ne doivent donc pas lui être rattachées automatiquement.'
+    source:'[CR] Le compte rendu familial rapporte la facture de 5 445 €, le ramassage, un traitement foliaire, une cuve de 3 000 L, huit heures de débroussaillage et deux cuves de liquide au sol, sans dates individuelles confirmées. Les dates avancées dans les anciennes synthèses ne prouvent aucune anomalie chronologique ; pièces primaires d’exécution à obtenir.'
   },
   {
     id:'proof-san-juan-reparto-1-2026',

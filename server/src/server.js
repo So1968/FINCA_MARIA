@@ -30,7 +30,10 @@ const SHARED_KEYS = new Set([
   "finca_maria_lieux_vacanciers_v1",
   "finca_maria_sejour_checklist_v1",
   "finca_maria_entretien_maison_v1",
+  "finca_maria_entretien_terre_v1",
   "finca_maria_couchages_plan_v1",
+  "finca_maria_reservations_corbeille_locale_v1",
+  "finca_maria_maison_depart_checklist_v1",
   "finca_maria_inventaire_maison_v1",
   "cortijo_action_logs_v1",
   "cortijo_action_facts_v1",
@@ -53,6 +56,8 @@ const FAMILY_SHARED_KEYS = new Set([
   "finca_maria_sejour_checklist_v1",
   "finca_maria_entretien_maison_v1",
   "finca_maria_couchages_plan_v1",
+  "finca_maria_reservations_corbeille_locale_v1",
+  "finca_maria_maison_depart_checklist_v1",
   "finca_maria_inventaire_maison_v1"
 ]);
 
@@ -488,14 +493,21 @@ async function saveReservation(req, res) {
   const place = String(body.place || "").trim();
   const arrival = String(body.arrival || "").trim();
   const departure = String(body.departure || "").trim();
-  const note = String(body.note || "").trim().slice(0, 1000) || null;
-  if (!id || !name || !place || !/^\d{4}-\d{2}-\d{2}$/.test(arrival) || !/^\d{4}-\d{2}-\d{2}$/.test(departure) || departure <= arrival) {
+  const note = String(body.note || "").trim() || null;
+  const validDay = value => /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+  const fields = ["name", "place", "arrival", "departure", "note"];
+  const checked = Object.prototype.hasOwnProperty.call(body, "expected");
+  if (!id || !name || !place || name.length > 160 || place.length > 160 || (note?.length || 0) > 1000 || !validDay(arrival) || !validDay(departure) || departure <= arrival
+    || (checked && body.expected !== null && (!body.expected || typeof body.expected !== "object" || Array.isArray(body.expected)))) {
     return json(res, 400, { error: "Réservation invalide" });
   }
 
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
+    // Verrou commun aux écritures du calendrier : protège également une chambre
+    // vide et deux créations du même identifiant dans des chambres différentes.
+    await client.query("SELECT pg_advisory_xact_lock(7231943)");
     const conflict = await client.query(
       `SELECT id, name, arrival::text, departure::text
          FROM reservations
@@ -508,10 +520,14 @@ async function saveReservation(req, res) {
       await client.query("ROLLBACK");
       return json(res, 409, { error: "Cette chambre est déjà réservée sur une partie de cette période", conflict: conflict.rows[0] });
     }
-    const before = await client.query("SELECT * FROM reservations WHERE id = $1", [id]);
+    const before = await client.query("SELECT r.*, arrival::text, departure::text FROM reservations r WHERE id = $1 FOR UPDATE", [id]);
     if (before.rowCount && before.rows[0].deleted_at) {
       await client.query("ROLLBACK");
       return json(res, 409, { error: "Élément dans la corbeille" });
+    }
+    if (checked && (body.expected === null ? before.rowCount !== 0 : !before.rowCount || fields.some(field => String(body.expected[field] ?? "") !== String(before.rows[0][field] ?? "")))) {
+      await client.query("ROLLBACK");
+      return json(res, 409, { code: "RESERVATION_CHANGED", error: "Ce séjour a changé depuis sa dernière lecture. Votre saisie doit être rapprochée de la version actuelle.", conflict: before.rows[0] ? Object.fromEntries(["id", ...fields].map(field => [field, before.rows[0][field]])) : { id } });
     }
     const saved = await client.query(
       `INSERT INTO reservations (id, name, place, arrival, departure, note, updated_by)
@@ -537,6 +553,7 @@ async function deleteReservation(req, res, id) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
+    await client.query("SELECT pg_advisory_xact_lock(7231943)");
     const before = await client.query("SELECT * FROM reservations WHERE id=$1 AND deleted_at IS NULL FOR UPDATE", [id]);
     if (!before.rowCount) { await client.query("ROLLBACK"); return json(res,404,{error:"Réservation active introuvable"}); }
     const result = await client.query("UPDATE reservations SET deleted_at=NOW(),deleted_by=$2 WHERE id=$1 RETURNING *", [id,user.id]);

@@ -10,14 +10,14 @@ export const cortijoActionDesk = [
     goal: "Compléter et fiabiliser la série de production de la finca à partir du relevé officiel de la coopérative, sans redemander ce que nos pièces montrent déjà.",
     alreadyKnown: [
       "[P] Des pièces San Juan sont retrouvées dès 2007/08",
-      "[C] 2014/15 à 2017/18 : productions totales reconstituées à partir de la part contractuelle de 15 %",
+      "[C conditionnel] 2014/15 à 2017/18 : scénarios kilos familiaux ÷ 0,15, sous réserve qu'ils représentent 15 % de tous les apports ; total officiel non confirmé",
       "[P] 2018/19 : un repère de 1 590 kg existe mais sa nature exacte reste à préciser",
       "[P] Un état de factures San Juan 2019 existe encore sous le compte de María",
       "[P] Des états de factures San Juan 2020, 2021 et 2022 existent au nom de María Josefa ; ils documentent des écritures mais ne fixent pas la production annuelle",
       "[P] 2023/24 : 3 vales = 217 + 1 562 + 515 = 2 294 kg ; huile 389,06 kg ; rendement 16,96 %",
       "[P] 2024/25 : 6 551 kg ; huile 1 357,37 kg ; rendement 20,72 %",
       "[P] 2025/26 : les reçus San Juan n°1062 et n°1769 portent sur la même base physique de 18 210 kg d'olives, 3 860,64 kg d'huile et 21,20 % de rendement ; les deux repartos ne s'additionnent pas en kilos",
-      "[CR/P-ANT] 2025/26 : 7 943 kg reste le premier ramassage partiel documenté ; 6 541 kg reste en conflit de nature tant que l'original n'est pas rouvert",
+      "[CR] 2025/26 : 7 943 kg rapportés par la famille, à rapprocher des vales ; nature des 6 541 kg à vérifier sur l'original",
       "[P/C] 24/08/2026 : extracto San Juan 6 437,10 € → chèque 6 437,10 € → crédit Unicaja 6 437,10 € ; chaîne de règlement cohérente, distincte du cumul net des deux repartos de 7 203,65 €"
     ],
     toObtain: [
@@ -226,14 +226,14 @@ export const cortijoActionDesk = [
     priority: "Priorité 2",
     title: "Faire détailler la facture Vitines n°378",
     contact: "Agrícola Vitines / López Gallego José",
-    contactHint: "La facture n°378 est datée du 04/04/2026 et son libellé global est « récolte d'olives + travail phytosanitaire ». Les dates secondaires 22/04, 29/04 et 01/05/2026 sont postérieures à cette facture : elles ne doivent donc pas être considérées comme son détail sans document qui les rattache explicitement.",
+    contactHint: "La facture n°378 est datée du 04/04/2026. Le C.R. familial décrit des travaux sans dates individuelles confirmées. Les dates avancées dans d'anciennes synthèses ne prouvent aucune anomalie chronologique.",
     mode: "Entretien sur place ou téléphone",
-    goal: "Ventiler la facture n°378 elle-même, puis traiter séparément les interventions postérieures si elles correspondent à d'autres travaux.",
+    goal: "Obtenir les dates réelles et la ventilation de la facture n°378, puis vérifier le rattachement de chaque prestation.",
     alreadyKnown: [
       "[P] Facture n°378 du 04/04/2026 : 4 950 € HT + 495 € de TVA = 5 445 € TTC ; libellé récolte d'olives + travail phytosanitaire",
       "[CR] Le C.R. familial approuvé mentionne aussi 1 tratamiento foliar, 1 cuba de 3 000 litros, 8 horas de desbrozar et 2 cubas liquido al suelo",
       "[SOURCE_SECONDAIRE_A_RETROUVER] D'anciennes synthèses placent ces interventions les 22/04/2026, 29/04/2026 et 01/05/2026",
-      "[C] Ces trois dates sont postérieures au 04/04/2026 : elles ne prouvent donc pas le détail de la facture n°378",
+      "[À CONFIRMER] Le C.R. ne date pas chaque prestation ; aucune antériorité de la facture sur les travaux n'est établie",
       "[CR] Paiements rapportés : 2 500 € le 05/05/2026 et 2 945 € le 10/05/2026 ; total 5 445 €, preuve bancaire encore à rapprocher"
     ],
     toObtain: [
@@ -243,13 +243,13 @@ export const cortijoActionDesk = [
       "Produit exact, matière active, dose et volume des travaux phytosanitaires inclus dans la facture",
       "Parcelles ou zones concernées par les travaux réellement facturés",
       "Préciser quels produits étaient fournis par Vitines et lesquels étaient achetés séparément",
-      "Pour les interventions des 22/04, 29/04 et 01/05 si elles sont confirmées : identifier la pièce, facture ou bon de travail qui les couvre",
+      "Vérifier les dates avancées dans les anciennes synthèses à partir des bons de travail et corriger les repères non justifiés",
       "Preuve ou détail écrit permettant de relier chaque prestation à sa facture"
     ],
     scriptLabel: "Texte à lire",
-    script: "Tenemos la factura nº 378 del 4 de abril de 2026 por 5.445 euros, con el concepto general de recogida de aceitunas y trabajo fitosanitario. Necesitamos desglosar esa factura concreta: cuánto corresponde a la recogida, cuánto al trabajo fitosanitario, qué productos se utilizaron, las dosis, las horas o personas, las parcelas y las fechas reales de los trabajos incluidos. En resúmenes antiguos aparecen además intervenciones los días 22 de abril, 29 de abril y 1 de mayo, pero esas fechas son posteriores a la factura. Por eso necesitamos saber si corresponden a trabajos distintos y, en ese caso, qué factura o parte de trabajo los cubre. No queremos mezclar intervenciones diferentes dentro de una misma factura.",
+    script: "Tenemos la factura nº 378 del 4 de abril de 2026 por 5.445 euros, con el concepto general de recogida de aceitunas y trabajo fitosanitario. El acta familiar menciona un tratamiento foliar, una cuba de 3.000 litros, ocho horas de desbroce y dos cubas de líquido al suelo, sin fechas individuales de ejecución confirmadas. ¿Podría precisar las fechas reales, los productos, las dosis, las parcelas, las horas o personas y el desglose del precio entre los trabajos incluidos? Las fechas indicadas en resúmenes antiguos no están acreditadas: queremos comprobarlas con sus partes de trabajo, sin presuponer una incoherencia con la factura.",
     linkedTo: "q-vitines-produits-ventilation",
-    expectedProof: "Ventilation de la facture n°378 + dates des prestations facturées + pièces séparées pour les interventions postérieures"
+    expectedProof: "Ventilation de la facture n°378 + dates réelles et justificatifs des prestations facturées"
   },
   {
     id: "vitines-cereales-trace",
@@ -283,26 +283,26 @@ export const cortijoActionDesk = [
     expectedProof: "Base contractuelle post-2020 + facture de ramassage + kilos / destination + preuve de recette éventuelle"
   },
   {
+    // Identifiant historique conservé pour le suivi déjà enregistré.
     id: "asaja-visite-technique",
     category: "Technique",
     priority: "Priorité 3",
-    title: "Demander une visite technique des oliviers",
-    contact: "ASAJA Málaga",
-    contactHint: "Cette demande est agronomique, séparée du dossier administratif PAC.",
+    title: "Identifier un service de visite technique des oliviers",
+    contact: "San Juan / ASAJA — service à confirmer",
+    contactHint: "Le dossier attribue à San Juan un rôle de conseil technique et à ASAJA le suivi PAC. Cela ne confirme ni un service de visite, ni l'adhésion, ni le tarif, ni l'indépendance du technicien. Demander d'abord à San Juan quel service est disponible, puis à ASAJA ou à un agronome si nécessaire.",
     mode: "Téléphone",
-    goal: "Obtenir un diagnostic neutre de l'état actuel de l'oliveraie et un bref écrit daté.",
+    goal: "Confirmer un professionnel, ses qualifications, ses liens éventuels avec les prestataires, les conditions et le coût avant de convenir d'une visite.",
     toObtain: [
-      "Visite technique sur la finca",
-      "État des arbres et vigueur",
-      "Avis sur la taille",
-      "Sol / nutrition / symptômes visibles",
-      "Potentiel productif",
-      "Travaux prioritaires sur 12 mois",
-      "Bref rapport écrit, si possible avec photos"
+      "Confirmation du service proposé et de l'organisme qui l'assure",
+      "Nom et qualifications du technicien ; liens éventuels avec les prestataires",
+      "Conditions d'accès, tarif et disponibilités",
+      "Périmètre de la visite : arbres, taille, sol, nutrition et symptômes visibles",
+      "Possibilité d'évaluer le potentiel productif et les travaux prioritaires",
+      "Possibilité d'un compte rendu écrit daté, avec photos si prévu"
     ],
     scriptLabel: "Texte à lire",
-    script: "Buenos días. Somos socios de ASAJA y tenemos una finca de olivar tradicional en Villanueva del Rosario. Queremos solicitar la visita de un técnico para hacer un diagnóstico del estado actual de la explotación, valorar su potencial productivo y saber qué trabajos deberían realizarse durante los próximos doce meses. Nos gustaría, si es posible, disponer después de un breve informe escrito. ¿Este servicio está incluido para los socios y cómo podemos solicitar la visita?",
+    script: "Buenos días. Buscamos un técnico para un olivar tradicional en Villanueva del Rosario. ¿Ofrecen una visita a la finca para examinar los árboles, el suelo y el mantenimiento y recomendar los trabajos prioritarios? ¿Quién realiza la visita, qué cualificación tiene y qué vínculos puede tener con nuestros proveedores? ¿Podrían precisar las condiciones de acceso, el precio, la disponibilidad y la posibilidad de un informe escrito y fechado? Si no ofrecen este servicio, ¿a qué profesional podemos dirigirnos?",
     linkedTo: "terrain-oliviers",
-    expectedProof: "Rendez-vous + compte rendu technique daté"
+    expectedProof: "Confirmation écrite du service, de son périmètre et de son tarif avant rendez-vous"
   }
 ];

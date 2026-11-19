@@ -18,7 +18,8 @@ export default function GlobalNavigation() {
       window.removeEventListener("finca:navigation", update);
     };
   }, []);
-  if (home || window.location.pathname.includes("login")) return null;
+  const params = new URLSearchParams(window.location.search);
+  if (home || window.location.pathname.includes("login") || params.get("view") === "cortijo-maison" || params.get("area") === "maison" || (!params.get("view") && params.get("area") === "terre")) return null;
   return <nav className="fincaGlobalNav" aria-label="Navigation principale">
     <a href={homeUrl} title="Retour à l'accueil FINCA MARIA">← FINCA MARIA</a>
   </nav>;

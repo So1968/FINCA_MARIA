@@ -92,7 +92,7 @@ try {
   assert.equal(await names.inputValue(), "");
   assert.equal(await page.getByLabel("Nom", { exact: true }).count(), 3);
   const alice = page.locator(".participantRow").filter({ has: page.locator('input[value="Alice"]') });
-  assert.equal(await alice.getByLabel("Présence", { exact: true }).inputValue(), "absent");
+  assert.equal(await alice.getByLabel("Présence", { exact: true }).inputValue(), "unknown");
   await alice.getByRole("combobox", { name: "Rôle dans la réunion", exact: true }).selectOption("__other__");
   await alice.getByRole("textbox", { name: "Préciser le rôle", exact: true }).fill("Tuteur de test");
   allowDiscard = true;
@@ -112,7 +112,7 @@ try {
   await page.getByRole("button", { name: "Créer et préparer la réunion", exact: true }).click();
   await page.getByRole("heading", { name: "Titre à préserver", exact: true }).waitFor();
   assert.equal(creations, 1);
-  assert.deepEqual(createdBody.participants.map(({ name, role, presence }) => ({ name, role, presence })), [{ name: "Alice", role: "Tuteur de test", presence: "absent" }, { name: "Bob", role: "Participant", presence: "absent" }]);
+  assert.deepEqual(createdBody.participants.map(({ name, role, presence }) => ({ name, role, presence })), [{ name: "Alice", role: "Tuteur de test", presence: "unknown" }, { name: "Bob", role: "Participant", presence: "unknown" }]);
   await context.close();
   console.log("✓ Exemple sans écriture, remplacement annulable, rôles historiques/libres, liste protégée, plafond sans troncature et création explicite");
 } finally {

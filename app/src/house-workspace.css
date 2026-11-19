@@ -1,0 +1,34 @@
+.houseWorkspace{max-width:1180px;margin:0 auto;padding:clamp(.7rem,2vw,1.5rem);color:#eadab7;font:16px/1.5 system-ui,sans-serif;overflow-wrap:anywhere}
+.houseWorkspace *{box-sizing:border-box;min-width:0}
+.houseWorkspace h1,.houseWorkspace h2,.houseWorkspace h3,.houseWorkspace h4{color:#fff1ce;line-height:1.25}
+.houseWorkspace h1{font:700 clamp(2rem,6vw,3.5rem)/1 Georgia,serif;margin:.35rem 0}
+.houseWorkspace a{color:#f2d58b;text-underline-offset:3px}
+.houseBreadcrumb,.houseButtons{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}
+.houseBreadcrumb{margin:.5rem 0 1rem;font-size:.9rem}
+.houseHero{display:flex;justify-content:space-between;align-items:center;gap:1rem;border:1px solid #685731;border-radius:20px;background:#102018;padding:1.3rem}
+.houseHero p{margin-bottom:0}.houseHero small{letter-spacing:.12em}.houseHero a{white-space:nowrap}
+.houseNav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;margin:1rem 0 1.5rem}
+.houseNav a{display:flex;flex-direction:column;padding:.85rem;border:1px solid #665a3b;border-radius:14px;text-decoration:none;background:#101b14;min-height:86px}
+.houseNav span{font-size:.84rem;color:#c6b38b;margin-top:.2rem}
+.houseNav a[aria-current=page]{background:#293c25;border-color:#ead28c;box-shadow:inset 4px 0 #ead28c}
+.housePanel[hidden]{display:none!important}.housePanel>h2{margin:1rem 0}.housePanel:focus-within{outline:none}
+.houseCard{margin:1rem 0;border:1px solid #5d5237;background:#0f1912;border-radius:16px;padding:1rem}
+.houseCard h3,.houseCard h4{margin:.2rem 0 .6rem}.houseCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:.8rem}.houseCards>.houseCard{margin:0}
+.houseWorkspace label{display:flex;flex-direction:column;gap:.3rem;margin:.6rem 0;font-weight:600;font-size:.92rem}
+.houseWorkspace input,.houseWorkspace textarea,.houseWorkspace select{width:100%;min-height:44px;border:1px solid #827249;background:#080f0a;border-radius:9px;padding:.65rem;color:#f6e8c7;font:inherit}
+.houseWorkspace textarea{resize:vertical;min-height:90px}.houseWorkspace input[type=checkbox]{width:22px;height:22px;min-height:22px;flex:0 0 auto;accent-color:#dcca84}
+.houseWorkspace button,.houseButtons a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:.6rem .85rem;border:1px solid #a48a4d;border-radius:10px;background:#263821;color:#f9e5ad;font:600 .9rem/1.3 system-ui;cursor:pointer;text-decoration:none}
+.houseWorkspace button:disabled{opacity:.5;cursor:not-allowed}.houseWorkspace :is(input,select,textarea,button,a,summary):focus-visible{outline:3px solid #e8cf7e;outline-offset:3px}
+.houseWorkspace .houseCheck{display:flex;flex-direction:row;align-items:center;gap:.6rem;font-weight:400}
+.houseForm fieldset{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.2rem 1rem;border:0;padding:0;margin:0}.houseWide{grid-column:1/-1}.houseFilters{display:flex;gap:.8rem;align-items:end;flex-wrap:wrap}.houseFilters>label{flex:1 1 160px}
+.houseSave{color:#bcceac;font-size:.85rem;margin:.65rem 0}.houseSave[role=alert]{padding:.8rem;border:1px solid #e0ab71;border-radius:10px;color:#ffe0a8;background:#30251c}.houseSave button{margin:.5rem;display:inline-flex}
+.houseMonth{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}.houseMonth h3{flex:1;text-align:center;text-transform:capitalize;margin:0}.houseMonth button{min-width:44px}
+.houseCalendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}.houseCalendar>b{font-size:.82rem}.houseDay{min-height:72px;border:1px solid #4b5038;border-radius:8px;padding:3px;background:#152116}.houseDay.isToday{border:2px solid #eed38b}
+.houseWorkspace .houseDayPick{width:100%;border:0;background:transparent;min-height:44px;padding:3px;justify-content:start}.houseWorkspace .houseBookingChip{width:100%;min-height:25px;padding:4px;margin:2px 0;background:#405e37;border-color:#9caa75;font-size:.76rem;white-space:normal;overflow-wrap:anywhere}
+.houseWorkspace summary{cursor:pointer;min-height:44px;padding:.6rem 0;color:#f0d998;font-weight:700}.houseHistory pre{white-space:pre-wrap;max-height:260px;overflow:auto;font-size:.8rem;background:#071009;padding:.6rem;border-radius:8px}
+.houseEmpty{border:1px dashed #72623f;border-radius:12px;padding:1rem;color:#ccb989}.housePhotos{display:flex;gap:.5rem;flex-wrap:wrap}.housePhotos figure{margin:.4rem 0;max-width:220px}.housePhotos img{width:100%;height:160px;object-fit:contain}.housePhotos figcaption{font-size:.8rem}
+@media(max-width:700px){.houseNav{grid-template-columns:repeat(2,minmax(0,1fr))}.houseHero{align-items:start;flex-direction:column}.houseForm fieldset{grid-template-columns:1fr}.houseNav a{padding:.65rem;min-height:58px}.houseNav span{display:none}.houseCard{padding:.7rem}.houseCalendar{gap:2px}.houseDay{min-height:80px;padding:1px}.houseWorkspace .houseBookingChip{font-size:.64rem;padding:3px 1px}.houseButtons>button,.houseButtons>a{flex:1 1 120px}.houseMonth{gap:.4rem}.houseMonth button:last-child{width:100%}.houseWorkspace input[type=file]{font-size:.8rem}.houseWorkspace .fincaHouseStatusGrid{grid-template-columns:1fr}}
+@media print{.houseVisitor>nav,.houseVisitor .houseButtons,.houseVisitor>button,.houseVisitor .houseSave{display:none}.houseVisitor,.houseVisitor .houseCard{color:#17271b;background:white}.houseVisitor h1,.houseVisitor h2{color:#17271b}.houseVisitor .houseCard{break-inside:avoid}}
+
+.housePanelTitle{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:1rem 0}.housePanelTitle h2{margin:0}.housePanelTitle a{white-space:nowrap;flex-shrink:0}
+.houseWorkspace pre{white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%;max-height:360px;overflow:auto;font-size:.8rem}

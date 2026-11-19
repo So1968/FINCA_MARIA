@@ -107,6 +107,18 @@ grep -qi '^Set-Cookie: .*SameSite=Strict' "$TMP_DIR/login-headers" || fail "cook
 grep -qi '^Set-Cookie: .*Secure' "$TMP_DIR/login-headers" || fail "cookie de session sans Secure"
 pass "connexion administrateur et cookie sécurisé"
 
+FINCA_TEST_URL="$BASE_URL" FINCA_TEST_COOKIE="$COOKIE" node tests/integration/meeting-archives.mjs
+pass "archives : reprise, présences, statistiques et Word testés avec PostgreSQL"
+
+if [ "${FINCA_HOUSE_RUNTIME_BROWSER:-0}" = "1" ]; then
+  FINCA_HOUSE_RUNTIME_TEST=1 node tests/browser/house-server.mjs
+  pass "Maison : interface, API et PostgreSQL entre plusieurs navigateurs"
+  FINCA_RUNTIME_TEST=1 FINCA_TEST_URL="$BASE_URL" FINCA_TEST_COOKIE="$COOKIE" node tests/browser/earth-server.mjs
+  pass "Terre : suivi mobile partagé et brouillons conservés entre navigateurs"
+fi
+FINCA_RUNTIME_TEST=1 FINCA_TEST_URL="$BASE_URL" FINCA_TEST_COOKIE="$COOKIE" node tests/integration/reservations-concurrency.mjs
+pass "réservations : créations et modifications concurrentes protégées"
+
 # Parcours Réunions et conseils de famille.
 
 # Historique : import en lot, conservation de la source, anti-doublon et registre
@@ -375,6 +387,8 @@ for (const key of Object.keys(payload.sharedState)) {
     'finca_maria_sejour_checklist_v1',
     'finca_maria_entretien_maison_v1',
     'finca_maria_couchages_plan_v1',
+    'finca_maria_reservations_corbeille_locale_v1',
+    'finca_maria_maison_depart_checklist_v1',
     'finca_maria_inventaire_maison_v1'
   ].includes(key), `clé non autorisée dans la vue héritiers: ${key}`);
 }

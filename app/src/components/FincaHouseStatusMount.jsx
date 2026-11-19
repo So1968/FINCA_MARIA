@@ -1,53 +1,13 @@
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
+import { useHouseStorage } from "../lib/useHouseStorage";
+import { HOUSE_KEYS } from "../lib/houseData.mjs";
 import { cortijoHouseStatus, getHousePriorityCounts } from "../data/cortijoHouseStatus.js";
-import {
-  HOUSE_INVENTORY_KEY,
-  getHouseEssentialSummary,
-  normalizeUserInventory
-} from "../data/cortijoHouseInventory.js";
-
-const ROOM_PLAN_KEY = "finca_maria_couchages_plan_v1";
-
-function resolveHost() {
-  if (new URLSearchParams(window.location.search).get("mode") === "vacanciers") return null;
-  const house = document.querySelector(".fincaHouseExperience");
-  if (!house) return null;
-
-  let host = document.getElementById("finca-house-status-host");
-  if (!host) {
-    host = document.createElement("div");
-    host.id = "finca-house-status-host";
-    const journey = house.querySelector(".fincaJourney");
-    if (journey) house.insertBefore(host, journey);
-    else house.prepend(host);
-  }
-  return host;
-}
-
-function parseRoomPlan(raw) {
-  try {
-    const value = JSON.parse(raw || "{}");
-    if (!value || typeof value !== "object" || Array.isArray(value)) return { rooms: {} };
-    return { ...value, rooms: value.rooms && typeof value.rooms === "object" ? value.rooms : {} };
-  } catch {
-    return { rooms: {} };
-  }
-}
-
-function parseInventory(raw) {
-  try {
-    return normalizeUserInventory(JSON.parse(raw || "[]"));
-  } catch {
-    return [];
-  }
-}
+import { getHouseEssentialSummary } from "../data/cortijoHouseInventory.js";
 
 function summarizeCapacity(roomPlan) {
-  const rooms = cortijoHouseStatus.roomsExpected.map((name) => {
+  const rooms = [...new Set([...cortijoHouseStatus.roomsExpected, ...Object.keys(roomPlan.rooms || {})])].map((name) => {
     const meta = roomPlan.rooms?.[name] || {};
     const numericBeds = Number(meta.beds);
-    const beds = meta.beds !== "" && Number.isFinite(numericBeds) && numericBeds > 0 ? numericBeds : null;
+    const beds = meta.beds !== "" && meta.beds != null && Number.isFinite(numericBeds) && numericBeds >= 0 ? numericBeds : null;
     return { name, beds, bedTypes: String(meta.bedTypes || "").trim() };
   });
   const withBeds = rooms.filter((room) => room.beds !== null);
@@ -150,37 +110,17 @@ function StatusCard({ label, value, detail }) {
   );
 }
 
-function HouseStatusPanel() {
+export function HouseStatusPanel() {
   const priorityCounts = getHousePriorityCounts();
-  const [roomPlan, setRoomPlan] = useState(() => parseRoomPlan(localStorage.getItem(ROOM_PLAN_KEY)));
-  const [inventory, setInventory] = useState(() => parseInventory(localStorage.getItem(HOUSE_INVENTORY_KEY)));
+  const roomStore = useHouseStorage(HOUSE_KEYS.rooms, {});
+  const inventoryStore = useHouseStorage(HOUSE_KEYS.inventory, []);
+  const roomPlan = roomStore.value;
+  const inventory = inventoryStore.value;
   const capacity = summarizeCapacity(roomPlan);
   const essentials = getHouseEssentialSummary(inventory);
   const decision = deriveHouseDecision(essentials);
   const essentialPending = essentials.checks.filter((item) => !item.matches.length);
 
-  useEffect(() => {
-    let lastRoomRaw = localStorage.getItem(ROOM_PLAN_KEY) || "";
-    let lastInventoryRaw = localStorage.getItem(HOUSE_INVENTORY_KEY) || "";
-    const refresh = () => {
-      const nextRoomRaw = localStorage.getItem(ROOM_PLAN_KEY) || "";
-      if (nextRoomRaw !== lastRoomRaw) {
-        lastRoomRaw = nextRoomRaw;
-        setRoomPlan(parseRoomPlan(nextRoomRaw));
-      }
-      const nextInventoryRaw = localStorage.getItem(HOUSE_INVENTORY_KEY) || "";
-      if (nextInventoryRaw !== lastInventoryRaw) {
-        lastInventoryRaw = nextInventoryRaw;
-        setInventory(parseInventory(nextInventoryRaw));
-      }
-    };
-    const timer = window.setInterval(refresh, 1000);
-    window.addEventListener("storage", refresh);
-    return () => {
-      window.clearInterval(timer);
-      window.removeEventListener("storage", refresh);
-    };
-  }, []);
 
   const capacityValue = capacity.total > 0
     ? `${capacity.total} couchage${capacity.total > 1 ? "s" : ""} renseigné${capacity.total > 1 ? "s" : ""}`
@@ -273,19 +213,5 @@ function HouseStatusPanel() {
   );
 }
 
-export function FincaHouseStatusMount() {
-  const [host, setHost] = useState(null);
-
-  useEffect(() => {
-    const resolve = () => {
-      const next = resolveHost();
-      setHost((current) => current === next ? current : next);
-    };
-    resolve();
-    const observer = new MutationObserver(resolve);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, []);
-
-  return host ? createPortal(<HouseStatusPanel />, host) : null;
-}
+// Ancien point d’injection conservé pour la compatibilité des imports.
+export function FincaHouseStatusMount() { return null; }

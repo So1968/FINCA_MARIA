@@ -8,6 +8,9 @@ on:
       - "server/**"
       - "scripts/ci-finca-runtime-smoke.sh"
       - "scripts/check-coolify-config.sh"
+      - "scripts/snapshot-meetings-installation.sh"
+      - "scripts/recover-finca-account.py"
+      - "scripts/audit-finca-backups.mjs"
       - "docker-compose.finca.yml"
       - "docker-compose.coolify.yml"
       - "docker-compose.coolify.ci.yml"
@@ -21,6 +24,9 @@ on:
       - "server/**"
       - "scripts/ci-finca-runtime-smoke.sh"
       - "scripts/check-coolify-config.sh"
+      - "scripts/snapshot-meetings-installation.sh"
+      - "scripts/recover-finca-account.py"
+      - "scripts/audit-finca-backups.mjs"
       - "docker-compose.finca.yml"
       - "docker-compose.coolify.yml"
       - "docker-compose.coolify.ci.yml"
@@ -55,6 +61,9 @@ jobs:
         working-directory: app
         run: npm ci --no-audit --no-fund
 
+      - name: Install backend dependencies for archive and recovery tests
+        run: npm ci --prefix server --ignore-scripts
+
       - name: Test FINCA MARIA navigation
         run: npm test
 
@@ -65,6 +74,29 @@ jobs:
       - name: Test Actions save and return flow in Chromium
         run: npm run test:actions:browser
 
+      - name: Test Maison workflows and legacy data in Chromium
+        run: npm run test:house:browser
+
+      - name: Test Maison synchronization protection from the homepage
+        run: npm run test:house-sync:browser
+
+      - name: Test integrated Terre navigation, persistence and concurrent edits
+        run: npm run test:integration:browser
+
+      - name: Test concurrent Maison edits without losing family data
+        run: npm run test:house-concurrency:browser
+
+      - name: Save Maison browser captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maison-browser-captures
+          path: |
+            /tmp/finca-maison-qa/
+            /tmp/finca-integration-qa/
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Test report save and validation failures in Chromium
         run: npm run test:meetings:browser
 
@@ -73,6 +105,9 @@ jobs:
 
       - name: Test meeting search and pagination
         run: npm run test:meeting-search:browser
+
+      - name: Test archives, review and participation in the browser
+        run: npm run test:meeting-archives:browser
 
       - name: Test meeting preparation and participant lists
         run: npm run test:meeting-preparation:browser
@@ -90,8 +125,15 @@ jobs:
         working-directory: app
         run: npm audit --omit=dev --audit-level=high
 
+      - name: Audit backend production dependencies
+        working-directory: server
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Check backend syntax
         run: node --check server/src/server.js
+
+      - name: Test local account recovery with isolated PostgreSQL
+        run: npm run test:account-recovery:api
 
       - name: Build frontend container
         run: docker build --pull -t finca-maria-web:ci ./app
@@ -138,4 +180,5 @@ jobs:
           SESSION_HOURS: "1"
           BACKUP_INTERVAL_SECONDS: "3600"
           BACKUP_RETENTION_DAYS: "1"
+          FINCA_HOUSE_RUNTIME_BROWSER: "1"
         run: sh scripts/ci-finca-runtime-smoke.sh

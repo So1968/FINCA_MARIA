@@ -1,0 +1,43 @@
+import assert from "node:assert/strict";
+import crypto from "node:crypto";
+const base = process.env.FINCA_TEST_URL;
+const cookie = process.env.FINCA_TEST_COOKIE;
+assert.equal(process.env.FINCA_RUNTIME_TEST, "1");
+assert.ok(["localhost", "127.0.0.1"].includes(new URL(base).hostname) && cookie && process.env.FINCA_BOOTSTRAP_ADMIN_EMAIL?.endsWith("@example.test"));
+const room = `Chambre concurrence test ${crypto.randomUUID()}`;
+const make = () => ({ id: crypto.randomUUID(), name: "Occupant concurrence test", place: room, arrival: "2044-03-01", departure: "2044-03-04", note: "", expected: null });
+async function save(body) {
+  const response = await fetch(`${base}/api/reservations`, { method: "POST", headers: { Cookie: cookie, Origin: base, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  return { status: response.status, body: await response.json() };
+}
+const created = await Promise.all([save(make()), save(make())]);
+assert.deepEqual(created.map(item => item.status).sort(), [200, 409]);
+const identical = make();
+const sameId = await Promise.all([save({ ...identical, place: `${room}-A` }), save({ ...identical, place: `${room}-B` })]);
+assert.deepEqual(sameId.map(item => item.status).sort(), [200, 409]);
+assert.equal(sameId.find(item => item.status === 409).body.code, "RESERVATION_CHANGED");
+const first = created.find(item => item.status === 200).body;
+const expectation = Object.fromEntries(["name", "place", "arrival", "departure", "note"].map(field => [field, first[field] ?? ""]));
+const edits = await Promise.all([save({ ...first, note: "Première modification test", expected: expectation }), save({ ...first, note: "Autre modification test", expected: expectation })]);
+assert.deepEqual(edits.map(item => item.status).sort(), [200, 409]);
+assert.equal(edits.find(item => item.status === 409).body.code, "RESERVATION_CHANGED");
+const bootstrap = await (await fetch(`${base}/api/bootstrap`, { headers: { Cookie: cookie } })).json();
+assert.equal(bootstrap.reservations.filter(item => item.place === room).length, 1);
+assert.equal(bootstrap.reservations.find(item => item.id === first.id).note, edits.find(item => item.status === 200).body.note);
+assert.equal((await save({ ...make(), id: first.id })).body.code, "RESERVATION_CHANGED");
+assert.equal((await save({ ...make(), place: `${room}-autre`, expected: expectation })).body.code, "RESERVATION_CHANGED");
+assert.equal((await save({ ...make(), arrival: "2044-02-30" })).status, 400);
+assert.equal((await save({ ...make(), note: "x".repeat(1001) })).status, 400);
+const legacy = await save({ ...first, note: "Ancien client de test compatible" });
+assert.equal(legacy.status, 200);
+const restorable = (await save({ ...make(), place: `${room}-restauration` })).body;
+const trash = async action => {
+  const response = await fetch(`${base}/api/trash/reservation/${restorable.id}/${action}`, { method: "POST", headers: { Cookie: cookie, Origin: base, "Content-Type": "application/json" }, body: "{}" });
+  return { status: response.status, body: await response.json() };
+};
+assert.equal((await trash("delete")).status, 200);
+const restored = await Promise.all([trash("restore"), save({ ...make(), place: restorable.place })]);
+assert.deepEqual(restored.map(item => item.status).sort(), [200, 409]);
+const finalState = await (await fetch(`${base}/api/bootstrap`, { headers: { Cookie: cookie } })).json();
+assert.equal(finalState.reservations.filter(item => item.place === restorable.place).length, 1);
+console.log("✓ Réservations : créations et restauration concurrentes sérialisées, modification obsolète refusée, version gagnante conservée, dates/longueurs validées et ancien client compatible");
